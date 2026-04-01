@@ -1,0 +1,5 @@
+.env
+node_modules/
+.x-session.json
+.note-session.json
+note/__pycache__/

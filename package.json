@@ -1,0 +1,22 @@
+{
+  "name": "automation",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "scheduler": "node scheduler/index.js",
+    "x:research": "node x/research.js",
+    "x:post": "node x/post.js",
+    "note:generate": "node note/generate.js",
+    "note:post": "node note/post.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "dotenv": "^16.4.0",
+    "node-cron": "^3.0.3",
+    "openai": "^4.77.0",
+    "playwright": "^1.49.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "twitter-api-v2": "^1.18.0"
+  }
+}
