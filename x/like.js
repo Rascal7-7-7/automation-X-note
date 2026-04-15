@@ -87,11 +87,32 @@ async function getCount(el, testId) {
   return 0;
 }
 
-// ── xurl でいいね ─────────────────────────────────────────────────
+// ── xurl 可用性チェック ───────────────────────────────────────────
+let _xurlAvailable = null;
+function isXurlAvailable() {
+  if (_xurlAvailable === null) {
+    try {
+      execFileSync('xurl', ['--version'], { encoding: 'utf8', stdio: 'pipe' });
+      _xurlAvailable = true;
+    } catch { _xurlAvailable = false; }
+  }
+  return _xurlAvailable;
+}
 
-function xurlLike(tweetId) {
-  const raw = execFileSync('xurl', ['like', tweetId], { encoding: 'utf8' });
-  return JSON.parse(raw);
+// ── いいね ────────────────────────────────────────────────────────
+
+async function xurlLike(tweetId) {
+  if (isXurlAvailable()) {
+    const raw = execFileSync('xurl', ['like', tweetId], { encoding: 'utf8' });
+    return JSON.parse(raw);
+  }
+  const { TwitterApi } = await import('twitter-api-v2');
+  const client = new TwitterApi({
+    appKey: process.env.X_API_KEY, appSecret: process.env.X_API_SECRET,
+    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_SECRET,
+  });
+  const me = await client.v2.me();
+  return client.v2.like(me.data.id, tweetId);
 }
 
 // ── メイン ────────────────────────────────────────────────────────

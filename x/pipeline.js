@@ -93,21 +93,88 @@ export async function reviewTweet(text) {
   }
 }
 
+// ── xurl 可用性キャッシュ ────────────────────────────────────────────
+let _xurlAvailable = null;
+function isXurlAvailable() {
+  if (_xurlAvailable === null) {
+    try {
+      execFileSync('xurl', ['--version'], { encoding: 'utf8', stdio: 'pipe' });
+      _xurlAvailable = true;
+    } catch {
+      _xurlAvailable = false;
+    }
+  }
+  return _xurlAvailable;
+}
+
+function makeTwitterClient() {
+  return import('twitter-api-v2').then(({ TwitterApi }) => new TwitterApi({
+    appKey:      process.env.X_API_KEY,
+    appSecret:   process.env.X_API_SECRET,
+    accessToken: process.env.X_ACCESS_TOKEN,
+    accessSecret: process.env.X_ACCESS_SECRET,
+  }));
+}
+
 // ── 投稿 ────────────────────────────────────────────────────────────
 export async function postTweet(text) {
-  const raw = execFileSync('xurl', ['post', text], { encoding: 'utf8' });
-  const result = JSON.parse(raw);
-  return result?.data?.id ?? result?.id;
+  if (isXurlAvailable()) {
+    const raw = execFileSync('xurl', ['post', text], { encoding: 'utf8' });
+    const result = JSON.parse(raw);
+    return result?.data?.id ?? result?.id;
+  }
+  logger.info(MODULE, 'xurl not available, using twitter-api-v2');
+  const client = await makeTwitterClient();
+  const tweet  = await client.v2.tweet(text);
+  return tweet.data.id;
 }
 
 // ── ツイート生成 ────────────────────────────────────────────────────
 const TWEET_SYSTEM = `あなたはAI活用・副業・生産性をテーマに発信するXアカウントの中の人です。
-以下のルールでツイートを1件作成してください：
-- 140文字以内（日本語）
-- 学びになる具体的な情報を含める
-- ハッシュタグは2〜3個
-- 宣伝・誇張・煽りは禁止
-- 末尾に改行なし`;
+以下のルールで日本語ツイートを1件作成してください。
+
+【文字数・改行】
+- 全体: 120〜140文字（全角）
+- 1行あたり最大20文字で改行する
+- セクション間は1行空け（連続空行禁止）
+
+【冒頭1行（スクロール停止ライン）— 必ずどれか1つを使う】
+1. 【朗報/速報/必見/保存版】+ 結果
+2. 数字+成果: 「月5万稼いだAI副業の全手順」
+3. ターゲット指定: 「AI副業を始めたい人へ」
+4. 意外性: 「9割が知らない〇〇」「正直に言う」
+5. 数字リード: 「AIツール7選を試した結果」
+※冒頭行に絵文字を入れない
+
+【構造テンプレート（1つ選ぶ）】
+A. 問題提起1行
+（空行）
+・解決策1
+・解決策2
+・解決策3
+（空行）
+質問CTA
+
+B. 結果（数字付き）
+（空行）
+理由・具体例を2〜3行
+
+C. 【保存版】チェックリスト
+□ 項目1
+□ 項目2
+□ 項目3
+ブクマCTA
+
+【絵文字・ハッシュタグ】
+- 絵文字は最大2個・CTAの末尾のみ（👇📌✅💡🔥⚡）
+- ハッシュタグは最大2個・本文末尾に置く
+- 本文にURLを絶対に入れない
+
+【末尾CTA（必須）】
+「〇〇の人はリプで教えて👇」「ブクマ推奨📌」「役立ったらRTしてくれると嬉しいです」のどれか1つ
+
+【禁止】
+「今日は〇〇について書きます」等の導入文・ハッシュタグ3個以上・宣伝・誇張`;
 
 async function generateTweet(item) {
   const prompt = `キーワード: ${item.keyword}\n参考ツイート: ${item.text ?? ''}`;

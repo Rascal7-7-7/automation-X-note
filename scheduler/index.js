@@ -100,11 +100,40 @@ function runProd() {
   }
 }
 
+// ── PROD 単発実行（Routines 向け）─────────────────────────────────
+// MODE=prod + DEV_TASK=xxx の組み合わせで1タスクだけ実行して終了
+async function runProdOnce() {
+  const target  = process.env.DEV_TASK;
+  const task    = TASKS.find(t => t.name === target);
+  const handler = HANDLERS[target];
+
+  if (!handler) {
+    console.error(`unknown task: ${target}`);
+    console.error(`available: ${Object.keys(HANDLERS).join(', ')}`);
+    process.exit(1);
+  }
+
+  console.log(`PROD MODE (single run) — running: ${target}`);
+  logger.info(MODULE, `prod single run: ${target}`);
+
+  try {
+    await handler(task ?? {});
+    logger.info(MODULE, `prod single run done: ${target}`);
+  } catch (err) {
+    logger.error(MODULE, `prod single run failed: ${target}`, { message: err.message });
+    process.exit(1);
+  }
+}
+
 // ── エントリポイント ───────────────────────────────────────────────
 if (MODE === 'dev') {
   runDev();
 } else if (MODE === 'prod') {
-  runProd();
+  if (process.env.DEV_TASK) {
+    runProdOnce();   // Routines: 1タスクだけ実行して終了
+  } else {
+    runProd();       // ローカル常駐: cron デーモン起動
+  }
 } else {
   console.error(`unknown MODE: ${MODE}. use MODE=dev or MODE=prod`);
   process.exit(1);

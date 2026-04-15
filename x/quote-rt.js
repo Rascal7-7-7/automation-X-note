@@ -112,11 +112,31 @@ async function getMetricCount(el, testId) {
   return 0;
 }
 
+// ── xurl 可用性チェック ───────────────────────────────────────────
+let _xurlAvailable = null;
+function isXurlAvailable() {
+  if (_xurlAvailable === null) {
+    try {
+      execFileSync('xurl', ['--version'], { encoding: 'utf8', stdio: 'pipe' });
+      _xurlAvailable = true;
+    } catch { _xurlAvailable = false; }
+  }
+  return _xurlAvailable;
+}
+
 // ── xurl ラッパー ─────────────────────────────────────────────────
 
-function xurlQuoteRT(tweetId, commentary) {
-  const raw = execFileSync('xurl', ['quote', tweetId, commentary], { encoding: 'utf8' });
-  return JSON.parse(raw);
+async function xurlQuoteRT(tweetId, commentary) {
+  if (isXurlAvailable()) {
+    const raw = execFileSync('xurl', ['quote', tweetId, commentary], { encoding: 'utf8' });
+    return JSON.parse(raw);
+  }
+  const { TwitterApi } = await import('twitter-api-v2');
+  const client = new TwitterApi({
+    appKey: process.env.X_API_KEY, appSecret: process.env.X_API_SECRET,
+    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_SECRET,
+  });
+  return client.v2.tweet(commentary, { quote_tweet_id: tweetId });
 }
 
 // ── コメント生成 ──────────────────────────────────────────────────
