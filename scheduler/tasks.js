@@ -32,7 +32,19 @@ export const TASKS = [
   },
   {
     name: 'note:post',
-    cron: '0 10 * * 2',            // 火曜 10:00 — 下書き保存（公開は手動）
+    cron: '0 10 * * 2',            // 火曜 10:00 — DEV: 下書き保存 / PROD: 自動公開
+  },
+
+  // ── X エンゲージメント拡大（毎日）────────────────────────────────
+  {
+    name:     'x:reply',
+    cron:     '0 9,21 * * *',       // 毎日 2回 — 高エンゲージツイートへのリプライ（最大10件/日）
+    keywords: ['AI活用', 'Claude', '副業', '自動化', '生産性', 'ChatGPT'],
+  },
+  {
+    name:     'x:quote-rt',
+    cron:     '30 9 * * *',         // 毎日 09:30 — バズツイート引用RT（最大3件/日）
+    keywords: ['AI活用', 'Claude', '生成AI', '個人開発'],
   },
 
   // ── 流入導線（火曜投稿の15分後にX告知） ─────────────────────────
@@ -48,6 +60,11 @@ export const TASKS = [
     account: 1,
   },
   {
+    name:    'instagram:image:1',
+    cron:    '30 9 * * *',           // 毎日 09:30 — DALL-E 3 生成 → Imgur アップロード → imageUrl 設定
+    account: 1,
+  },
+  {
     name:    'instagram:post:1',
     cron:    '0 19 * * *',           // 毎日 19:00 — 投稿（エンゲージ最大帯）
     account: 1,
@@ -58,6 +75,11 @@ export const TASKS = [
   {
     name:    'instagram:generate:2',
     cron:    '0 10 * * 1,3,5',       // 月・水・金 10:00 — 案件選択 + キャプション生成
+    account: 2,
+  },
+  {
+    name:    'instagram:image:2',
+    cron:    '30 10 * * 1,3,5',      // 月・水・金 10:30 — DALL-E 3 生成 → Imgur アップロード → imageUrl 設定
     account: 2,
   },
   {
