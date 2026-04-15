@@ -1,0 +1,23 @@
+// OpenClaw 設定テンプレート
+// → ~/.openclaw/openclaw.json にコピーして使用
+// 形式: JSON5（コメント可・末尾カンマ可）
+{
+  gateway: {
+    port: 8080,
+  },
+  models: {
+    provider: "anthropic",
+    model: "claude-haiku-4-5-20251001",
+    // ANTHROPIC_API_KEY は環境変数から自動取得
+  },
+  channels: {
+    telegram: {
+      enabled: true,
+      botToken: "YOUR_TELEGRAM_BOT_TOKEN",  // BotFather で取得
+      dmPolicy: "pairing",
+    },
+  },
+  agent: {
+    soulFile: "/home/rascal/work/automation/openclaw/SOUL.md",
+  },
+}

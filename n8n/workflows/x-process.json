@@ -1,0 +1,61 @@
+{
+  "name": "X Process（08:30 / 12:30 / 18:30）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "30 8 * * *" }]
+        }
+      },
+      "id": "n8n-x-process-trigger-0830",
+      "name": "08:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 200]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "30 12 * * *" }]
+        }
+      },
+      "id": "n8n-x-process-trigger-1230",
+      "name": "12:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 340]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "30 18 * * *" }]
+        }
+      },
+      "id": "n8n-x-process-trigger-1830",
+      "name": "18:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 480]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/x/process",
+        "options": { "timeout": 60000 }
+      },
+      "id": "n8n-x-process-call",
+      "name": "ツイート生成・投稿",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 340]
+    }
+  ],
+  "connections": {
+    "08:30":  { "main": [[{ "node": "ツイート生成・投稿", "type": "main", "index": 0 }]] },
+    "12:30":  { "main": [[{ "node": "ツイート生成・投稿", "type": "main", "index": 0 }]] },
+    "18:30":  { "main": [[{ "node": "ツイート生成・投稿", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "1"
+}

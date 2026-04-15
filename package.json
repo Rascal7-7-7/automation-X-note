@@ -1,22 +1,29 @@
 {
   "name": "automation",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
   "scripts": {
+    "bridge": "node bridge/server.js",
+    "n8n": "N8N_USER_FOLDER=./n8n/data N8N_BASIC_AUTH_ACTIVE=false N8N_HOST=localhost N8N_PORT=5678 N8N_PROTOCOL=http GENERIC_TIMEZONE=Asia/Tokyo N8N_SECURE_COOKIE=false npx n8n start",
+    "start": "concurrently -n bridge,n8n -c cyan,magenta \"npm run bridge\" \"npm run n8n\"",
     "scheduler": "node scheduler/index.js",
-    "x:research": "node x/research.js",
-    "x:post": "node x/post.js",
-    "note:generate": "node note/generate.js",
-    "note:post": "node note/post.js"
+    "dev:x:research": "MODE=dev DEV_TASK=x:enqueue node scheduler/index.js",
+    "dev:x:process": "MODE=dev DEV_TASK=x:process node scheduler/index.js",
+    "dev:note:generate": "MODE=dev DEV_TASK=note:generate node scheduler/index.js",
+    "dev:note:post": "MODE=dev DEV_TASK=note:post node scheduler/index.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "dotenv": "^16.4.0",
+    "express": "^5.2.1",
     "node-cron": "^3.0.3",
     "openai": "^4.77.0",
     "playwright": "^1.49.0",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "twitter-api-v2": "^1.18.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   }
 }

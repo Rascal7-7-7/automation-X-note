@@ -1,0 +1,35 @@
+{
+  "name": "YouTube Analytics 収集（毎日 23:30）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "30 23 * * *" }]
+        }
+      },
+      "id": "yt-analytics-trigger",
+      "name": "毎日 23:30",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/youtube/collect",
+        "options": { "timeout": 60000 }
+      },
+      "id": "yt-analytics-call",
+      "name": "YouTube Analytics 収集",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "毎日 23:30": { "main": [[{ "node": "YouTube Analytics 収集", "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "1"
+}

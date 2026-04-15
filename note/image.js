@@ -29,7 +29,17 @@ if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR, { recursive: true });
 }
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// OPENAI_API_KEY が未設定でも起動できるよう遅延初期化
+let openai = null;
+function getOpenAI() {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not set — note image generation unavailable');
+    }
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
 
 // ── プロンプト生成 ────────────────────────────────────────────────────
 const PROMPT_SYSTEM = `You are an expert at writing DALL-E 3 image generation prompts.
@@ -56,7 +66,7 @@ async function buildImagePrompt(title, summary) {
 async function generateImage(imagePrompt) {
   logger.info(MODULE, 'calling DALL-E 3', { prompt: imagePrompt });
 
-  const response = await openai.images.generate({
+  const response = await getOpenAI().images.generate({
     model: 'dall-e-3',
     prompt: imagePrompt,
     n: 1,

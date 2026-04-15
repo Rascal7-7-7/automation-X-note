@@ -1,0 +1,60 @@
+{
+  "name": "Analytics（22:00 X収集 → 23:00 バズ分析）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 22 * * *" }]
+        }
+      },
+      "id": "n8n-analytics-collect-trigger",
+      "name": "毎日 22:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 240]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/analytics/collect-x",
+        "options": { "timeout": 60000 }
+      },
+      "id": "n8n-analytics-collect-call",
+      "name": "X エンゲージメント収集",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 240]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 23 * * *" }]
+        }
+      },
+      "id": "n8n-analytics-buzz-trigger",
+      "name": "毎日 23:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 440]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/analytics/buzz",
+        "options": { "timeout": 60000 }
+      },
+      "id": "n8n-analytics-buzz-call",
+      "name": "バズ分析・ヒント生成",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 440]
+    }
+  ],
+  "connections": {
+    "毎日 22:00": { "main": [[{ "node": "X エンゲージメント収集", "type": "main", "index": 0 }]] },
+    "毎日 23:00": { "main": [[{ "node": "バズ分析・ヒント生成",   "type": "main", "index": 0 }]] }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "1"
+}

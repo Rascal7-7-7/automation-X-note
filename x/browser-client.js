@@ -52,8 +52,6 @@ async function login(page) {
   await page.locator('[data-testid="LoginForm_Next_Button"]').or(page.getByText('次へ')).or(page.getByText('Next')).first().click();
   await page.waitForTimeout(2_000);
 
-  // デバッグ用スクリーンショット
-  await page.screenshot({ path: '/tmp/x-login-step2.png' });
   logger.info(MODULE, `step2 url: ${page.url()}`);
 
   // Step2: メールアドレス確認を求められる場合（電話番号も同様）
@@ -66,7 +64,6 @@ async function login(page) {
   }
 
   // Step3: パスワード
-  await page.screenshot({ path: '/tmp/x-login-step3.png' });
   logger.info(MODULE, `step3 url: ${page.url()}`);
   await page.waitForSelector('input[type="password"]', { timeout: 15_000 });
   await page.locator('input[type="password"]').fill(process.env.X_PASSWORD);

@@ -13,14 +13,14 @@
 import 'dotenv/config';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { TwitterApi } from 'twitter-api-v2';
+import { execFileSync } from 'child_process';
+import fs from 'fs';
 import { FileQueue, processWithRetry } from '../shared/queue.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { canPost } from '../shared/daily-limit.js';
 import { logXPost } from '../analytics/logger.js';
 import { runResearch } from './research.js';
-import { postTweetBrowser } from './post-browser.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'x:pipeline';
@@ -30,23 +30,50 @@ const mainQ   = new FileQueue(path.join(__dirname, 'queue/main.jsonl'));
 const retryQ  = new FileQueue(path.join(__dirname, 'queue/retry.jsonl'));
 const failedQ = new FileQueue(path.join(__dirname, 'queue/failed.jsonl'));
 
-// ── Twitter クライアント（シングルトン） ───────────────────────────
-const twitterClient = new TwitterApi({
-  appKey:      process.env.X_API_KEY,
-  appSecret:   process.env.X_API_SECRET,
-  accessToken: process.env.X_ACCESS_TOKEN,
-  accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
-});
+// 投稿済みツイートの記録ファイル（重複チェック用）
+const POSTED_LOG = path.join(__dirname, 'queue/posted.jsonl');
+const POSTED_KEEP_DAYS = 30; // 直近30日分を保持
 
 // ── ルールベース検証 ────────────────────────────────────────────────
 const BANNED_WORDS = ['詐欺', '絶対儲かる', '100%成功', '必ず稼げる'];
 
+// X の実際の上限は280文字だが、URLや画像などの付加要素を考慮して保守的に設定
+const MAX_TWEET_LENGTH = 140;
+
 export function validateTweet(text) {
   if (!text || text.trim().length === 0) return { ok: false, reason: 'empty' };
-  if (text.length > 140)                 return { ok: false, reason: 'too long' };
+  if (text.length > MAX_TWEET_LENGTH)    return { ok: false, reason: 'too long' };
   const hit = BANNED_WORDS.find(w => text.includes(w));
   if (hit)                               return { ok: false, reason: `banned: ${hit}` };
   return { ok: true };
+}
+
+// ── 重複チェック ─────────────────────────────────────────────────────
+function loadRecentPosted() {
+  if (!fs.existsSync(POSTED_LOG)) return [];
+  const cutoff = Date.now() - POSTED_KEEP_DAYS * 24 * 60 * 60 * 1000;
+  return fs.readFileSync(POSTED_LOG, 'utf8')
+    .split('\n').filter(Boolean)
+    .map(line => { try { return JSON.parse(line); } catch { return null; } })
+    .filter(item => item && item.postedAt > cutoff);
+}
+
+function recordPosted(text) {
+  const entry = JSON.stringify({ text, postedAt: Date.now() });
+  fs.appendFileSync(POSTED_LOG, entry + '\n');
+}
+
+export function isDuplicate(text) {
+  const recent = loadRecentPosted();
+  // 完全一致、またはキーワード70%以上の重複を検出
+  return recent.some(item => {
+    if (item.text === text) return true;
+    const wordsA = new Set(text.replace(/[^\p{L}\p{N}]/gu, ' ').split(/\s+/).filter(w => w.length > 1));
+    const wordsB = new Set(item.text.replace(/[^\p{L}\p{N}]/gu, ' ').split(/\s+/).filter(w => w.length > 1));
+    if (wordsA.size === 0) return false;
+    const overlap = [...wordsA].filter(w => wordsB.has(w)).length;
+    return overlap / wordsA.size >= 0.7;
+  });
 }
 
 // ── AI レビュー ─────────────────────────────────────────────────────
@@ -68,12 +95,9 @@ export async function reviewTweet(text) {
 
 // ── 投稿 ────────────────────────────────────────────────────────────
 export async function postTweet(text) {
-  if (process.env.X_API_KEY) {
-    const { data } = await twitterClient.v2.tweet(text);
-    return data.id;
-  }
-  // X API 未設定時はブラウザ経由で投稿
-  return postTweetBrowser(text);
+  const raw = execFileSync('xurl', ['post', text], { encoding: 'utf8' });
+  const result = JSON.parse(raw);
+  return result?.data?.id ?? result?.id;
 }
 
 // ── ツイート生成 ────────────────────────────────────────────────────
@@ -116,6 +140,11 @@ export async function processQueue(opts = {}) {
       throw new Error(`validate NG: ${validation.reason}`);
     }
 
+    if (isDuplicate(tweetText)) {
+      logger.warn(MODULE, 'duplicate tweet detected, skipping', { text: tweetText });
+      return;
+    }
+
     if (isDev) {
       console.log('\n--- DEV MODE: REVIEW REQUIRED BEFORE POSTING ---');
       console.log(tweetText);
@@ -136,6 +165,7 @@ export async function processQueue(opts = {}) {
 
     const tweetId = await postTweet(tweetText);
     logger.info(MODULE, `posted: ${tweetId}`);
+    recordPosted(tweetText);
 
     logXPost({
       tweetId,

@@ -1,5 +1,31 @@
+# Secrets
 .env
+.env.bak
+.env.local
+
+# Dependencies
 node_modules/
+
+# Session files
 .x-session.json
 .note-session.json
+
+# n8n runtime data (57MB SQLite + cache)
+n8n/data/
+
+# Runtime queue data (personal content)
+x/queue/posted.jsonl
+x/queue/main.jsonl
+note/queue/ideas.jsonl
+youtube/queue/
+
+# Logs
+logs/
+
+# Python
 note/__pycache__/
+**/__pycache__/
+*.pyc
+
+# OS
+.DS_Store
