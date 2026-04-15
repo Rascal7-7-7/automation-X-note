@@ -3,122 +3,215 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI副業ナビ | おすすめサービス一覧</title>
+  <title>AI副業ナビ | おすすめサービス</title>
   <meta name="description" content="AIを活用した副業・スキルアップに役立つサービスをまとめました。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #060612;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.08);
+      --border-hover: rgba(255,255,255,0.18);
+      --text: #f0f0f8;
+      --muted: #888;
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Yu Gothic', sans-serif;
-      background: #0f0f0f;
-      color: #fff;
+      font-family: 'Noto Sans JP', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background orbs ── */
+    .bg-orbs {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.22;
+      animation: drift 18s ease-in-out infinite;
+    }
+    .orb-1 { width: 500px; height: 500px; background: #6366f1; top: -150px; left: -150px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: #8b5cf6; bottom: -100px; right: -100px; animation-delay: -6s; }
+    .orb-3 { width: 300px; height: 300px; background: #06b6d4; top: 40%; left: 60%; animation-delay: -12s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(30px, -40px) scale(1.05); }
+      66%       { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 16px 60px;
+      padding: 52px 16px 72px;
+      max-width: 520px;
+      margin: 0 auto;
     }
 
-    .profile {
-      text-align: center;
-      margin-bottom: 32px;
-    }
+    /* ── Profile ── */
+    .profile { text-align: center; margin-bottom: 40px; }
 
-    .avatar {
-      width: 80px;
-      height: 80px;
+    .avatar-wrap {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+    .avatar-ring {
+      position: absolute;
+      inset: -3px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      background: linear-gradient(135deg, #6366f1, #8b5cf6, #06b6d4, #6366f1);
+      background-size: 300% 300%;
+      animation: spin-gradient 4s linear infinite;
+    }
+    .avatar {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1e1b4b, #2e1065);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 36px;
-      margin: 0 auto 12px;
+      font-size: 38px;
+      position: relative;
+      z-index: 1;
+    }
+    @keyframes spin-gradient {
+      0%   { background-position: 0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    .profile h1 {
-      font-size: 18px;
+    .profile-name {
+      font-size: 20px;
       font-weight: 700;
-      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
     }
-
-    .profile p {
+    .profile-bio {
       font-size: 13px;
-      color: #aaa;
-      line-height: 1.6;
-      max-width: 280px;
+      color: var(--muted);
+      line-height: 1.8;
     }
-
-    .section-title {
-      font-size: 11px;
-      font-weight: 600;
-      color: #666;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin: 28px 0 12px;
-      width: 100%;
-      max-width: 480px;
-    }
-
-    .links {
-      width: 100%;
-      max-width: 480px;
+    .stats {
       display: flex;
-      flex-direction: column;
-      gap: 10px;
+      gap: 28px;
+      justify-content: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 14px; font-weight: 700; color: var(--text); }
+    .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* ── Section ── */
+    .section { width: 100%; margin-bottom: 24px; }
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+      padding-left: 2px;
     }
 
-    .link-card {
+    /* ── Card ── */
+    .card {
       display: flex;
       align-items: center;
       gap: 14px;
-      background: #1a1a1a;
-      border: 1px solid #2a2a2a;
-      border-radius: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
       padding: 14px 16px;
       text-decoration: none;
-      color: #fff;
-      transition: background 0.15s, transform 0.1s;
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+      margin-bottom: 10px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.04) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    .card:hover::after { transform: translateX(100%); }
+    .card:hover {
+      background: var(--surface-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.12);
+    }
+    .card:active { transform: translateY(0); box-shadow: none; }
+
+    .card.featured {
+      background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+      border-color: rgba(99,102,241,0.3);
+    }
+    .card.featured:hover {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.14));
+      border-color: rgba(99,102,241,0.5);
+      box-shadow: 0 8px 40px rgba(99,102,241,0.2);
     }
 
-    .link-card:hover {
-      background: #222;
-      transform: translateY(-1px);
-    }
-
-    .link-card:active {
-      transform: translateY(0);
-    }
-
-    .link-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
+    .icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 22px;
       flex-shrink: 0;
     }
+    .icon-purple { background: rgba(99,102,241,0.18); }
+    .icon-blue   { background: rgba(14,165,233,0.16); }
+    .icon-orange { background: rgba(251,146,60,0.16); }
+    .icon-red    { background: rgba(239,68,68,0.16); }
+    .icon-cyan   { background: rgba(6,182,212,0.16); }
+    .icon-pink   { background: rgba(236,72,153,0.16); }
 
-    .link-body {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .link-name {
+    .card-body { flex: 1; min-width: 0; }
+    .card-name {
       font-size: 14px;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-
-    .link-desc {
+    .card-desc {
       font-size: 12px;
-      color: #888;
-      margin-top: 2px;
+      color: var(--muted);
+      margin-top: 3px;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -127,142 +220,161 @@
     .badge {
       font-size: 10px;
       font-weight: 700;
-      padding: 3px 7px;
+      padding: 3px 8px;
       border-radius: 20px;
       white-space: nowrap;
       flex-shrink: 0;
     }
-
-    .badge-free  { background: #1a3a2a; color: #4ade80; }
-    .badge-hot   { background: #3a1a1a; color: #f87171; }
-    .badge-new   { background: #1a2a3a; color: #60a5fa; }
-    .badge-sale  { background: #3a2a1a; color: #fb923c; }
-
-    /* アイコン背景色 */
-    .bg-purple  { background: #2d1f5e; }
-    .bg-red     { background: #3a1a1a; }
-    .bg-blue    { background: #1a2540; }
-    .bg-orange  { background: #3a2010; }
-    .bg-green   { background: #0f2a1a; }
-    .bg-pink    { background: #3a1a2a; }
+    .badge-purple { background: rgba(99,102,241,0.2);  color: #a5b4fc; border: 1px solid rgba(99,102,241,0.3); }
+    .badge-green  { background: rgba(34,197,94,0.18);  color: #86efac; border: 1px solid rgba(34,197,94,0.28); }
+    .badge-orange { background: rgba(251,146,60,0.18); color: #fdba74; border: 1px solid rgba(251,146,60,0.28); }
+    .badge-blue   { background: rgba(14,165,233,0.18); color: #7dd3fc; border: 1px solid rgba(14,165,233,0.28); }
+    .badge-red    { background: rgba(239,68,68,0.18);  color: #fca5a5; border: 1px solid rgba(239,68,68,0.28); }
 
     .arrow {
-      color: #444;
-      font-size: 16px;
+      color: rgba(255,255,255,0.2);
+      font-size: 20px;
       flex-shrink: 0;
+      transition: color 0.2s, transform 0.2s;
+      line-height: 1;
     }
+    .card:hover .arrow { color: rgba(255,255,255,0.55); transform: translateX(3px); }
 
+    /* ── Divider ── */
+    .divider { width: 100%; height: 1px; background: var(--border); margin: 8px 0 24px; }
+
+    /* ── Footer ── */
     .footer {
-      margin-top: 48px;
-      font-size: 11px;
-      color: #444;
       text-align: center;
-      line-height: 1.8;
+      font-size: 11px;
+      color: rgba(255,255,255,0.18);
+      line-height: 2;
     }
+    .footer a { color: rgba(255,255,255,0.25); text-decoration: none; }
+    .footer a:hover { color: rgba(255,255,255,0.5); }
 
-    .footer a { color: #555; text-decoration: none; }
+    /* ── Entrance animations ── */
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .profile          { animation: fade-up 0.55s ease both; }
+    .section:nth-child(2) { animation: fade-up 0.55s 0.08s ease both; }
+    .section:nth-child(3) { animation: fade-up 0.55s 0.14s ease both; }
+    .section:nth-child(4) { animation: fade-up 0.55s 0.20s ease both; }
+    .section:nth-child(5) { animation: fade-up 0.55s 0.26s ease both; }
+    .divider, .footer { animation: fade-up 0.55s 0.32s ease both; }
 
-    @media (max-width: 360px) {
-      .link-desc { display: none; }
+    @media (max-width: 380px) {
+      .card-desc { display: none; }
+      .stats { gap: 16px; }
+      .page { padding: 36px 12px 48px; }
     }
   </style>
 </head>
 <body>
 
+<div class="bg-orbs">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+</div>
+
+<main class="page">
+
   <div class="profile">
-    <div class="avatar">🤖</div>
-    <h1>AI副業ナビ</h1>
-    <p>AIで副業・スキルアップを加速させる<br>おすすめサービスをまとめました</p>
+    <div class="avatar-wrap">
+      <div class="avatar-ring"></div>
+      <div class="avatar">🤖</div>
+    </div>
+    <div class="profile-name">AI副業ナビ</div>
+    <div class="profile-bio">
+      AIで副業・スキルアップを加速する<br>おすすめサービスをまとめました
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="stat-num">毎日更新</div><div class="stat-lbl">情報発信</div></div>
+      <div class="stat"><div class="stat-num">AI特化</div><div class="stat-lbl">厳選案件</div></div>
+      <div class="stat"><div class="stat-num">無料多数</div><div class="stat-lbl">始めやすい</div></div>
+    </div>
   </div>
 
-  <!-- AI学習 -->
-  <div class="section-title">🎓 AI学習・スキルアップ</div>
-  <div class="links">
-
-    <a class="link-card" href="https://px.a8.net/YOUR_DMM_AI_CAMP_ID" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-purple">🧠</div>
-      <div class="link-body">
-        <div class="link-name">DMM 生成AI CAMP</div>
-        <div class="link-desc">補助金最大70%・無料セミナーから始められる</div>
+  <div class="section">
+    <div class="section-label">🎓 AI学習・スキルアップ</div>
+    <a class="card featured" href="https://px.a8.net/YOUR_DMM_AI_CAMP_ID" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-purple">🧠</div>
+      <div class="card-body">
+        <div class="card-name">DMM 生成AI CAMP</div>
+        <div class="card-desc">補助金最大70% · 無料セミナーから始められる</div>
       </div>
-      <span class="badge badge-hot">補助金対象</span>
+      <span class="badge badge-purple">補助金対象</span>
       <span class="arrow">›</span>
     </a>
-
   </div>
 
-  <!-- ブログ・サイト開設 -->
-  <div class="section-title">🌐 ブログ・サイト開設</div>
-  <div class="links">
-
-    <a class="link-card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1ELVYY+50+2HV61T" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-blue">🖥️</div>
-      <div class="link-body">
-        <div class="link-name">お名前.com レンタルサーバー</div>
-        <div class="link-desc">WordPressが最短10分で開設・サーバー同時申請でお得</div>
+  <div class="section">
+    <div class="section-label">🌐 ブログ・サイト開設</div>
+    <a class="card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1ELVYY+50+2HV61T" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-blue">🖥️</div>
+      <div class="card-body">
+        <div class="card-name">お名前.com レンタルサーバー</div>
+        <div class="card-desc">WordPress最短10分 · 国内シェアNo.1</div>
       </div>
-      <span class="badge badge-sale">おすすめ</span>
+      <span class="badge badge-orange">おすすめ</span>
       <span class="arrow">›</span>
     </a>
-
-    <a class="link-card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1ELVYY+50+2HGLCX" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-blue">🔗</div>
-      <div class="link-body">
-        <div class="link-name">お名前.com ドメイン取得</div>
-        <div class="link-desc">.comドメインが0円〜・副業ブログの第一歩に</div>
+    <a class="card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1ELVYY+50+2HGLCX" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-cyan">🔗</div>
+      <div class="card-body">
+        <div class="card-name">お名前.com ドメイン取得</div>
+        <div class="card-desc">.comドメインが0円〜 · 副業ブログの第一歩に</div>
       </div>
-      <span class="badge badge-free">0円〜</span>
+      <span class="badge badge-green">0円〜</span>
       <span class="arrow">›</span>
     </a>
-
   </div>
 
-  <!-- 副業を始める -->
-  <div class="section-title">💼 副業・アフィリエイトを始める</div>
-  <div class="links">
-
-    <a class="link-card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1DF0RE+0K+10FXXU" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-orange">💰</div>
-      <div class="link-body">
-        <div class="link-name">A8.net（アフィリエイト登録）</div>
-        <div class="link-desc">日本最大級・無料・審査なしですぐ始められる</div>
+  <div class="section">
+    <div class="section-label">💼 アフィリエイト・副業</div>
+    <a class="card" href="https://px.a8.net/svt/ejp?a8mat=4B1LPO+1DF0RE+0K+10FXXU" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-orange">💰</div>
+      <div class="card-body">
+        <div class="card-name">A8.net（アフィリエイト登録）</div>
+        <div class="card-desc">日本最大級 · 無料 · 審査なしで今すぐ始められる</div>
       </div>
-      <span class="badge badge-free">無料登録</span>
+      <span class="badge badge-green">無料</span>
       <span class="arrow">›</span>
     </a>
-
   </div>
 
-  <!-- お買い物・旅行 -->
-  <div class="section-title">🛍️ お買い物・旅行</div>
-  <div class="links">
-
-    <a class="link-card" href="https://rpx.a8.net/svt/ejp?a8mat=4B1LPO+1E0GD6+2HOM+6EMGZ&rakuten=y&a8ejpredirect=http%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2F0ea62065.34400275.0ea62066.204f04c0%2Fa26041502262_4B1LPO_1E0GD6_2HOM_6EMGZ%3Fpc%3Dhttp%253A%252F%252Fwww.rakuten.co.jp%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-red">🛒</div>
-      <div class="link-body">
-        <div class="link-name">楽天市場</div>
-        <div class="link-desc">ポイントが貯まる・副業関連書籍・ガジェットに</div>
+  <div class="section">
+    <div class="section-label">🛍️ お買い物・旅行</div>
+    <a class="card" href="https://rpx.a8.net/svt/ejp?a8mat=4B1LPO+1E0GD6+2HOM+6EMGZ&rakuten=y&a8ejpredirect=http%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2F0ea62065.34400275.0ea62066.204f04c0%2Fa26041502262_4B1LPO_1E0GD6_2HOM_6EMGZ%3Fpc%3Dhttp%253A%252F%252Fwww.rakuten.co.jp%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-red">🛒</div>
+      <div class="card-body">
+        <div class="card-name">楽天市場</div>
+        <div class="card-desc">ポイントが貯まる · 副業関連書籍・ガジェット</div>
       </div>
-      <span class="badge badge-sale">ポイントお得</span>
+      <span class="badge badge-red">ポイントお得</span>
       <span class="arrow">›</span>
     </a>
-
-    <a class="link-card" href="https://rpx.a8.net/svt/ejp?a8mat=4B1LPO+1E0GD6+2HOM+6KMIQ&rakuten=y&a8ejpredirect=http%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2F0eb4779e.5d30c5ba.0eb4779f.b871e4e3%2Fa26041502262_4B1LPO_1E0GD6_2HOM_6KMIQ%3Fpc%3Dhttp%253A%252F%252Ftravel.rakuten.co.jp%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F" target="_blank" rel="nofollow noopener">
-      <div class="link-icon bg-pink">✈️</div>
-      <div class="link-body">
-        <div class="link-name">楽天トラベル</div>
-        <div class="link-desc">国内・海外ホテル・航空券をお得に予約</div>
+    <a class="card" href="https://rpx.a8.net/svt/ejp?a8mat=4B1LPO+1E0GD6+2HOM+6KMIQ&rakuten=y&a8ejpredirect=http%3A%2F%2Fhb.afl.rakuten.co.jp%2Fhgc%2F0eb4779e.5d30c5ba.0eb4779f.b871e4e3%2Fa26041502262_4B1LPO_1E0GD6_2HOM_6KMIQ%3Fpc%3Dhttp%253A%252F%252Ftravel.rakuten.co.jp%252F%26m%3Dhttp%253A%252F%252Fm.rakuten.co.jp%252F" target="_blank" rel="nofollow noopener">
+      <div class="icon icon-pink">✈️</div>
+      <div class="card-body">
+        <div class="card-name">楽天トラベル</div>
+        <div class="card-desc">国内・海外ホテル · 航空券をお得に予約</div>
       </div>
-      <span class="badge badge-new">旅行</span>
+      <span class="badge badge-blue">旅行</span>
       <span class="arrow">›</span>
     </a>
-
   </div>
+
+  <div class="divider"></div>
 
   <div class="footer">
     ※ 本ページはアフィリエイト広告を含みます<br>
-    <a href="#">プライバシーポリシー</a>
+    <a href="#">プライバシーポリシー</a> · <a href="#">お問い合わせ</a>
   </div>
 
+</main>
 </body>
 </html>
