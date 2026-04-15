@@ -1,16 +1,20 @@
 /**
  * YouTube 動画レンダリングモジュール
  *
- * フロー:
+ * フロー（HeyGen優先）:
  *   1. youtube/drafts/{date}/{type}.json を読み込む
- *   2. Nanobanana Pro（Gemini）でシーン画像を生成
- *   3. FFmpeg で画像 + テロップ + BGM を合成して mp4 を出力
- *   4. draft.videoPath に保存パスを書き込む
+ *   2-a. HEYGEN_API_KEY が設定されている場合:
+ *        HeyGen v3 API でアバター動画を生成して video_heygen.mp4 に保存
+ *   2-b. 未設定の場合（フォールバック）:
+ *        Nanobanana Pro（Gemini）でシーン画像を生成
+ *        FFmpeg で画像 + テロップ + BGM を合成して mp4 を出力
+ *   3. draft.videoPath に保存パスを書き込む
  *
  * 必要な環境変数:
- *   GEMINI_API_KEY
+ *   HEYGEN_API_KEY  - HeyGen アバター動画生成（優先）
+ *   GEMINI_API_KEY  - Nanobanana Pro フォールバック用
  *
- * 必要なツール:
+ * 必要なツール（フォールバック時のみ）:
  *   ffmpeg（apt install ffmpeg）
  *   python3 + google-genai（Nanobanana Pro）
  */
@@ -21,6 +25,11 @@ import { fileURLToPath } from 'url';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '../shared/logger.js';
+import {
+  isHeyGenAvailable,
+  generateAvatarVideo,
+  downloadVideo,
+} from '../shared/heygen-client.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -82,27 +91,72 @@ export async function runRender({ type = 'short', date } = {}) {
   try {
     logger.info(MODULE, `rendering ${type} for "${draft.theme}"...`);
 
-    // 1. シーン画像の生成（Nanobanana Pro）
-    const scenes = parseScenes(draft.script, type);
-    const imagePaths = await generateSceneImages(scenes, outDir, type);
+    let videoPath;
 
-    // 2. BGMを選択
-    const bgmPath = pickBgm();
+    if (isHeyGenAvailable()) {
+      // ── HeyGen アバター動画生成パス ──────────────────────────
+      videoPath = await renderWithHeyGen(draft, type, outDir);
+    } else {
+      // ── FFmpeg / Nanobanana フォールバックパス ────────────────
+      logger.info(MODULE, 'HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana');
 
-    // 3. FFmpegで動画合成
-    await assembleVideo({ type, scenes, imagePaths, bgmPath, outPath });
+      const scenes     = parseScenes(draft.script, type);
+      const imagePaths = await generateSceneImages(scenes, outDir, type);
+      const bgmPath    = pickBgm();
 
-    // 4. draftを更新
-    const updated = { ...draft, videoPath: outPath, status: 'rendered', renderedAt: new Date().toISOString() };
+      await assembleVideo({ type, scenes, imagePaths, bgmPath, outPath });
+      videoPath = outPath;
+    }
+
+    // draft を更新
+    const updated = {
+      ...draft,
+      videoPath,
+      status:     'rendered',
+      renderedAt: new Date().toISOString(),
+    };
     fs.writeFileSync(draftPath, JSON.stringify(updated, null, 2));
 
-    logger.info(MODULE, `rendered → ${outPath}`);
-    return { rendered: true, videoPath: outPath };
+    logger.info(MODULE, `rendered → ${videoPath}`);
+    return { rendered: true, videoPath };
 
   } catch (err) {
     logger.error(MODULE, `render error: ${err.message}`);
     return { rendered: false, reason: err.message };
   }
+}
+
+// ── HeyGen アバター動画生成 ─────────────────────────────────────────
+
+/**
+ * HeyGen v3 API でアバター動画を生成してローカルに保存する。
+ * @param {object} draft - draft.json の内容
+ * @param {'short'|'long'} type - 動画タイプ
+ * @param {string} outDir - 出力ディレクトリ（絶対パス）
+ * @returns {Promise<string>} 保存した mp4 ファイルの絶対パス
+ */
+async function renderWithHeyGen(draft, type, outDir) {
+  if (!draft.script) {
+    throw new Error('draft.script is empty; cannot generate HeyGen video without a script');
+  }
+
+  const aspectRatio = type === 'short' ? '9:16' : '16:9';
+  const outPath     = path.join(outDir, `video_heygen.mp4`);
+
+  logger.info(MODULE, `[HeyGen] generating ${aspectRatio} avatar video...`);
+
+  const { videoUrl } = await generateAvatarVideo({
+    script:      draft.script,
+    avatarId:    process.env.HEYGEN_AVATAR_ID  ?? undefined,
+    voiceId:     process.env.HEYGEN_VOICE_ID   ?? undefined,
+    aspectRatio,
+    resolution:  '1080p',
+  });
+
+  await downloadVideo(videoUrl, outPath);
+
+  logger.info(MODULE, `[HeyGen] video saved → ${outPath}`);
+  return outPath;
 }
 
 // ── シーン分割 ──────────────────────────────────────────────────────

@@ -19,6 +19,11 @@ x/queue/main.jsonl
 note/queue/ideas.jsonl
 youtube/queue/
 
+# Generated video/image drafts (binary, large)
+youtube/drafts/**/*.mp4
+youtube/drafts/**/*.png
+youtube/drafts/**/*.jpg
+
 # Logs
 logs/
 

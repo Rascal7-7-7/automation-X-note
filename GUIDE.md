@@ -91,6 +91,7 @@
 - [x] YouTube チャンネル + Google Cloud Console OAuth2設定（完了）
 - [x] Nanobanana Pro（画像生成）GEMINI_API_KEY（完了）
 - [ ] Renoise（AI動画生成）APIキー
+- [ ] HeyGen APIキー（アバター動画生成）← `HEYGEN_API_KEY` を `.env` に追加
 
 ---
 
@@ -175,6 +176,16 @@ YOUTUBE_CLIENT_ID=xxxxx.apps.googleusercontent.com
 YOUTUBE_CLIENT_SECRET=xxxxx
 YOUTUBE_REFRESH_TOKEN=xxxxx
 YOUTUBE_CHANNEL_ID=UCxxxxx
+
+# HeyGen（アバター動画生成 — YouTube Shorts / Instagram Reels）
+# 取得先: https://app.heygen.com/settings?nav=API
+# HEYGEN_API_KEY が設定されている場合は HeyGen でアバター動画を生成し、
+# 未設定の場合は FFmpeg + Nanobanana Pro にフォールバックします。
+HEYGEN_API_KEY=
+# 使用するアバター ID（省略時: アカウント内の最初のアバターを自動選択）
+HEYGEN_AVATAR_ID=
+# 日本語ボイス ID（省略時: 日本語女性ボイスを自動選択）
+HEYGEN_VOICE_ID_JA=
 ```
 
 > セキュリティ注意: `.env` は絶対にGitにコミットしないこと。`.gitignore` に追加済みか確認してください。
