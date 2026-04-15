@@ -58,6 +58,94 @@ function notifyPublishReady(title, noteUrl) {
   logger.info(MODULE, `notify: ${title} — ${noteUrl}`);
 }
 
+async function insertPaidSection(page, editor, draft) {
+  try {
+    // 1. Fill free body only
+    await editor.click();
+    await editor.fill(draft.freeBody);
+    await page.waitForTimeout(500);
+
+    // 2. Try to insert paid divider via known selectors
+    const paidDividerInserted = await tryInsertPaidDivider(page);
+
+    if (!paidDividerInserted) {
+      // Fallback: fill full body without paid split
+      logger.warn(MODULE, 'paid section divider not inserted — falling back to full body');
+      await editor.click();
+      await editor.fill(draft.body);
+      return;
+    }
+
+    // 3. Fill paid body after the divider
+    await page.waitForTimeout(500);
+    await page.keyboard.type(draft.paidBody);
+
+    // 4. Set price
+    await trySetPrice(page, draft.price ?? 300);
+  } catch (err) {
+    logger.warn(MODULE, 'paid section setup failed — falling back to full body', { message: err.message });
+    await editor.click();
+    await editor.fill(draft.body);
+  }
+}
+
+async function tryInsertPaidDivider(page) {
+  // Strategy 1: aria-label button
+  try {
+    const btn1 = page.locator('button[aria-label*="有料"]').first();
+    if (await btn1.count() > 0) {
+      await btn1.click();
+      await page.waitForTimeout(300);
+      return true;
+    }
+  } catch { /* try next */ }
+
+  // Strategy 2: data-testid button
+  try {
+    const btn2 = page.locator('button[data-testid*="paid"]').first();
+    if (await btn2.count() > 0) {
+      await btn2.click();
+      await page.waitForTimeout(300);
+      return true;
+    }
+  } catch { /* try next */ }
+
+  // Strategy 3: block insert (+) button → look for 有料ライン option
+  try {
+    const plusBtn = page.locator('button[aria-label*="追加"], button[data-testid*="add-block"], button[aria-label*="ブロック"]').first();
+    if (await plusBtn.count() > 0) {
+      await plusBtn.click();
+      await page.waitForTimeout(300);
+      const paidLine = page.locator('text=有料ライン, [role="menuitem"]:has-text("有料")').first();
+      if (await paidLine.count() > 0) {
+        await paidLine.click();
+        await page.waitForTimeout(300);
+        return true;
+      }
+      // Close the menu if paid line not found
+      await page.keyboard.press('Escape');
+    }
+  } catch { /* try next */ }
+
+  // Strategy 4: keyboard shortcut (no standard one known, skip)
+  return false;
+}
+
+async function trySetPrice(page, price) {
+  try {
+    // Price input is typically near publish settings
+    const priceInput = page.locator('input[placeholder*="価格"], input[name*="price"], input[type="number"][min]').first();
+    if (await priceInput.count() > 0) {
+      await priceInput.fill(String(price));
+      logger.info(MODULE, `price set to ${price}`);
+    } else {
+      logger.warn(MODULE, 'price input not found — skipping price setting');
+    }
+  } catch (err) {
+    logger.warn(MODULE, 'failed to set price', { message: err.message });
+  }
+}
+
 export async function runPost(opts = {}) {
   const headless = opts.headless ?? true;
   const file = findOldestDraft();
@@ -125,10 +213,15 @@ export async function runPost(opts = {}) {
       }
     }
 
-    // ── 本文 ─────────────────────────────────────────────────────
+    // ── 本文（有料セクション対応） ────────────────────────────────
     const editor = page.locator('.ProseMirror, [contenteditable="true"]').first();
-    await editor.click();
-    await editor.fill(draft.body);
+
+    if (draft.paidBody) {
+      await insertPaidSection(page, editor, draft);
+    } else {
+      await editor.click();
+      await editor.fill(draft.body);
+    }
 
     // ── 下書き保存 ───────────────────────────────────────────────
     await page.keyboard.press(IS_MAC ? 'Meta+s' : 'Control+s');

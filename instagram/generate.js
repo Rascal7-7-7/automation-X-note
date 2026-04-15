@@ -32,6 +32,16 @@ const BUZZ_TYPES = [
   { id: 'E', name: 'ストーリー型',      hook: '個人体験から学ぶ' },
   { id: 'F', name: 'ランキング型',      hook: '厳選おすすめ' },
   { id: 'G', name: 'How-to型',         hook: 'ステップで解説' },
+  { id: 'H', name: 'アフィリエイト型',  hook: '実際に使って月〇〇円稼いだツールを正直レビュー', cta: '詳細はプロフィールリンクから無料で試せます' },
+];
+
+// アフィリエイト対象AIツールリスト
+const AFFILIATE_PRODUCTS = [
+  { name: 'Claude Pro',      url: 'claude.ai',        price: '月$20',  feature: 'コード生成・分析' },
+  { name: 'ChatGPT Plus',    url: 'openai.com',       price: '月$20',  feature: '汎用AI' },
+  { name: 'Midjourney',      url: 'midjourney.com',   price: '月$10〜', feature: '画像生成' },
+  { name: 'Perplexity Pro',  url: 'perplexity.ai',    price: '月$20',  feature: 'AI検索' },
+  { name: 'Notion AI',       url: 'notion.so',        price: '月$10〜', feature: '知識管理' },
 ];
 
 // アカウント別プロフィール定義
@@ -73,7 +83,36 @@ const IMAGE_PROMPT_SYSTEM = `以下のテーマに対して、Nano Banana Pro（
 型に合わせたビジュアル（ランキング→比較表、How-to→手順図など）
 フォーマット: "Feed: [プロンプト]\nReels: [プロンプト]"のみ出力。`;
 
-export async function runGenerate({ account = 1 } = {}) {
+function buildAffiliateCaptionSystem(account) {
+  const p = ACCOUNT_PROFILES[account];
+  return `あなたは${p.persona}です。
+指定されたAIツールについて、正直なレビュー形式のInstagramキャプションを作成してください：
+- 1行目: 「実際に使って月〇〇円稼いだツールを正直レビュー🔍」（金額は実際っぽい数字に変える）
+- メリット2〜3点（具体的に）
+- デメリット1〜2点（正直に書く）
+- 具体的な使用シーン・ユースケース
+- 価格情報
+- CTA: 「プロフィールリンクから試せます」を自然に含める
+- ハッシュタグ3〜5個（関連度が高いもののみ）
+- 全体400文字以内`;
+}
+
+async function generateAffiliateCaption(account, product) {
+  const system = buildAffiliateCaptionSystem(account);
+  const prompt = `ツール名: ${product.name}
+URL: ${product.url}
+価格: ${product.price}
+主な特徴: ${product.feature}
+
+上記ツールの正直レビューキャプションを作成してください。`;
+
+  return generate(system, prompt, {
+    model: 'claude-sonnet-4-6',
+    maxTokens: 1024,
+  });
+}
+
+export async function runGenerate({ account = 1, type } = {}) {
   const profile  = ACCOUNT_PROFILES[account] ?? ACCOUNT_PROFILES[1];
   const today    = new Date().toISOString().split('T')[0];
   const draftDir = path.join(DRAFTS_DIR, `account${account}`, today);
@@ -81,8 +120,13 @@ export async function runGenerate({ account = 1 } = {}) {
   if (!fs.existsSync(draftDir)) fs.mkdirSync(draftDir, { recursive: true });
   if (!fs.existsSync(QUEUE_DIR)) fs.mkdirSync(QUEUE_DIR, { recursive: true });
 
-  const { theme, buzzType } = getTodayContent(account, profile);
+  const { theme, buzzType } = getTodayContent(account, profile, type);
   logger.info(MODULE, `account${account}: theme="${theme}" type=${buzzType.name}`);
+
+  // アフィリエイト型は専用フローで処理
+  if (type === 'affiliate' || buzzType.id === 'H') {
+    return runAffiliateGenerate({ account, profile, today, draftDir, buzzType });
+  }
 
   const context = `バズる型: ${buzzType.name}（${buzzType.hook}）\nテーマ: ${theme}`;
 
@@ -115,9 +159,51 @@ export async function runGenerate({ account = 1 } = {}) {
   return draft;
 }
 
-function getTodayContent(account, profile) {
+async function runAffiliateGenerate({ account, profile, today, draftDir, buzzType }) {
+  const product = AFFILIATE_PRODUCTS[Math.floor(Math.random() * AFFILIATE_PRODUCTS.length)];
+  const theme   = `${product.name} 正直レビュー`;
+  logger.info(MODULE, `account${account}: affiliate review for ${product.name}`);
+
+  const context = `バズる型: ${buzzType.name}（${buzzType.hook}）\nテーマ: ${theme}`;
+
+  const [caption, reelsScript, imagePrompt] = await Promise.all([
+    generateAffiliateCaption(account, product),
+    generate(REELS_SYSTEM, context, { maxTokens: 512 }),
+    generate(IMAGE_PROMPT_SYSTEM, context, { maxTokens: 300 }),
+  ]);
+
+  const draft = {
+    account,
+    theme,
+    buzzType:          buzzType.id,
+    buzzTypeName:      buzzType.name,
+    affiliateProduct:  product,
+    caption,
+    reelsScript,
+    imagePrompt,
+    date:              today,
+    status:            'ready',
+    createdAt:         new Date().toISOString(),
+  };
+
+  const draftPath = path.join(draftDir, 'post.json');
+  fs.writeFileSync(draftPath, JSON.stringify(draft, null, 2));
+  logger.info(MODULE, `account${account} affiliate draft saved → ${draftPath}`);
+
+  return draft;
+}
+
+function getTodayContent(account, profile, type) {
   const planFile = path.join(QUEUE_DIR, `weekly_plan_${account}.json`);
   const dayIndex = new Date().getDay();
+
+  // Explicit affiliate type override
+  if (type === 'affiliate') {
+    return {
+      theme:    'AIツール アフィリエイトレビュー',
+      buzzType: BUZZ_TYPES.find(t => t.id === 'H'),
+    };
+  }
 
   if (fs.existsSync(planFile)) {
     try {
