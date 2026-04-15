@@ -146,6 +146,84 @@ async function trySetPrice(page, price) {
   }
 }
 
+// ── 公開処理 ────────────────────────────────────────────────────────
+async function publishNote(page, draft) {
+  // Step 1: 「公開する」ボタンをクリック
+  const publishBtnSelectors = [
+    'button:has-text("公開する")',
+    'button:has-text("投稿する")',
+    '[data-testid="publish-button"]',
+    'button[class*="publish"]',
+  ];
+  let clicked = false;
+  for (const sel of publishBtnSelectors) {
+    try {
+      const btn = page.locator(sel).first();
+      if (await btn.count() > 0) {
+        await btn.click();
+        clicked = true;
+        logger.info(MODULE, `publish button clicked: ${sel}`);
+        break;
+      }
+    } catch { /* try next */ }
+  }
+  if (!clicked) throw new Error('publish button not found');
+  await page.waitForTimeout(1_500);
+
+  // Step 2: 有料設定パネルで価格を入力
+  if (draft.paidBody && draft.price) {
+    // 有料ラジオボタン or セレクト
+    try {
+      const paidRadio = page.locator(
+        'input[type="radio"][value="paid"], label:has-text("有料"), [data-testid*="paid"]'
+      ).first();
+      if (await paidRadio.count() > 0) {
+        await paidRadio.click();
+        await page.waitForTimeout(500);
+        logger.info(MODULE, 'paid option selected');
+      }
+    } catch { /* price already set or not needed */ }
+
+    // 価格入力
+    try {
+      const priceInput = page.locator(
+        'input[placeholder*="価格"], input[name*="price"], input[type="number"][min]'
+      ).first();
+      if (await priceInput.count() > 0) {
+        await priceInput.fill(String(draft.price));
+        await page.waitForTimeout(300);
+        logger.info(MODULE, `price set: ${draft.price}円`);
+      }
+    } catch { /* skip */ }
+  }
+
+  // Step 3: 最終「公開する」ボタン（モーダル内）
+  await page.waitForTimeout(500);
+  const confirmSelectors = [
+    'button:has-text("公開する"):not([disabled])',
+    'button:has-text("公開")',
+    '[data-testid="publish-confirm"]',
+  ];
+  for (const sel of confirmSelectors) {
+    try {
+      const btn = page.locator(sel).last();
+      if (await btn.count() > 0) {
+        await btn.click();
+        logger.info(MODULE, `publish confirmed: ${sel}`);
+        break;
+      }
+    } catch { /* try next */ }
+  }
+
+  // Step 4: 公開後URLを取得
+  await page.waitForTimeout(3_000);
+  const finalUrl = page.url();
+  if (!finalUrl.includes('/n/')) {
+    logger.warn(MODULE, `unexpected URL after publish: ${finalUrl}`);
+  }
+  return finalUrl;
+}
+
 export async function runPost(opts = {}) {
   const headless = opts.headless ?? true;
   const file = findOldestDraft();
@@ -232,12 +310,22 @@ export async function runPost(opts = {}) {
     if (saved === 0) {
       throw new Error('draft save not confirmed (UI text not found)');
     }
+    logger.info(MODULE, 'draft saved');
 
-    const noteUrl = page.url();
-    markPosted(file.filePath, noteUrl);
-    logNotePosted(file.filePath, noteUrl);
-    logger.info(MODULE, `saved as draft: ${noteUrl}`);
-    notifyPublishReady(draft.title, noteUrl);
+    // ── 公開（prod のみ） ─────────────────────────────────────────
+    const isDev = (opts.mode ?? process.env.MODE ?? 'dev') === 'dev';
+    if (isDev) {
+      const noteUrl = page.url();
+      markPosted(file.filePath, noteUrl);
+      logNotePosted(file.filePath, noteUrl);
+      logger.info(MODULE, `DEV: saved as draft only — ${noteUrl}`);
+      notifyPublishReady(draft.title, noteUrl);
+    } else {
+      const noteUrl = await publishNote(page, draft);
+      markPosted(file.filePath, noteUrl);
+      logNotePosted(file.filePath, noteUrl);
+      logger.info(MODULE, `published: ${noteUrl}`);
+    }
   } catch (err) {
     logger.error(MODULE, 'post failed', { message: err.message });
     throw err;

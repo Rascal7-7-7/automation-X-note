@@ -214,7 +214,7 @@ export async function runGenerate(theme) {
       summary:   outline.summary,
       freeBody,
       paidBody,
-      price:     300,
+      price:     500,
       body:      freeBody + '\n\n' + paidBody,  // backwards compat
       theme:     resolvedTheme,
       angle:     idea?.angle    ?? null,
