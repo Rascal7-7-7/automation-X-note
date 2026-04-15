@@ -7,15 +7,17 @@
  *   - draft.promoPosted !== true  ← 二重投稿防止
  *
  * フロー:
- *   find posted draft
+ *   find posted draft（noteUrl に /n/ を含むもののみ）
  *     ↓ Claude Haiku
- *   generate promo tweet
+ *   generate promo tweet（URLなし・ティーザー形式）
  *     ↓
  *   validateTweet（ルールベース）
  *     ↓
  *   reviewTweet（AI、prodのみ）
  *     ↓
- *   postTweet
+ *   postTweet（本文のみ）
+ *     ↓
+ *   postReply("▼ 記事はこちら\n{noteUrl}", tweetId)
  *     ↓
  *   draft.promoPosted = true
  */
@@ -25,7 +27,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
-import { validateTweet, reviewTweet, postTweet } from './pipeline.js';
+import { validateTweet, reviewTweet, postTweet, postReply } from './pipeline.js';
 import { logXPost } from '../analytics/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -35,14 +37,20 @@ const DRAFTS_DIR = path.join(__dirname, '../note/drafts');
 const PROMO_SYSTEM = `あなたはAI活用・副業をテーマに発信するXアカウントです。
 note記事の情報からX告知ツイートを1件作成してください。
 
+【重要】URLは本文に含めない（URLはリプライで別途投稿する）
+
 ルール:
-- 140文字以内（日本語）
-- 記事タイトル・読むメリット・短い要約・noteのURLを含める
-- 読者が「読みたい」と思う表現にする
+- 120文字以内（日本語）
+- ティーザー形式：記事の価値・学べること・解決できる悩みを具体的に伝える
+- 読者が「続きが読みたい」と思わせる表現にする（「▼詳しくはリプライへ」で締める）
 - 宣伝くさい文体は禁止
-- ハッシュタグは1〜2個
-- URL込みで140文字以内に収めること（URLは23文字として計算）
-- 末尾に改行なし`;
+- ハッシュタグは1〜2個・末尾のみ
+- 末尾に改行なし
+
+良い例:
+「月5万円の副業を3ヶ月で達成した方法をnoteにまとめました。
+ツール選び・時間配分・SNS戦略の3点を具体的に解説しています。
+▼詳しくはリプライへ」`;
 
 // ── ドラフト操作 ─────────────────────────────────────────────────────
 function findPromoTarget() {
@@ -54,7 +62,7 @@ function findPromoTarget() {
     .map(f => ({ ...f, draft: JSON.parse(fs.readFileSync(f.filePath, 'utf8')) }))
     .filter(f =>
       f.draft.status === 'posted' &&
-      f.draft.noteUrl &&
+      f.draft.noteUrl?.includes('/n/') &&
       f.draft.promoPosted !== true
     )
     .sort((a, b) => (a.draft.postedAt ?? '').localeCompare(b.draft.postedAt ?? ''));
@@ -74,7 +82,6 @@ function markPromoPosted(filePath) {
 async function generatePromoTweet(draft) {
   const prompt = `記事タイトル: ${draft.title}
 概要: ${draft.summary}
-URL: ${draft.noteUrl}
 テーマ: ${draft.theme}`;
 
   return generate(PROMO_SYSTEM, prompt, { maxTokens: 300 });
@@ -118,6 +125,10 @@ export async function runNotePromo(opts = {}) {
 
     const tweetId = await postTweet(tweetText);
     logger.info(MODULE, `promo posted: ${tweetId}`);
+
+    const replyText = `▼ 記事はこちら\n${draft.noteUrl}`;
+    const replyId = await postReply(replyText, tweetId);
+    logger.info(MODULE, `url reply posted: ${replyId}`);
 
     markPromoPosted(file.filePath);
 
