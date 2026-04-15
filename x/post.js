@@ -40,7 +40,7 @@ function xurlPost(text) {
 }
 
 export async function runPost() {
-  const idea = ideaQueue.shift();
+  const idea = await ideaQueue.shift();
   if (!idea) {
     logger.info(MODULE, 'no ideas in queue, skipping');
     return;
@@ -62,7 +62,7 @@ export async function runPost() {
     }) + '\n');
   } catch (err) {
     logger.error(MODULE, 'post failed', { message: err.message });
-    ideaQueue.push(idea);
+    await ideaQueue.push(idea);
     throw err;
   }
 }

@@ -12,9 +12,12 @@ import { fileURLToPath } from 'url';
 
 const MODULE = 'analytics:collect-x';
 
-const client = new TwitterApi(process.env.X_BEARER_TOKEN);
-
 export async function collectXMetrics() {
+  if (!process.env.X_BEARER_TOKEN) {
+    logger.warn(MODULE, 'X_BEARER_TOKEN not set, skipping metrics collection');
+    return;
+  }
+  const client = new TwitterApi(process.env.X_BEARER_TOKEN);
   const posts = readLog('x-posts.jsonl')
     .filter(p => p.status === 'posted' && p.tweetId);
 
