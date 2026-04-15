@@ -18,6 +18,8 @@ import { runImage as runNoteImage }    from '../note/image.js';
 import { runPost as runNotePost }      from '../note/post.js';
 import { collectXMetrics }             from '../analytics/collect-x.js';
 import { runBuzzAnalysis }             from '../analytics/buzz-analyzer.js';
+import { runGenerate as runInstaGenerate } from '../instagram/generate.js';
+import { runPost as runInstaPost }     from '../instagram/post.js';
 import { logger }                      from '../shared/logger.js';
 
 const MODULE = 'scheduler';
@@ -34,8 +36,12 @@ const HANDLERS = {
   'note:generate':  ()     => runGenerate(),
   'note:image':     ()     => runNoteImage(),
   'note:post':      ()     => runNotePost(),
-  'x:collect':      ()     => collectXMetrics(),
-  'analytics:buzz': ()     => runBuzzAnalysis(),
+  'x:collect':               ()     => collectXMetrics(),
+  'analytics:buzz':          ()     => runBuzzAnalysis(),
+  'instagram:generate:1':    (task) => runInstaGenerate({ account: task.account }),
+  'instagram:generate:2':    (task) => runInstaGenerate({ account: task.account }),
+  'instagram:post:1':        (task) => runInstaPost({ account: task.account }),
+  'instagram:post:2':        (task) => runInstaPost({ account: task.account }),
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────

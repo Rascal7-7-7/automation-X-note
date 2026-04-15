@@ -17,6 +17,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
+import { runAffiliateGenerate } from './affiliate.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DRAFTS_DIR = path.join(__dirname, 'drafts');
@@ -135,12 +136,17 @@ export async function runGenerate({ account = 1, type } = {}) {
   if (!fs.existsSync(draftDir)) fs.mkdirSync(draftDir, { recursive: true });
   if (!fs.existsSync(QUEUE_DIR)) fs.mkdirSync(QUEUE_DIR, { recursive: true });
 
+  // account=2 はアフィリエイト専用フロー（asp-campaigns.json から案件選択）
+  if (account === 2) {
+    return runAffiliateGenerate({ today, draftDir });
+  }
+
   const { theme, buzzType } = getTodayContent(account, profile, type);
   logger.info(MODULE, `account${account}: theme="${theme}" type=${buzzType.name}`);
 
-  // アフィリエイト型は専用フローで処理
+  // account=1 でアフィリエイト型が選ばれた場合は既存フロー（AFFILIATE_PRODUCTS）
   if (type === 'affiliate' || buzzType.id === 'H') {
-    return runAffiliateGenerate({ account, profile, today, draftDir, buzzType });
+    return runAffiliateGenerate_legacy({ account, profile, today, draftDir, buzzType });
   }
 
   const context = `バズる型: ${buzzType.name}（${buzzType.hook}）\nテーマ: ${theme}`;
@@ -174,7 +180,7 @@ export async function runGenerate({ account = 1, type } = {}) {
   return draft;
 }
 
-async function runAffiliateGenerate({ account, profile, today, draftDir, buzzType }) {
+async function runAffiliateGenerate_legacy({ account, profile, today, draftDir, buzzType }) {
   const product = AFFILIATE_PRODUCTS[Math.floor(Math.random() * AFFILIATE_PRODUCTS.length)];
   const theme   = `${product.name} 正直レビュー`;
   logger.info(MODULE, `account${account}: affiliate review for ${product.name}`);

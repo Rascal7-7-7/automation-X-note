@@ -1,0 +1,165 @@
+{
+  "_comment": "A8.net案件マスターデータ。affiliateUrl は A8.net の管理画面からプログラムに参加後、広告リンクをコピーして設定してください。",
+  "campaigns": [
+    {
+      "id": "a8_xserver",
+      "asp": "A8.net",
+      "productName": "エックスサーバー",
+      "category": "レンタルサーバー・ブログ開設",
+      "reward": 10000,
+      "rewardType": "成果報酬（新規申し込み）",
+      "affiliateUrl": "https://px.a8.net/YOUR_XSERVER_ID",
+      "description": "国内シェアNo.1のレンタルサーバー。WordPressが1クリックで導入でき、副業ブログの開設に最適",
+      "target": "副業でブログを始めたい人・アフィリエイトを始めたい人",
+      "appealPoints": [
+        "月額990円〜で始められる",
+        "WordPressワンクリックインストール",
+        "独自ドメインが永久無料",
+        "表示速度が速くSEOに有利"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_conoha",
+      "asp": "A8.net",
+      "productName": "ConoHa WING",
+      "category": "レンタルサーバー・ブログ開設",
+      "reward": 8000,
+      "rewardType": "成果報酬（新規申し込み）",
+      "affiliateUrl": "https://px.a8.net/YOUR_CONOHA_ID",
+      "description": "GMOが運営する高速レンタルサーバー。WINGパックで独自ドメイン2個永久無料",
+      "target": "ブログ・サイトを持ちたい副業初心者",
+      "appealPoints": [
+        "国内最速クラスの表示速度",
+        "WINGパックでドメイン2個無料",
+        "初心者向けかんたんセットアップ",
+        "WordPressテーマ「Cocoon」無料"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_moneyforward",
+      "asp": "A8.net",
+      "productName": "マネーフォワード クラウド確定申告",
+      "category": "会計・確定申告",
+      "reward": 3000,
+      "rewardType": "成果報酬（有料プラン登録）",
+      "affiliateUrl": "https://px.a8.net/YOUR_MF_ID",
+      "description": "副業・フリーランスの確定申告を自動化するクラウド会計ソフト。銀行・カードと連携して自動仕訳",
+      "target": "副業収入がある人・フリーランス・個人事業主",
+      "appealPoints": [
+        "銀行・クレカと連携して自動仕訳",
+        "スマホで領収書をスキャン管理",
+        "青色申告にも対応",
+        "確定申告書を自動作成"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_freee",
+      "asp": "A8.net",
+      "productName": "freee会計",
+      "category": "会計・確定申告",
+      "reward": 3000,
+      "rewardType": "成果報酬（有料プラン登録）",
+      "affiliateUrl": "https://px.a8.net/YOUR_FREEE_ID",
+      "description": "会計知識ゼロでも使えるクラウド会計。AI自動仕訳で副業・フリーランスの帳簿をラクに管理",
+      "target": "帳簿付け・確定申告が面倒な副業初心者",
+      "appealPoints": [
+        "会計知識不要で使える",
+        "AI自動仕訳で入力を削減",
+        "freeeで確定申告書を自動作成",
+        "30日間無料トライアルあり"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_udemy",
+      "asp": "A8.net",
+      "productName": "Udemy",
+      "category": "オンライン学習",
+      "reward": 2000,
+      "rewardType": "成果報酬（講座購入）",
+      "affiliateUrl": "https://px.a8.net/YOUR_UDEMY_ID",
+      "description": "世界最大級のオンライン学習プラットフォーム。AI・Python・副業スキルの講座が豊富。頻繁にセール開催",
+      "target": "AIや副業スキルを身につけたい人・プログラミング初心者",
+      "appealPoints": [
+        "ChatGPT・AIツール活用講座が充実",
+        "セール時1,500円〜でプロのスキルを習得",
+        "一度購入すれば永久視聴可能",
+        "修了証書が発行される"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_crowdworks",
+      "asp": "A8.net",
+      "productName": "クラウドワークス",
+      "category": "クラウドソーシング・副業",
+      "reward": 500,
+      "rewardType": "成果報酬（会員登録）",
+      "affiliateUrl": "https://px.a8.net/YOUR_CW_ID",
+      "description": "日本最大のクラウドソーシング。ライティング・デザイン・プログラミングなど副業案件が豊富",
+      "target": "副業を始めたいが何から始めればいいか分からない人",
+      "appealPoints": [
+        "登録無料・すぐに案件を受けられる",
+        "AIライティングやデータ入力など初心者向け案件あり",
+        "在宅で隙間時間に稼げる",
+        "実績ゼロからでも始めやすい"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_lancers",
+      "asp": "A8.net",
+      "productName": "ランサーズ",
+      "category": "クラウドソーシング・副業",
+      "reward": 500,
+      "rewardType": "成果報酬（会員登録）",
+      "affiliateUrl": "https://px.a8.net/YOUR_LANCERS_ID",
+      "description": "国内大手クラウドソーシング。高単価の専門職案件が多く、スキルアップしながら稼げる",
+      "target": "スキルを活かして副業したい人・フリーランス志望",
+      "appealPoints": [
+        "デザイン・開発・マーケティングなど高単価案件あり",
+        "認定ランサー制度でスキルを証明",
+        "長期契約案件で安定収入を狙える",
+        "登録無料・すぐ案件検索可能"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
+      "id": "a8_techacademy",
+      "asp": "A8.net",
+      "productName": "TechAcademy",
+      "category": "プログラミングスクール",
+      "reward": 15000,
+      "rewardType": "成果報酬（受講申し込み）",
+      "affiliateUrl": "https://px.a8.net/YOUR_TECHACADEMY_ID",
+      "description": "現役エンジニアによるオンラインプログラミングスクール。週2回のメンタリングで副業・転職を支援",
+      "target": "プログラミングで副業・転職したい社会人",
+      "appealPoints": [
+        "現役エンジニアがメンター対応",
+        "副業・転職保証プランあり",
+        "最短4週間でスキルを習得",
+        "AIアプリ開発コースが新設"
+      ],
+      "active": true,
+      "postedCount": 0,
+      "lastPostedAt": null
+    }
+  ]
+}

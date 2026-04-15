@@ -41,6 +41,31 @@ export const TASKS = [
     cron: '15 10 * * 2',           // 火曜 10:15 — note公開後にX告知
   },
 
+  // ── Instagram account=1（AI副業系・毎日） ──────────────────────
+  {
+    name:    'instagram:generate:1',
+    cron:    '0 9 * * *',            // 毎日 09:00 — キャプション・画像プロンプト生成
+    account: 1,
+  },
+  {
+    name:    'instagram:post:1',
+    cron:    '0 19 * * *',           // 毎日 19:00 — 投稿（エンゲージ最大帯）
+    account: 1,
+  },
+
+  // ── Instagram account=2（アフィリエイト専門・週3回） ────────────
+  // 月・水・金の投稿でローテーション（同じ案件の連続投稿を防ぐ）
+  {
+    name:    'instagram:generate:2',
+    cron:    '0 10 * * 1,3,5',       // 月・水・金 10:00 — 案件選択 + キャプション生成
+    account: 2,
+  },
+  {
+    name:    'instagram:post:2',
+    cron:    '0 19 * * 1,3,5',       // 月・水・金 19:00 — 投稿
+    account: 2,
+  },
+
   // ── 分析（毎日深夜） ───────────────────────────────────────────
   {
     name: 'x:collect',
