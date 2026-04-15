@@ -10,6 +10,7 @@
  */
 import 'dotenv/config';
 import { execFileSync } from 'child_process';
+import { getXBrowser } from './browser-client.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { appendFileSync } from 'fs';
@@ -63,25 +64,55 @@ function recordReplied(tweetId, replyText) {
   appendFileSync(REPLIED_LOG, entry + '\n');
 }
 
-// ── xurl ラッパー ─────────────────────────────────────────────────
+// ── Playwright 検索（xurl search 禁止のため）────────────────────
 
-function xurlSearch(keyword, count = 10) {
-  try {
-    const raw = execFileSync(
-      'xurl', ['search', keyword, '-n', String(count)],
-      { encoding: 'utf8' }
-    );
-    const parsed = JSON.parse(raw);
-    if (parsed.title === 'CreditsDepleted' || parsed.type?.includes('problems')) {
-      logger.warn(MODULE, `xurl search credits error: ${parsed.detail}`);
-      return [];
-    }
-    return parsed?.data ?? [];
-  } catch (err) {
-    logger.warn(MODULE, `xurl search failed for "${keyword}": ${err.message}`);
-    return [];
+async function searchByPlaywright(page, keyword) {
+  const url = `https://x.com/search?q=${encodeURIComponent(keyword)}&f=live&lang=ja`;
+  logger.info(MODULE, `playwright search: "${keyword}"`);
+
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+  await page.waitForTimeout(3_000);
+
+  const articles = await page.locator('article[data-testid="tweet"]').all();
+  const results  = [];
+
+  for (const article of articles.slice(0, 10)) {
+    try {
+      const links = await article.locator('a[href*="/status/"]').all();
+      let tweetId = null;
+      for (const link of links) {
+        const href = await link.getAttribute('href');
+        const m    = href?.match(/\/status\/(\d+)/);
+        if (m) { tweetId = m[1]; break; }
+      }
+      if (!tweetId) continue;
+
+      const text  = await article.locator('[data-testid="tweetText"]').textContent().catch(() => '');
+      const likes = await getMetricCount(article, 'like');
+      const rts   = await getMetricCount(article, 'retweet');
+      const score = likes + rts * 2;
+
+      if (text.trim()) results.push({ id: tweetId, text: text.trim(), score });
+    } catch { /* skip */ }
   }
+
+  logger.info(MODULE, `  → ${results.length} tweets found`);
+  return results;
 }
+
+async function getMetricCount(el, testId) {
+  try {
+    const btn   = el.locator(`[data-testid="${testId}"]`);
+    const spans = await btn.locator('span').allTextContents();
+    for (const s of spans) {
+      const n = parseInt(s.replace(/[^0-9]/g, ''), 10);
+      if (!isNaN(n)) return n;
+    }
+  } catch { /* ignore */ }
+  return 0;
+}
+
+// ── xurl ラッパー ─────────────────────────────────────────────────
 
 function xurlReply(tweetId, text) {
   const raw = execFileSync('xurl', ['reply', tweetId, text], { encoding: 'utf8' });
@@ -111,37 +142,37 @@ export async function runReply(keywords, opts = {}) {
   const remaining = Math.min(maxPerRun, DAILY_MAX - todayCount);
   let count = 0;
 
-  for (const keyword of keywords) {
-    if (count >= remaining) break;
+  const { browser, page } = await getXBrowser({ headless: true });
 
-    logger.info(MODULE, `searching for reply targets: "${keyword}"`);
-    const tweets = xurlSearch(keyword, 10);
-
-    for (const tweet of tweets) {
+  try {
+    for (const keyword of keywords) {
       if (count >= remaining) break;
 
-      const tweetId = tweet.id;
-      if (!tweetId || repliedIds.has(tweetId)) continue;
+      logger.info(MODULE, `searching for reply targets: "${keyword}"`);
+      const tweets = await searchByPlaywright(page, keyword);
+      const sorted = tweets
+        .filter(t => !repliedIds.has(t.id) && t.score >= scoreThreshold && t.text)
+        .sort((a, b) => b.score - a.score);
 
-      const m = tweet.public_metrics ?? {};
-      const score = (m.like_count ?? 0) + (m.retweet_count ?? 0) * 2;
-      if (score < scoreThreshold) continue;
+      for (const tweet of sorted) {
+        if (count >= remaining) break;
 
-      const tweetText = tweet.text ?? '';
-      if (!tweetText.trim()) continue;
+        try {
+          const replyText = await generateReply(tweet.text);
+          logger.info(MODULE, `generated reply for ${tweet.id}`, { replyText });
 
-      try {
-        const replyText = await generateReply(tweetText);
-        logger.info(MODULE, `generated reply for ${tweetId}`, { replyText });
-
-        xurlReply(tweetId, replyText);
-        recordReplied(tweetId, replyText);
-        count++;
-        logger.info(MODULE, `replied to tweet ${tweetId} (score:${score})`);
-      } catch (err) {
-        logger.warn(MODULE, `reply failed for ${tweetId}: ${err.message}`);
+          xurlReply(tweet.id, replyText);
+          recordReplied(tweet.id, replyText);
+          count++;
+          logger.info(MODULE, `replied to tweet ${tweet.id} (score:${tweet.score})`);
+          await page.waitForTimeout(2_000);
+        } catch (err) {
+          logger.warn(MODULE, `reply failed for ${tweet.id}: ${err.message}`);
+        }
       }
     }
+  } finally {
+    await browser.close();
   }
 
   logger.info(MODULE, `reply run done. replied: ${count}`);

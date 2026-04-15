@@ -6,17 +6,16 @@
  *   2-a. HEYGEN_API_KEY が設定されている場合:
  *        HeyGen v3 API でアバター動画を生成して video_heygen.mp4 に保存
  *   2-b. 未設定の場合（フォールバック）:
- *        Nanobanana Pro（Gemini）でシーン画像を生成
+ *        Gemini imagen-3.0-generate-002 でシーン背景画像を生成
  *        FFmpeg で画像 + テロップ + BGM を合成して mp4 を出力
  *   3. draft.videoPath に保存パスを書き込む
  *
  * 必要な環境変数:
  *   HEYGEN_API_KEY  - HeyGen アバター動画生成（優先）
- *   GEMINI_API_KEY  - Nanobanana Pro フォールバック用
+ *   GEMINI_API_KEY  - Gemini Imagen フォールバック用
  *
  * 必要なツール（フォールバック時のみ）:
  *   ffmpeg（apt install ffmpeg）
- *   python3 + google-genai（Nanobanana Pro）
  */
 import 'dotenv/config';
 import fs from 'fs';
@@ -24,6 +23,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { GoogleGenAI } from '@google/genai';
 import { logger } from '../shared/logger.js';
 import {
   isHeyGenAvailable,
@@ -38,12 +38,6 @@ const DRAFTS_DIR  = path.join(__dirname, 'drafts');
 const ASSETS_DIR  = path.join(__dirname, 'assets');
 const BGM_DIR     = path.join(ASSETS_DIR, 'bgm');
 const FONT_PATH   = path.join(ASSETS_DIR, 'fonts', 'NotoSansJP-Bold.ttf');
-const NANOBANANA  = path.join(
-  process.env.HOME, '.claude/skills/nanobanana/generate_image.py'
-);
-const VENV_PYTHON = path.join(
-  process.env.HOME, '.claude/skills/nanobanana/venv/bin/python3'
-);
 
 const MODULE = 'youtube:render';
 
@@ -189,16 +183,16 @@ function parseScenes(script, type) {
   }
 }
 
-// ── Nanobanana Pro で画像生成 ──────────────────────────────────────
+// ── Gemini Imagen で画像生成 ───────────────────────────────────────
 
 async function generateSceneImages(scenes, outDir, type) {
   const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey || !fs.existsSync(NANOBANANA)) {
-    logger.warn(MODULE, 'Nanobanana Pro not available, using fallback gradient images');
+  if (!geminiKey) {
+    logger.warn(MODULE, 'GEMINI_API_KEY not set, using fallback gradient images');
     return scenes.map((_, i) => generateFallbackImage(outDir, i, type));
   }
 
-  const ratio = type === 'short' ? '9:16' : '16:9';
+  const ai = new GoogleGenAI({ apiKey: geminiKey });
   const paths = [];
 
   for (let i = 0; i < scenes.length; i++) {
@@ -209,21 +203,17 @@ async function generateSceneImages(scenes, outDir, type) {
     }
 
     const prompt = buildImagePrompt(scenes[i].text, type);
-    const aspect = type === 'short' ? '9:16' : '16:9';
     try {
-      // --output はディレクトリ指定、ファイル名はタイムスタンプ自動生成
-      const tmpDir = path.join(outDir, `tmp_scene_${i}`);
-      fs.mkdirSync(tmpDir, { recursive: true });
-      await execFileAsync(
-        VENV_PYTHON,
-        [NANOBANANA, prompt, '--aspect', aspect, '--output', tmpDir],
-        { env: { ...process.env, GEMINI_API_KEY: geminiKey }, timeout: 60000 }
-      );
-      // 生成されたファイルを scene_N.png にリネーム
-      const generated = fs.readdirSync(tmpDir).find(f => /\.(png|jpg|webp)$/i.test(f));
-      if (!generated) throw new Error('no image generated');
-      fs.renameSync(path.join(tmpDir, generated), imgPath);
-      fs.rmdirSync(tmpDir);
+      const result = await ai.models.generateImages({
+        model:  'imagen-3.0-generate-002',
+        prompt,
+        config: { numberOfImages: 1, outputMimeType: 'image/png' },
+      });
+
+      const imageBytes = result.generatedImages?.[0]?.image?.imageBytes;
+      if (!imageBytes) throw new Error('no image bytes returned');
+
+      fs.writeFileSync(imgPath, Buffer.from(imageBytes, 'base64'));
       paths.push(imgPath);
       logger.info(MODULE, `scene image ${i + 1}/${scenes.length} generated`);
     } catch (err) {
