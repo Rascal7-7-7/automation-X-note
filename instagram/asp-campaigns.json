@@ -2,6 +2,28 @@
   "_comment": "A8.net参加済み案件マスター。affiliateUrl はInstagramのプロフィールリンク（Linktree等）に設定して使用。",
   "campaigns": [
     {
+      "id": "a8_dmm_ai_camp",
+      "asp": "A8.net",
+      "productName": "DMM 生成AI CAMP",
+      "category": "AI学習・オンラインスクール",
+      "reward": 7519,
+      "rewardType": "成果報酬（新規入会申込7,519円 / 無料セミナー予約2,257円）",
+      "affiliateUrl": "https://px.a8.net/YOUR_DMM_AI_CAMP_ID",
+      "_status": "未提携 → A8.net管理画面から参加申請 → 承認後にaffiliateUrlを設定してactive: trueに変更",
+      "description": "DMMが提供するAI学習サービス。無料セミナーからスタートでき、最大70%のリスキリング補助金が使える。経済産業省認定プログラム",
+      "target": "AIを仕事に活かしたいビジネスパーソン・副業・スキルアップを目指すサラリーマン",
+      "appealPoints": [
+        "無料セミナーから気軽に始められる",
+        "経済産業省認定・DMMが運営の信頼性",
+        "最大70%（220,500円）のリスキリング補助金が使える",
+        "マーケティング・営業・人事など職種別コースあり",
+        "専属メンターによる手厚いサポート"
+      ],
+      "active": false,
+      "postedCount": 0,
+      "lastPostedAt": null
+    },
+    {
       "id": "a8_self_recruit",
       "asp": "A8.net",
       "productName": "A8.net（アフィリエイト無料登録）",
