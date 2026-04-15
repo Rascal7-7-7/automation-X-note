@@ -134,7 +134,7 @@ async function xurlQuoteRT(tweetId, commentary) {
   const { TwitterApi } = await import('twitter-api-v2');
   const client = new TwitterApi({
     appKey: process.env.X_API_KEY, appSecret: process.env.X_API_SECRET,
-    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_SECRET,
+    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
   });
   return client.v2.tweet(commentary, { quote_tweet_id: tweetId });
 }
