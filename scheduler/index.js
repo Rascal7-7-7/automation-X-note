@@ -9,6 +9,8 @@ import cron from 'node-cron';
 import { TASKS } from './tasks.js';
 import { enqueue, processQueue }       from '../x/pipeline.js';
 import { runLike }                     from '../x/like.js';
+import { runReply }                    from '../x/reply.js';
+import { runQuoteRT }                  from '../x/quote-rt.js';
 import { runNotePromo }                from '../x/note-promo.js';
 import { runResearch as runNoteResearch } from '../note/research.js';
 import { runGenerate }                 from '../note/generate.js';
@@ -25,6 +27,8 @@ const HANDLERS = {
   'x:enqueue':      (task) => enqueue(task.keywords),
   'x:process':      ()     => processQueue({ mode: MODE }),
   'x:like':         (task) => runLike(task.keywords),
+  'x:reply':        (task) => runReply(task.keywords),
+  'x:quote-rt':     (task) => runQuoteRT(task.keywords),
   'x:note-promo':   ()     => runNotePromo({ mode: MODE }),
   'note:research':  ()     => runNoteResearch(),
   'note:generate':  ()     => runGenerate(),

@@ -51,4 +51,28 @@ router.post('/note-promo', async (_req, res) => {
   }
 });
 
+router.post('/reply', async (req, res) => {
+  try {
+    const { runReply } = await import('../../x/reply.js');
+    const keywords = req.body?.keywords ?? LIKE_KEYWORDS;
+    await runReply(keywords);
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+router.post('/quote-rt', async (req, res) => {
+  try {
+    const { runQuoteRT } = await import('../../x/quote-rt.js');
+    const keywords = req.body?.keywords ?? LIKE_KEYWORDS;
+    await runQuoteRT(keywords);
+    res.json({ ok: true });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;
