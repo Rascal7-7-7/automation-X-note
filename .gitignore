@@ -24,8 +24,8 @@ youtube/drafts/**/*.mp4
 youtube/drafts/**/*.png
 youtube/drafts/**/*.jpg
 
-# Logs
-logs/
+# Logs (intentionally tracked for remote trigger monitoring)
+# logs/ は追跡対象 — リモートトリガーの実行結果確認用
 
 # Python
 note/__pycache__/
