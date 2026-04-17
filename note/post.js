@@ -146,14 +146,79 @@ async function trySetPrice(page, price) {
   }
 }
 
+// ── ヘッダー画像アップロード ────────────────────────────────────────
+async function uploadCoverImage(page, imagePath) {
+  // 本文入力前（空のエディタ状態）に呼ぶこと — 入力後はボタンが消える
+  // 試行1: label[for] または input[type=file] を直接探す
+  const fileInput = page.locator('input[type="file"][accept*="image"]').first();
+  if (await fileInput.count() > 0) {
+    await fileInput.setInputFiles(imagePath);
+    await page.waitForTimeout(2_000);
+    logger.info(MODULE, 'cover image uploaded via file input');
+    return;
+  }
+
+  // 試行2: 「画像をアップロード」テキストを含む最小の葉要素をクリック
+  const found = await page.evaluate(() => {
+    const target = '画像をアップロード';
+    // 全要素を末端から走査して textContent が一致する最小要素を返す
+    const all = Array.from(document.querySelectorAll('*'));
+    for (let i = all.length - 1; i >= 0; i--) {
+      const el = all[i];
+      const txt = el.textContent?.trim() ?? '';
+      if (txt.startsWith(target) && txt.length < 60) {
+        el.click();
+        return el.tagName + '|' + txt.slice(0, 40);
+      }
+    }
+    return null;
+  });
+
+  if (!found) {
+    // 試行3: aria-label や data-testid でカバー画像ボタンを探す
+    const coverSelectors = [
+      'button[aria-label*="カバー"]',
+      'button[aria-label*="cover"]',
+      'button[aria-label*="ヘッダー"]',
+      '[data-testid*="cover"]',
+      '[data-testid*="header-image"]',
+    ];
+    for (const sel of coverSelectors) {
+      const btn = page.locator(sel).first();
+      if (await btn.count() > 0) {
+        const [fileChooser] = await Promise.all([
+          page.waitForEvent('filechooser', { timeout: 6_000 }),
+          btn.click(),
+        ]);
+        await fileChooser.setFiles(imagePath);
+        await page.waitForTimeout(2_000);
+        logger.info(MODULE, `cover image uploaded via ${sel}`);
+        return;
+      }
+    }
+    logger.warn(MODULE, 'cover image button not found — skipping');
+    return;
+  }
+
+  logger.info(MODULE, `cover image element clicked: ${found}`);
+  try {
+    const fileChooser = await page.waitForEvent('filechooser', { timeout: 6_000 });
+    await fileChooser.setFiles(imagePath);
+    await page.waitForTimeout(2_000);
+    logger.info(MODULE, 'cover image uploaded');
+  } catch (err) {
+    logger.warn(MODULE, `filechooser not opened after click: ${err.message}`);
+  }
+}
+
 // ── 公開処理 ────────────────────────────────────────────────────────
 async function publishNote(page, draft) {
-  // Step 1: 「公開する」ボタンをクリック
+  // Step 1: 「公開に進む」ボタンをクリック → /publish/ ページへ遷移
   const publishBtnSelectors = [
+    'button:has-text("公開に進む")',
     'button:has-text("公開する")',
-    'button:has-text("投稿する")',
+    'button:has-text("公開")',
     '[data-testid="publish-button"]',
-    'button[class*="publish"]',
   ];
   let clicked = false;
   for (const sel of publishBtnSelectors) {
@@ -168,59 +233,183 @@ async function publishNote(page, draft) {
     } catch { /* try next */ }
   }
   if (!clicked) throw new Error('publish button not found');
-  await page.waitForTimeout(1_500);
 
-  // Step 2: 有料設定パネルで価格を入力
-  if (draft.paidBody && draft.price) {
-    // 有料ラジオボタン or セレクト
+  // /publish/ ページへの遷移を待つ
+  await page.waitForTimeout(2_500);
+
+  // Step 2: ハッシュタグ設定
+  const tags = draft.tags ?? draft.hashtags ?? [];
+  if (tags.length > 0) {
     try {
-      const paidRadio = page.locator(
-        'input[type="radio"][value="paid"], label:has-text("有料"), [data-testid*="paid"]'
-      ).first();
-      if (await paidRadio.count() > 0) {
-        await paidRadio.click();
+      // 「ハッシュタグ」ボタンをクリックして入力フィールドを開く
+      const hashBtn = page.getByText('ハッシュタグ').first();
+      if (await hashBtn.count() > 0) {
+        await hashBtn.click();
         await page.waitForTimeout(500);
-        logger.info(MODULE, 'paid option selected');
       }
-    } catch { /* price already set or not needed */ }
+      // ハッシュタグ入力フィールドを探す
+      const tagInput = page.locator('input[placeholder*="タグ"], input[placeholder*="ハッシュ"]').first();
+      if (await tagInput.count() > 0) {
+        for (const tag of tags.slice(0, 5)) {
+          const cleanTag = tag.replace(/^#/, '');
+          await tagInput.fill(cleanTag);
+          await page.keyboard.press('Enter');
+          await page.waitForTimeout(300);
+        }
+        logger.info(MODULE, `hashtags set: ${tags.join(', ')}`);
+      }
+    } catch (err) {
+      logger.warn(MODULE, `hashtag setting failed: ${err.message}`);
+    }
+  }
 
-    // 価格入力
+  // Step 3: 有料設定（draft.price が設定されている場合）
+  if (draft.price) {
     try {
+      // まず「有料」ラジオ/トグルをクリックして価格入力を出現させる
+      const paidTriggers = [
+        'label:has-text("有料")',
+        'input[type="radio"][value*="paid"]',
+        'input[type="radio"][value*="有料"]',
+        'button:has-text("有料")',
+        '[data-testid*="paid"]',
+        'span:has-text("有料")',
+      ];
+      let paidEnabled = false;
+      for (const sel of paidTriggers) {
+        try {
+          const el = page.locator(sel).first();
+          if (await el.count() > 0) {
+            await el.click();
+            await page.waitForTimeout(1_000);  // 価格入力フィールドが出現するのを待つ
+            paidEnabled = true;
+            logger.info(MODULE, `paid toggle clicked: ${sel}`);
+            break;
+          }
+        } catch { /* try next */ }
+      }
+
+      // 価格入力フィールドを探す（有料トグル後に出現する）
+      // note.com の価格入力は type="text" placeholder="300"
       const priceInput = page.locator(
-        'input[placeholder*="価格"], input[name*="price"], input[type="number"][min]'
+        'input[type="number"], input[placeholder*="価格"], input[placeholder*="円"], input[placeholder="300"]'
       ).first();
       if (await priceInput.count() > 0) {
+        await priceInput.click({ clickCount: 3 });
         await priceInput.fill(String(draft.price));
         await page.waitForTimeout(300);
         logger.info(MODULE, `price set: ${draft.price}円`);
+      } else if (paidEnabled) {
+        logger.warn(MODULE, 'paid toggle clicked but price input not found');
+      } else {
+        logger.warn(MODULE, 'paid toggle not found — article will be free');
       }
-    } catch { /* skip */ }
+    } catch (err) {
+      logger.warn(MODULE, `price setting failed: ${err.message}`);
+    }
   }
 
-  // Step 3: 最終「公開する」ボタン（モーダル内）
-  await page.waitForTimeout(500);
-  const confirmSelectors = [
-    'button:has-text("公開する"):not([disabled])',
-    'button:has-text("公開")',
-    '[data-testid="publish-confirm"]',
-  ];
+  // Step 4: 最終「投稿する」ボタン（価格入力後に少し待つ）
+  await page.waitForTimeout(1_000);
+  // 「投稿する」テキストを持つ全要素を探す（button 以外も含む）
+  const publishEl = await page.evaluate(() => {
+    const keywords = ['投稿する', '今すぐ公開', 'noteに公開', '公開する'];
+    const all = Array.from(document.querySelectorAll('*'));
+    for (const kw of keywords) {
+      for (let i = all.length - 1; i >= 0; i--) {
+        const el = all[i];
+        if (el.children.length === 0 && el.textContent?.trim() === kw) {
+          return { tag: el.tagName, text: el.textContent.trim(), found: true };
+        }
+      }
+    }
+    // 部分一致でも探す
+    for (const kw of keywords) {
+      for (let i = all.length - 1; i >= 0; i--) {
+        const el = all[i];
+        if (el.children.length === 0 && el.textContent?.includes(kw)) {
+          return { tag: el.tagName, text: el.textContent.trim().slice(0, 30), found: true, partial: true };
+        }
+      }
+    }
+    return { found: false };
+  });
+  // 「投稿する」ボタンはページ下部にあるためスクロールして表示させる
+  // note の publish ページは内部コンテナがスクロール対象
+  await page.evaluate(() => {
+    // overflow: auto/scroll を持つ最大の div を探してスクロール
+    const els = Array.from(document.querySelectorAll('div, main, section'));
+    const scrollable = els
+      .filter(el => el.scrollHeight > el.clientHeight + 10)
+      .sort((a, b) => b.scrollHeight - a.scrollHeight);
+    if (scrollable[0]) scrollable[0].scrollTo(0, scrollable[0].scrollHeight);
+    else window.scrollTo(0, document.body.scrollHeight);
+  });
+  await page.waitForTimeout(800);
+
+  // 有料記事: 「有料」選択後はヘッダーボタンが「投稿する」→「有料エリア設定」に変わる
+  // 無料記事: 「投稿する」のまま
+  const confirmSelectors = draft.price
+    ? [
+        'button:has-text("有料エリア設定")',
+        'button:has-text("投稿する")',
+        'button:has-text("公開する")',
+      ]
+    : [
+        'button:has-text("投稿する")',
+        'button:has-text("公開する")',
+        'button:has-text("今すぐ公開")',
+        'button:has-text("noteに公開する")',
+      ];
+
+  let confirmed = false;
   for (const sel of confirmSelectors) {
     try {
-      const btn = page.locator(sel).last();
+      const btn = page.locator(sel).first();
       if (await btn.count() > 0) {
         await btn.click();
+        confirmed = true;
         logger.info(MODULE, `publish confirmed: ${sel}`);
         break;
       }
     } catch { /* try next */ }
   }
+  if (!confirmed) {
+    logger.warn(MODULE, 'publish confirm button not found — article may remain as draft');
+  } else if (draft.price) {
+    // 有料エリア設定クリック後: 境界設定モーダルが開く
+    // 「このラインより先を有料にする」で境界を確定 → 「投稿する」で投稿
+    await page.waitForTimeout(1_000);
+    try {
+      const lineBtn = page.locator('button:has-text("このラインより先を有料にする")').first();
+      if (await lineBtn.count() > 0) {
+        await lineBtn.click();
+        await page.waitForTimeout(500);
+        logger.info(MODULE, 'paid line boundary set');
+      }
+    } catch { /* ラインが既に設定済みの場合はスキップ */ }
 
-  // Step 4: 公開後URLを取得
-  await page.waitForTimeout(3_000);
-  const finalUrl = page.url();
-  if (!finalUrl.includes('/n/')) {
-    logger.warn(MODULE, `unexpected URL after publish: ${finalUrl}`);
+    // モーダル内の「投稿する」をクリック
+    const postBtn = page.locator('button:has-text("投稿する")').first();
+    if (await postBtn.count() > 0) {
+      await postBtn.click();
+      logger.info(MODULE, 'paid article posted via 投稿する in boundary modal');
+    } else {
+      logger.warn(MODULE, '投稿する not found in boundary modal');
+    }
   }
+
+  // 公開後 note.com の記事URLへの遷移を待つ（30秒）
+  // パターン例: https://note.com/@user/n/nXXXX
+  //            https://editor.note.com/notes/nXXXX/published
+  try {
+    await page.waitForURL(/note\.com.*\/n\//, { timeout: 30_000 });
+  } catch {
+    // 遷移しなくても続行（記事は公開済みの可能性あり）
+    await page.waitForTimeout(2_000);
+  }
+  const finalUrl = page.url();
+  logger.info(MODULE, `final URL: ${finalUrl}`);
   return finalUrl;
 }
 
@@ -239,6 +428,9 @@ export async function runPost(opts = {}) {
   const browser = await chromium.launch({ headless });
   const context = await browser.newContext({
     storageState: fs.existsSync(SESSION_FILE) ? SESSION_FILE : undefined,
+    viewport: { width: 1280, height: 900 },
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    permissions: ['clipboard-read', 'clipboard-write'],
   });
   const page = await context.newPage();
 
@@ -269,48 +461,67 @@ export async function runPost(opts = {}) {
     }
 
     // ── 新規記事作成 ──────────────────────────────────────────────
-    await page.goto('https://note.com/notes/new');
-    await page.waitForSelector('.ProseMirror, [contenteditable="true"]', { timeout: 15_000 });
+    await page.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+    await page.waitForTimeout(3_000);
+
+    // ログインページにリダイレクトされた場合はセッション切れ
+    if (page.url().includes('/login')) {
+      throw new Error('session expired — run: node note/save-session.js');
+    }
+    logger.info(MODULE, `editor URL: ${page.url()}`);
+
+    // エディタ読み込みを待つ（タイトル textarea が出現したら準備完了）
+    await page.waitForSelector('textarea[placeholder="記事タイトル"]', { timeout: 30_000 });
+    await page.waitForTimeout(1_000);
 
     // ── タイトル ─────────────────────────────────────────────────
-    await page.locator('textarea[placeholder]').first().fill(draft.title);
+    await page.locator('textarea[placeholder="記事タイトル"]').fill(draft.title);
+    logger.info(MODULE, 'title filled');
 
-    // ── ヘッダー画像 ─────────────────────────────────────────────
+    // ── ヘッダー画像（本文入力前に行う — 本文入力後はボタンが消える）─
     if (draft.imagePath && fs.existsSync(draft.imagePath)) {
       try {
-        const fileChooserPromise = page.waitForEvent('filechooser', { timeout: 5_000 });
-        await page.locator(
-          '[data-testid="cover-image-upload"], [class*="coverImage"] input[type="file"], input[accept*="image"]'
-        ).first().click({ force: true });
-        const fileChooser = await fileChooserPromise;
-        await fileChooser.setFiles(draft.imagePath);
-        await page.waitForTimeout(2_000);
-        logger.info(MODULE, 'header image uploaded');
-      } catch {
-        logger.warn(MODULE, 'header image upload skipped (selector may have changed)');
+        await uploadCoverImage(page, draft.imagePath);
+      } catch (err) {
+        logger.warn(MODULE, `header image upload failed: ${err.message}`);
       }
     }
 
     // ── 本文（有料セクション対応） ────────────────────────────────
-    const editor = page.locator('.ProseMirror, [contenteditable="true"]').first();
+    // note.com 本文エディタ: div.ProseMirror[role="textbox"]
+    await page.waitForSelector('div.ProseMirror[role="textbox"]', { timeout: 15_000 });
+    const editor = page.locator('div.ProseMirror[role="textbox"]').first();
+
+    // 本文先頭の H1 タイトル行を除去（タイトルは別フィールドに入力済み）
+    const rawBody  = draft.paidBody
+      ? (draft.freeBody ?? '') + '\n\n' + (draft.paidBody ?? '')
+      : (draft.body ?? '');
+    const bodyText = rawBody.replace(/^#\s+.+\n+/, '').trimStart();
 
     if (draft.paidBody) {
       await insertPaidSection(page, editor, draft);
     } else {
       await editor.click();
-      await editor.fill(draft.body);
+      await page.waitForTimeout(500);
+      await page.evaluate(text => navigator.clipboard.writeText(text), bodyText);
+      await page.keyboard.press(IS_MAC ? 'Meta+a' : 'Control+a');
+      await page.keyboard.press(IS_MAC ? 'Meta+v' : 'Control+v');
+      await page.waitForTimeout(1_000);
     }
 
     // ── 下書き保存 ───────────────────────────────────────────────
     await page.keyboard.press(IS_MAC ? 'Meta+s' : 'Control+s');
-    await page.waitForTimeout(2_000);
+    await page.waitForTimeout(3_000);
 
-    // ── 保存確認 ─────────────────────────────────────────────────
-    const saved = await page.locator('text=保存しました, text=下書き保存').count();
-    if (saved === 0) {
-      throw new Error('draft save not confirmed (UI text not found)');
+    // ── 保存確認（note.com は自動保存もあるため非致命的チェック）──────
+    const savedCount = await page.locator(
+      'text=保存しました'
+    ).or(page.locator('text=下書き保存')).or(page.locator('text=保存中')).count();
+    if (savedCount === 0) {
+      logger.warn(MODULE, 'save confirmation text not found — proceeding anyway');
+    } else {
+      logger.info(MODULE, 'draft saved');
     }
-    logger.info(MODULE, 'draft saved');
 
     // ── 公開（prod のみ） ─────────────────────────────────────────
     const isDev = (opts.mode ?? process.env.MODE ?? 'dev') === 'dev';

@@ -62,8 +62,10 @@ export async function runPost({ account = 1 } = {}) {
 // ── Graph API 投稿 ──────────────────────────────────────────────────
 
 async function postViaGraphApi(draft, accessToken, accountId) {
-  // 新 Instagram API（IGAAN トークン用）
-  const BASE = `https://graph.instagram.com/v21.0/${accountId}`;
+  // EAA (Facebook Page token) → graph.facebook.com
+  // IGAAN (Instagram Business Login token) → graph.instagram.com
+  const host = accessToken.startsWith('EAA') ? 'graph.facebook.com' : 'graph.instagram.com';
+  const BASE = `https://${host}/v21.0/${accountId}`;
 
   // Step 1: メディアコンテナ作成（image_url が必要）
   // ※ 画像はパブリックURLが必要。ローカル画像は別途CDN/S3等にアップロードすること
@@ -87,7 +89,19 @@ async function postViaGraphApi(draft, accessToken, accountId) {
     throw new Error(`container creation failed: ${JSON.stringify(container)}`);
   }
 
-  // Step 2: 公開
+  // Step 2: コンテナ処理完了を待つ（最大30秒）
+  const apiHost = accessToken.startsWith('EAA') ? 'graph.facebook.com' : 'graph.instagram.com';
+  for (let i = 0; i < 10; i++) {
+    await new Promise(r => setTimeout(r, 3000));
+    const statusRes = await fetch(
+      `https://${apiHost}/v21.0/${container.id}?fields=status_code&access_token=${accessToken}`
+    );
+    const { status_code } = await statusRes.json();
+    if (status_code === 'FINISHED') break;
+    if (status_code === 'ERROR') throw new Error(`container processing failed: status_code=ERROR`);
+  }
+
+  // Step 3: 公開
   const publishRes = await fetch(`${BASE}/media_publish`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
