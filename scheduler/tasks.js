@@ -88,6 +88,40 @@ export const TASKS = [
     account: 2,
   },
 
+  // ── YouTube ショート（毎日） ────────────────────────────────────
+  {
+    name: 'youtube:generate:short',
+    cron: '0 0 * * *',            // 毎日 00:00 — 台本・タイトル生成
+    type: 'short',
+  },
+  {
+    name: 'youtube:render:short',
+    cron: '0 1 * * *',            // 毎日 01:00 — 動画レンダリング
+    type: 'short',
+  },
+  {
+    name: 'youtube:upload:short',
+    cron: '0 18 * * 1,2,3,4,5',  // 平日 18:00 — アップロード（週末は除く）
+    type: 'short',
+  },
+
+  // ── YouTube ロング（水曜週1回） ──────────────────────────────────
+  {
+    name: 'youtube:generate:long',
+    cron: '0 0 * * 3',            // 水曜 00:00 — 台本生成
+    type: 'long',
+  },
+  {
+    name: 'youtube:render:long',
+    cron: '0 2 * * 3',            // 水曜 02:00 — レンダリング（長いので2時間後）
+    type: 'long',
+  },
+  {
+    name: 'youtube:upload:long',
+    cron: '0 19 * * 3',           // 水曜 19:00 — アップロード
+    type: 'long',
+  },
+
   // ── 分析（毎日深夜） ───────────────────────────────────────────
   {
     name: 'x:collect',
@@ -96,5 +130,11 @@ export const TASKS = [
   {
     name: 'analytics:buzz',
     cron: '0 23 * * *',            // 毎日 23:00 — バズ分析 → レポート生成
+  },
+
+  // ── Instagram トークン期限監視（毎日朝） ────────────────────────
+  {
+    name: 'instagram:check-expiry',
+    cron: '0 9 * * *',             // 毎日 09:00 — トークン残日数チェック
   },
 ];

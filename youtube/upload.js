@@ -50,7 +50,9 @@ export async function runUpload({ type = 'short', videoPath: overrideVideoPath }
   }
 
   const draft = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
-  const videoPath = overrideVideoPath ?? draft.videoPath;
+  const rawPath = overrideVideoPath ?? draft.videoPath;
+  // Linux絶対パス（/home/...）をMac環境のパスに正規化
+  const videoPath = rawPath?.replace(/^\/home\/[^/]+\//, `${process.env.HOME}/`);
 
   if (!YOUTUBE_CLIENT_ID || !YOUTUBE_CLIENT_SECRET || !YOUTUBE_REFRESH_TOKEN) {
     logger.warn(MODULE, 'YouTube credentials not set — saving as pending');
@@ -65,6 +67,16 @@ export async function runUpload({ type = 'short', videoPath: overrideVideoPath }
   try {
     const accessToken = await refreshAccessToken();
     const videoId     = await uploadVideo(accessToken, draft, videoPath);
+
+    // SRT字幕をアップロード（captionsPath が存在する場合）
+    const captionsPath = draft.captionsPath;
+    if (captionsPath && fs.existsSync(captionsPath)) {
+      try {
+        await uploadCaptions(accessToken, videoId, captionsPath);
+      } catch (err) {
+        logger.warn(MODULE, `captions upload failed (non-fatal): ${err.message}`);
+      }
+    }
 
     markUploaded(draftPath, draft, videoId);
     logger.info(MODULE, `uploaded: https://www.youtube.com/watch?v=${videoId}`);
@@ -165,6 +177,57 @@ async function uploadVideo(accessToken, draft, videoPath) {
 
   logger.info(MODULE, `video uploaded: ${uploaded.id}`);
   return uploaded.id;
+}
+
+// ── SRT字幕アップロード ───────────────────────────────────────────────
+
+async function uploadCaptions(accessToken, videoId, srtPath) {
+  const srtContent = fs.readFileSync(srtPath, 'utf8');
+  const lang = process.env.YOUTUBE_SUBTITLE_LANG ?? 'ja';
+
+  // Step 1: captions.insert でメタデータ登録 + アップロードURL取得
+  const initRes = await fetch(
+    'https://www.googleapis.com/upload/youtube/v3/captions?uploadType=resumable&part=snippet',
+    {
+      method: 'POST',
+      headers: {
+        Authorization:             `Bearer ${accessToken}`,
+        'Content-Type':            'application/json; charset=UTF-8',
+        'X-Upload-Content-Type':   'text/plain',
+        'X-Upload-Content-Length': String(Buffer.byteLength(srtContent, 'utf8')),
+      },
+      body: JSON.stringify({
+        snippet: {
+          videoId,
+          language:     lang,
+          name:         '自動生成字幕',
+          isDraft:      false,
+        },
+      }),
+    }
+  );
+
+  if (!initRes.ok) {
+    const err = await initRes.text();
+    throw new Error(`captions session init failed: ${err}`);
+  }
+
+  const uploadUrl = initRes.headers.get('location');
+  if (!uploadUrl) throw new Error('captions upload URL not returned');
+
+  // Step 2: SRT本体をアップロード
+  const uploadRes = await fetch(uploadUrl, {
+    method:  'PUT',
+    headers: { 'Content-Type': 'text/plain', 'Content-Length': String(Buffer.byteLength(srtContent, 'utf8')) },
+    body:    srtContent,
+  });
+
+  if (!uploadRes.ok) {
+    const err = await uploadRes.text();
+    throw new Error(`captions upload failed: ${err}`);
+  }
+
+  logger.info(MODULE, `captions uploaded for ${videoId} (${lang})`);
 }
 
 // ── ヘルパー ─────────────────────────────────────────────────────────

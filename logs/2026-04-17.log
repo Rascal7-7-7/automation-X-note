@@ -1,0 +1,140 @@
+{"ts":"2026-04-17T03:55:03.341Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T03:55:03.342Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T03:55:03.342Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T03:55:03.342Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T03:55:03.342Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T03:55:03.343Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T03:55:03.344Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T03:55:03.345Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T05:30:12.608Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T05:30:12.609Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T05:30:12.609Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T05:30:12.609Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T05:30:12.609Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T05:30:12.610Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T05:30:12.610Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T05:30:12.610Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T05:30:12.610Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T05:30:12.610Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T05:30:12.611Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T05:30:12.611Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T05:30:12.611Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T05:30:12.611Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T05:30:12.612Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T05:30:12.612Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T05:30:12.612Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T05:30:12.612Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T05:30:12.613Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T05:31:41.102Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T05:31:41.103Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T05:31:41.103Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T05:31:41.103Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T05:31:41.104Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T05:31:41.105Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T05:31:41.106Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T05:31:41.107Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T05:31:41.107Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T05:31:41.107Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T05:32:16.183Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"おすすめAIツール厳選5選\""}
+{"ts":"2026-04-17T05:32:26.526Z","level":"WARN","module":"youtube:generate","message":"thumbnail image generation failed","data":{"message":"{\"error\":{\"code\":404,\"message\":\"models/imagen-3.0-generate-002 is not found for API version v1beta, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.\",\"status\":\"NOT_FOUND\"}}"}}
+{"ts":"2026-04-17T05:32:26.527Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.json"}
+{"ts":"2026-04-17T05:32:36.334Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T05:32:36.335Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T05:32:36.497Z","level":"WARN","module":"youtube:render","message":"scene 0 image failed, using fallback: {\"error\":{\"code\":404,\"message\":\"models/imagen-3.0-generate-002 is not found for API version v1beta, or is not supported for predict. Call ListModels to see the list of available models and their supported methods.\",\"status\":\"NOT_FOUND\"}}"}
+{"ts":"2026-04-17T05:32:36.501Z","level":"ERROR","module":"youtube:render","message":"render error: spawn ffmpeg ENOENT"}
+{"ts":"2026-04-17T05:33:40.447Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T05:33:40.448Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T05:33:50.571Z","level":"INFO","module":"youtube:render","message":"scene image 1/5 generated"}
+{"ts":"2026-04-17T05:34:00.154Z","level":"INFO","module":"youtube:render","message":"scene image 2/5 generated"}
+{"ts":"2026-04-17T05:34:09.515Z","level":"INFO","module":"youtube:render","message":"scene image 3/5 generated"}
+{"ts":"2026-04-17T05:34:16.304Z","level":"INFO","module":"youtube:render","message":"scene image 4/5 generated"}
+{"ts":"2026-04-17T05:34:22.903Z","level":"INFO","module":"youtube:render","message":"scene image 5/5 generated"}
+{"ts":"2026-04-17T05:34:22.954Z","level":"ERROR","module":"youtube:render","message":"render error: Command failed: ffmpeg -y -f concat -safe 0 -i /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_concat.txt -stream_loop -1 -i /Users/Rascal/work/automation/youtube/assets/bgm/ambient_default.mp3 -vf scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2:black,drawtext=text='今すぐ使えるAIツール5選':fontcolor=white:fontsize=72:box=1:boxcolor=0x000000@0.6:boxborderw=12:x=(w-text_w)/2:y=h-text_h-60:line_spacing=20:enable='between(t,0,8)',drawtext=text='どれを使えばいいか迷ってませんか':fontcolor=white:fontsize=72:box=1:boxcolor=0x000000@0.6:boxborderw=12:x=(w-text_w)/2:y=h-text_h-60:line_spacing=20:enable='between(t,8,16)',drawtext=text='ChatGPT Claude Gemini Perplexity Canvaが最':fontcolor=white:fontsize=72:box=1:boxcolor=0x000000@0.6:boxborderw=12:x=(w-text_w)/2:y=h-text_h-60:line_spacing=20:enable='between(t,16,24)',drawtext=text='それぞれ文章画像検索で使い分けるだけ':fontcolor=white:fontsize=72:box=1:boxcolor=0x000000@0.6:boxborderw=12:x=(w-text_w)/2:y=h-text_h-60:line_spacing=20:enable='between(t,24,32)',drawtext=text='使ってみたいのはどれかコメントして':fontcolor=white:fontsize=72:box=1:boxcolor=0x000000@0.6:boxborderw=12:x=(w-text_w)/2:y=h-text_h-60:line_spacing=20:enable='between(t,32,40)' -c:a aac -b:a 128k -af afade=t=out:st=38:d=2 -shortest -c:v libx264 -preset fast -crf 23 -t 40 -pix_fmt yuv420p /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4\nffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers\n  built with Apple clang version 21.0.0 (clang-2100.0.123.102)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gpl --enable-libsvtav1 --enable-libopus --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-libvmaf --enable-libvpx --enable-libx265 --enable-openssl --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      60. 26.100 / 60. 26.100\n  libavcodec     62. 28.100 / 62. 28.100\n  libavformat    62. 12.100 / 62. 12.100\n  libavdevice    62.  3.100 / 62.  3.100\n  libavfilter    11. 14.100 / 11. 14.100\n  libswscale      9.  5.100 /  9.  5.100\n  libswresample   6.  3.100 /  6.  3.100\nInput #0, concat, from '/Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_concat.txt':\n  Duration: 00:00:40.00, start: 0.000000, bitrate: 0 kb/s\n  Stream #0:0: Video: png, rgb24(pc, gbr/unknown/unknown), 1024x1024, 25 fps, 25 tbr, 25 tbn\nInput #1, mp3, from '/Users/Rascal/work/automation/youtube/assets/bgm/ambient_default.mp3':\n  Metadata:\n    encoder         : Lavf58.76.100\n  Duration: 00:02:00.00, start: 0.025057, bitrate: 31 kb/s\n  Stream #1:0: Audio: mp3 (mp3float), 44100 Hz, mono, fltp, 31 kb/s, start 0.025057\n[AVFilterGraph @ 0x8028e0000] No such filter: 'drawtext'\nError opening output file /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4.\nError opening output files: Filter not found\n"}
+{"ts":"2026-04-17T05:37:33.620Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T05:37:33.621Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T05:37:34.665Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:02:37.054Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T06:02:37.054Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:02:39.624Z","level":"INFO","module":"youtube:render","message":"TTS generated → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T06:02:40.498Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:11:22.441Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T06:11:22.441Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:11:23.062Z","level":"INFO","module":"youtube:render","message":"TTS generated → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T06:11:30.099Z","level":"INFO","module":"youtube:render","message":"SRT generated (Whisper, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.srt"}
+{"ts":"2026-04-17T06:11:30.100Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T06:11:30.100Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:11:30.440Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:18:07.532Z","level":"INFO","module":"youtube:render","message":"rendering short for \"おすすめAIツール厳選5選\"..."}
+{"ts":"2026-04-17T06:18:07.532Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:18:09.107Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T06:18:10.237Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T06:18:11.715Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T06:18:13.364Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T06:18:14.635Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T06:18:19.113Z","level":"INFO","module":"youtube:render","message":"SRT generated (Whisper, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T06:18:19.115Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T06:18:19.115Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:18:25.359Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:18:35.330Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T06:18:35.330Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T06:18:35.331Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T06:18:35.331Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T06:18:35.331Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T06:18:35.331Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T06:18:35.332Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T06:18:35.332Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T06:18:35.332Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T06:18:35.332Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T06:18:35.332Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T06:18:35.333Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T06:18:35.335Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}

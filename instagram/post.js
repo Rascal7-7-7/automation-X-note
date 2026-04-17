@@ -1,7 +1,8 @@
 /**
  * Instagram 投稿モジュール（Graph API）
  *
- * 前提: Instagram Creator/Business アカウント + Facebook Page 連携済み
+ * 前提: Instagram Creator/Business アカウント（Facebook Page 不要）
+ *       Instagram Login トークン（INSTAGRAM_ACCESS_TOKEN_1/2）が必要
  *
  * フロー:
  *   1. drafts/{today}/post.json を読み込む

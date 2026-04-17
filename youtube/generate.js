@@ -26,29 +26,31 @@ const MODULE     = 'youtube:generate';
 
 // ── プロンプト ──────────────────────────────────────────────────────
 
-const SHORT_SCRIPT_SYSTEM = `あなたはYouTubeショート動画の台本専門家です。
-以下の条件で台本を作成してください：
+const SHORT_SCRIPT_SYSTEM = `あなたはYouTubeショート動画のテロップライターです。
+画面に表示されるテロップテキストを5行だけ生成してください。
 
-【尺・構成】
-- 目標尺: 30〜45秒（読み上げ速度1分250字換算で125〜190字）
-  ※完了率とループ率が最重要。60秒より30〜45秒のほうがアルゴリズム評価が高い。
-- フォーマット:
-  [HOOK 0〜1.5秒] 好奇心ギャップまたは驚きの主張（例:「〇〇を知らないと損します」「実は〇〇は間違いでした」）
-  [BODY] 3ステップ or 3つのポイント（箇条書き）
-  [CTA] 「コメントで教えてください」「チャンネル登録お願いします」
+【絶対ルール】
+- 出力は5行のプレーンテキストのみ
+- 1行 = 1テロップ、最大20文字
+- Markdown記号（** # --- [] 【】 ✅ ・ > 等）は一切使わない
+- ラベル・番号・セクション名は一切つけない
+- 記号・絵文字・装飾文字を使わない
 
-【フックのパターン（必ずどれか1つ使う）】
-1. 好奇心ギャップ: 「〇〇を知っていますか？99%の人が知らない方法です」
-2. 驚き: 「実は〇〇は間違いでした」
-3. 結果先行: 「これを試したら〇〇になりました」
-4. 逆説: 「〇〇しない方が〇〇になる理由」
+【5行の構成】
+1行目: フック（視聴者が続きを見たくなる一言）
+2行目: 問題・共感（視聴者の悩みに共感する）
+3行目: 解決策・要点（具体的な答え）
+4行目: 補足・深掘り（理由や効果）
+5行目: CTA（「コメントで教えて」等）
 
-【その他ルール】
-- 話し言葉で自然に（「〜です」「〜ます」調）
-- 縦型（9:16）視聴を想定した簡潔な表現
-- 日本語字幕を想定した短い文節（1文20字以内）
+【良い出力例】
+ChatGPTとClaudeどっちがいい？
+実は得意分野が全然違います
+ChatGPTは画像生成や幅広い作業に強い
+Claudeは文章分析と長文読解が得意
+あなたはどっち派？コメントで！
 
-出力: 台本テキストのみ`;
+出力は上記のような5行テキストのみ。説明・ラベル・記号は一切不要。`;
 
 const LONG_SCRIPT_SYSTEM = `あなたはYouTube長尺動画の構成・台本専門家です。
 以下の条件で台本構成を作成してください：
@@ -117,7 +119,7 @@ async function generateThumbnailImage(thumbnailText, draftDir) {
 
     const ai = new GoogleGenAI({ apiKey });
     const response = await ai.models.generateImages({
-      model: 'imagen-3.0-generate-002',
+      model: 'imagen-4.0-generate-001',
       prompt: imagePrompt,
       config: { numberOfImages: 1, aspectRatio: '16:9' },
     });
@@ -152,14 +154,15 @@ export async function runGenerate({ type, topic } = {}) {
   const context = `テーマ: ${theme}\n動画タイプ: ${videoType === 'short' ? 'YouTubeショート（60秒以内）' : 'YouTube長尺動画（10〜15分）'}`;
   const scriptSystem = videoType === 'short' ? SHORT_SCRIPT_SYSTEM : LONG_SCRIPT_SYSTEM;
 
+  const scriptModel = videoType === 'long' ? 'claude-opus-4-7' : 'claude-sonnet-4-6';
   const [script, titles, description, thumbnail] = await Promise.all([
     generate(scriptSystem, context, {
-      model: 'claude-sonnet-4-6',
+      model: scriptModel,
       maxTokens: videoType === 'long' ? 3000 : 1024,
     }),
     generate(TITLE_SYSTEM, context, { maxTokens: 512 }),
     generate(DESCRIPTION_SYSTEM, context, {
-      model: 'claude-sonnet-4-6',
+      model: scriptModel,
       maxTokens: 1024,
     }),
     generate(THUMBNAIL_SYSTEM, context, { maxTokens: 512 }),

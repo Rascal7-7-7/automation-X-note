@@ -155,11 +155,11 @@ ${paidSections.map((s, i) => `${i + 3}. ${s}`).join('\n')}
 
   const [freeBody, paidBodyRaw] = await Promise.all([
     generate(FREE_ARTICLE_SYSTEM, freePrompt, {
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       maxTokens: 2048,
     }),
     generate(PAID_ARTICLE_SYSTEM, paidPrompt, {
-      model: 'claude-sonnet-4-6',
+      model: 'claude-opus-4-7',
       maxTokens: 3072,
     }),
   ]);
@@ -180,7 +180,7 @@ ${paidSections.map((s, i) => `${i + 3}. ${s}`).join('\n')}
 上記セクションの本文を書いてください。具体的なツール・テンプレート・手順を必ず含めてください。`;
 
   const raw = await generate(PAID_ARTICLE_SYSTEM, paidPrompt, {
-    model: 'claude-sonnet-4-6',
+    model: 'claude-opus-4-7',
     maxTokens: 3072,
   });
 

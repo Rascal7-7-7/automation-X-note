@@ -22,6 +22,11 @@ import { runGenerate as runInstaGenerate } from '../instagram/generate.js';
 import { runImage  as runInstaImage }   from '../instagram/image.js';
 import { runPost   as runInstaPost }    from '../instagram/post.js';
 import { logger }                      from '../shared/logger.js';
+import { notifyError }                 from '../shared/notify.js';
+import { runGenerate as runYtGenerate } from '../youtube/generate.js';
+import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
+import { runRender  as runYtRender }   from '../youtube/render.js';
+import { runUpload  as runYtUpload }   from '../youtube/upload.js';
 
 const MODULE = 'scheduler';
 const MODE   = process.env.MODE ?? 'dev';
@@ -45,6 +50,16 @@ const HANDLERS = {
   'instagram:image:2':       (task) => runInstaImage({ account: task.account }),
   'instagram:post:1':        (task) => runInstaPost({ account: task.account }),
   'instagram:post:2':        (task) => runInstaPost({ account: task.account }),
+
+  'instagram:check-expiry':  ()     => runInstaCheckExpiry(),
+
+  // YouTube
+  'youtube:generate:short':  (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:short':    (task) => runYtRender({ type: task.type }),
+  'youtube:upload:short':    (task) => runYtUpload({ type: task.type }),
+  'youtube:generate:long':   (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:long':     (task) => runYtRender({ type: task.type }),
+  'youtube:upload:long':     (task) => runYtUpload({ type: task.type }),
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────
@@ -100,6 +115,7 @@ function runProd() {
         logger.info(MODULE, `DONE  ${task.name}`);
       } catch (err) {
         logger.error(MODULE, `FAIL  ${task.name}`, { message: err.message });
+        notifyError(`タスク失敗: ${task.name}`, err.message ?? 'エラー詳細なし');
       } finally {
         runningMap.set(task.name, false);
       }

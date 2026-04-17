@@ -49,7 +49,8 @@ async function login(page) {
     input.dispatchEvent(new Event('change', { bubbles: true }));
   }, process.env.X_EMAIL);
   await page.waitForTimeout(1_000);
-  await page.locator('[data-testid="LoginForm_Next_Button"]').or(page.getByText('次へ')).or(page.getByText('Next')).first().click();
+  // data-testid="LoginForm_Next_Button" は現在 null のため、テキストで確実にクリック
+  await page.getByRole('button', { name: /Next|次へ/ }).first().click();
   await page.waitForTimeout(2_000);
 
   logger.info(MODULE, `step2 url: ${page.url()}`);

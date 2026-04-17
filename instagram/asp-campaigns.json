@@ -8,8 +8,15 @@
       "category": "AI学習・オンラインスクール",
       "reward": 7519,
       "rewardType": "成果報酬（新規入会申込7,519円 / 無料セミナー予約2,257円）",
-      "affiliateUrl": "https://px.a8.net/YOUR_DMM_AI_CAMP_ID",
-      "_status": "未提携 → A8.net管理画面から参加申請 → 承認後にaffiliateUrlを設定してactive: trueに変更",
+      "affiliateUrl": "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5YRHE",
+      "affiliateUrlVariants": [
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5YRHE",
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5YJRM",
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5YZ75",
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5Z6WX",
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5ZEMP",
+        "https://px.a8.net/svt/ejp?a8mat=4B1LPO+5RSAWI+5VEK+5ZMCI"
+      ],
       "description": "DMMが提供するAI学習サービス。無料セミナーからスタートでき、最大70%のリスキリング補助金が使える。経済産業省認定プログラム",
       "target": "AIを仕事に活かしたいビジネスパーソン・副業・スキルアップを目指すサラリーマン",
       "appealPoints": [
@@ -19,7 +26,7 @@
         "マーケティング・営業・人事など職種別コースあり",
         "専属メンターによる手厚いサポート"
       ],
-      "active": false,
+      "active": true,
       "postedCount": 0,
       "lastPostedAt": null
     },

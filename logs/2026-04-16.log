@@ -1,0 +1,10 @@
+{"ts":"2026-04-16T06:33:17.185Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-16T06:33:25.000Z","level":"INFO","module":"x:browser","message":"step2 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-16T06:33:25.003Z","level":"INFO","module":"x:browser","message":"step3 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-16T06:34:17.827Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-16T06:34:25.077Z","level":"INFO","module":"x:browser","message":"step2 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-16T06:34:25.080Z","level":"INFO","module":"x:browser","message":"step3 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-16T13:50:19.709Z","level":"INFO","module":"instagram:check-expiry","message":"account1 (@affi_master_jp): 残り60日"}
+{"ts":"2026-04-16T13:50:19.710Z","level":"INFO","module":"instagram:check-expiry","message":"account2 (@ai_side_hack_): 残り60日"}
+{"ts":"2026-04-16T13:50:45.419Z","level":"INFO","module":"instagram:check-expiry","message":"account1 (@affi_master_jp): 残り60日"}
+{"ts":"2026-04-16T13:50:45.419Z","level":"INFO","module":"instagram:check-expiry","message":"account2 (@ai_side_hack_): 残り60日"}
