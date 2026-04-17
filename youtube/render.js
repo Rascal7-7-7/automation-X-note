@@ -38,6 +38,7 @@ const __dirname   = path.dirname(fileURLToPath(import.meta.url));
 const DRAFTS_DIR  = path.join(__dirname, 'drafts');
 const ASSETS_DIR  = path.join(__dirname, 'assets');
 const BGM_DIR     = path.join(ASSETS_DIR, 'bgm');
+const FONTS_DIR   = path.join(ASSETS_DIR, 'fonts');
 
 const MODULE = 'youtube:render';
 
@@ -447,9 +448,9 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPa
   try {
     const lang = process.env.YOUTUBE_SUBTITLE_LANG ?? 'ja';
 
-    // Whisper で精度の高い字幕生成を試みる
+    // Whisper で精度の高い字幕生成を試みる（日本語は文字分割の精度問題があるためスキップ）
     let srtResult = null;
-    if (hasTts) {
+    if (hasTts && lang !== 'ja') {
       srtResult = await generateSRTWithWhisper(ttsPath, captionsPath, lang);
     }
 
@@ -469,9 +470,10 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPa
   const pass2Args = ['-y', '-i', nosubPath];
 
   if (resolvedAssPath && fs.existsSync(resolvedAssPath)) {
-    const assEscaped = resolvedAssPath.replace(/\\/g, '/').replace(/:/g, '\\:');
+    const assEscaped   = resolvedAssPath.replace(/\\/g, '/').replace(/:/g, '\\:');
+    const fontsEscaped = FONTS_DIR.replace(/\\/g, '/').replace(/:/g, '\\:');
     pass2Args.push(
-      '-vf', `ass='${assEscaped}'`,
+      '-vf', `ass='${assEscaped}':fontsdir='${fontsEscaped}'`,
       '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
     );
     logger.info(MODULE, 'Burning ASS subtitles into video');
@@ -525,37 +527,38 @@ function generateSRTFromScenes(scenes, srtPath) {
   let idx     = 1;
   let elapsed = 0;
   const GAP   = 0.05; // カード間のギャップ（秒）
+  const lang  = process.env.YOUTUBE_SUBTITLE_LANG ?? 'ja';
 
   for (const scene of scenes) {
-    // シーンテキストを最大 7 語ずつのカードに分割
-    const words  = scene.text.split(/\s+/).filter(Boolean);
-    const chunks = [];
-    for (let i = 0; i < words.length; i += 7) {
-      chunks.push(words.slice(i, i + 7));
-    }
-    if (chunks.length === 0) {
-      elapsed += scene.duration;
-      continue;
-    }
+    if (!scene.text) { elapsed += scene.duration; continue; }
 
-    const secPerWord = scene.duration / Math.max(words.length, 1);
-
-    for (const chunk of chunks) {
-      const duration  = chunk.length * secPerWord;
-      const start     = elapsed;
-      const end       = Math.min(elapsed + duration - GAP, elapsed + scene.duration - GAP);
-      entries.push(
-        `${idx}\n${secondsToSrtTs(start)} --> ${secondsToSrtTs(end)}\n${chunk.join(' ')}\n`
-      );
+    if (lang === 'ja') {
+      // 日本語: スペースがないため1シーン全体を1枚のカードとして表示
+      const start = elapsed;
+      const end   = elapsed + scene.duration - GAP;
+      entries.push(`${idx}\n${secondsToSrtTs(start)} --> ${secondsToSrtTs(end)}\n${scene.text}\n`);
       idx++;
-      elapsed += duration;
-    }
+      elapsed += scene.duration;
+    } else {
+      // 英語等: 最大 7 語ずつのカードに分割
+      const words  = scene.text.split(/\s+/).filter(Boolean);
+      const chunks = [];
+      for (let i = 0; i < words.length; i += 7) chunks.push(words.slice(i, i + 7));
+      if (chunks.length === 0) { elapsed += scene.duration; continue; }
 
-    // シーン終端まで elapsed を揃える
-    const sceneEnd = entries.length > 0
-      ? elapsed  // words で進んだ分
-      : elapsed + scene.duration;
-    if (elapsed < sceneEnd) elapsed = sceneEnd;
+      const secPerWord = scene.duration / Math.max(words.length, 1);
+      for (const chunk of chunks) {
+        const duration = chunk.length * secPerWord;
+        const start    = elapsed;
+        const end      = Math.min(elapsed + duration - GAP, elapsed + scene.duration - GAP);
+        entries.push(`${idx}\n${secondsToSrtTs(start)} --> ${secondsToSrtTs(end)}\n${chunk.join(' ')}\n`);
+        idx++;
+        elapsed += duration;
+      }
+      // シーン終端まで elapsed を揃える
+      const sceneEnd = elapsed;
+      if (elapsed < sceneEnd) elapsed = sceneEnd;
+    }
   }
 
   fs.writeFileSync(srtPath, entries.join('\n'), 'utf8');
@@ -671,7 +674,7 @@ function convertSRTtoASS(srtPath, type, assPath) {
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    `Style: Default,Arial,${fontSize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
+    `Style: Default,Noto Sans JP,${fontSize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
