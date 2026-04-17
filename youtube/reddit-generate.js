@@ -1,0 +1,168 @@
+/**
+ * Reddit → YouTube台本生成モジュール
+ *
+ * youtube/queue/reddit_queue.json を読み込み、
+ * 英語投稿を日本語5行スクリプトに変換して
+ * youtube/drafts/{today}/reddit-short.json に保存する。
+ *
+ * 生成後は reddit_queue.json を削除（処理済みマーク）
+ */
+import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { generate } from '../shared/claude-client.js';
+import { logger } from '../shared/logger.js';
+
+const __dirname  = path.dirname(fileURLToPath(import.meta.url));
+const DRAFTS_DIR = path.join(__dirname, 'drafts');
+const QUEUE_FILE = path.join(__dirname, 'queue', 'reddit_queue.json');
+const MODULE     = 'youtube:reddit-generate';
+
+// ── プロンプト ──────────────────────────────────────────────────────
+
+const SCRIPT_SYSTEM = `あなたはYouTubeショート動画のテロップライターです。
+英語のReddit投稿（タイトル＋コメント）を日本語に翻訳・要約し、
+YouTube Shortsのテロップとして5行に変換してください。
+
+【絶対ルール】
+- 出力は5行のプレーンテキストのみ
+- 1行 = 1テロップ、最大20文字
+- Markdown記号（** # --- [] 【】 ✅ ・ > 等）は一切使わない
+- ラベル・番号・記号・絵文字を使わない
+- 投稿内容を忠実に要約する（誇張・創作しない）
+
+【5行の構成】
+1行目: 投稿タイトルを圧縮（15文字以内の衝撃的な見出し）
+2行目: 投稿の核心・驚きポイント（視聴者が続きを見たくなる）
+3行目: 最もスコアが高いコメント要約
+4行目: 2番目に評価が高いコメント要約
+5行目: 視聴者への問いかけ（「あなたはどう思う？」等）
+
+【良い出力例】
+AI研究者が重大発表
+GPT-5が人間の知能を超えた
+ネット民「これ本当に怖い」
+専門家も予測できなかった速度
+あなたならどう対応する？
+
+出力は5行テキストのみ。`;
+
+const TITLE_SYSTEM = `以下のReddit投稿を元に、日本語YouTubeタイトル案を5個生成してください。
+
+条件:
+- 50文字以内
+- 「海外の反応」「Reddit民が」「AI界隈で話題」等のフレーズを活用
+- クリック率が高いパターン:「〜に衝撃」「〜が話題沸騰」「〜の真実」「海外では〜」
+- #Shorts は含めない（説明文に入れる）
+
+出力: 1〜5の番号付きリストのみ`;
+
+const DESCRIPTION_SYSTEM = `以下のReddit投稿を元に、YouTube動画の日本語説明文を作成してください。
+
+条件:
+- 冒頭2行以内に「海外Reddit」「r/{subreddit}」を自然に含める
+- 元の投稿URLを末尾に掲載
+- 本文150文字以上
+- ハッシュタグ: #Reddit #海外の反応 #AI #Shorts を必ず含める
+
+出力: 説明文テキストのみ`;
+
+// ── メイン ──────────────────────────────────────────────────────────
+
+export async function runGenerate({ type = 'reddit-short' } = {}) {
+  if (!fs.existsSync(QUEUE_FILE)) {
+    logger.warn(MODULE, 'reddit_queue.json not found — run reddit-fetch first');
+    return { generated: false, reason: 'no queue' };
+  }
+
+  const item  = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'));
+  const today = new Date().toISOString().split('T')[0];
+  const draftDir  = path.join(DRAFTS_DIR, today);
+  const draftPath = path.join(draftDir, `${type}.json`);
+
+  if (!fs.existsSync(draftDir)) fs.mkdirSync(draftDir, { recursive: true });
+
+  if (fs.existsSync(draftPath)) {
+    const existing = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
+    if (existing.status !== 'error') {
+      logger.info(MODULE, `draft already exists for ${type}, skipping`);
+      return { generated: false, reason: 'already generated' };
+    }
+  }
+
+  const context = buildContext(item);
+  logger.info(MODULE, `generating ${type} from r/${item.subreddit}: "${item.title.slice(0, 50)}"`);
+
+  const [script, titles, description] = await Promise.all([
+    generate(SCRIPT_SYSTEM, context, { model: 'claude-sonnet-4-6', maxTokens: 256 }),
+    generate(TITLE_SYSTEM,  context, { maxTokens: 512 }),
+    generate(
+      DESCRIPTION_SYSTEM.replace('{subreddit}', item.subreddit),
+      context,
+      { maxTokens: 512 }
+    ),
+  ]);
+
+  const parsedTitles = titles
+    .split('\n')
+    .filter(l => /^\d[\.\)]/.test(l.trim()))
+    .map(l => l.replace(/^\d[\.\)]\s*/, '').trim())
+    .filter(Boolean);
+
+  const draft = {
+    theme:       `海外Reddit r/${item.subreddit}: ${item.title.slice(0, 40)}`,
+    type,
+    script,
+    titles:      parsedTitles,
+    description: description + `\n\n元投稿: ${item.url}`,
+    tags:        ['Reddit', '海外の反応', 'AI', item.subreddit, 'Shorts', 'ChatGPT', '生成AI'],
+    thumbnail:   null,
+    thumbnailPath: null,
+    redditSource: {
+      id:          item.id,
+      subreddit:   item.subreddit,
+      title:       item.title,
+      score:       item.score,
+      numComments: item.numComments,
+      url:         item.url,
+    },
+    date:         today,
+    status:       'ready',
+    videoPath:    null,
+    videoId:      null,
+    captionsPath: null,
+    crossPublished: false,
+    createdAt:    new Date().toISOString(),
+  };
+
+  fs.writeFileSync(draftPath, JSON.stringify(draft, null, 2));
+  fs.rmSync(QUEUE_FILE, { force: true }); // 処理済み → キュー削除
+
+  logger.info(MODULE, `draft saved → ${draftPath}`);
+  return { generated: true, draft };
+}
+
+// ── ヘルパー ──────────────────────────────────────────────────────
+
+function buildContext(item) {
+  const commentLines = item.comments
+    .slice(0, 4)
+    .map((c, i) => `${i + 1}. [score: ${c.score}] ${c.text}`)
+    .join('\n');
+
+  return [
+    `サブレディット: r/${item.subreddit}`,
+    `投稿スコア: ${item.score} (コメント数: ${item.numComments})`,
+    `タイトル: ${item.title}`,
+    item.selftext ? `本文: ${item.selftext}` : '',
+    '',
+    'トップコメント:',
+    commentLines,
+  ].filter(Boolean).join('\n');
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  const [type] = process.argv.slice(2);
+  runGenerate({ type: type ?? 'reddit-short' });
+}

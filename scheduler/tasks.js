@@ -88,6 +88,27 @@ export const TASKS = [
     account: 2,
   },
 
+  // ── YouTube Reddit読み上げ（毎日） ───────────────────────────────────
+  {
+    name: 'youtube:reddit-fetch',
+    cron: '0 2 * * *',              // 毎日 02:00 — AIサブレディットのトップ投稿取得
+  },
+  {
+    name: 'youtube:reddit-generate',
+    cron: '0 3 * * *',              // 毎日 03:00 — 日本語台本に翻訳・生成
+    type: 'reddit-short',
+  },
+  {
+    name: 'youtube:render:reddit-short',
+    cron: '0 4 * * *',              // 毎日 04:00 — Ken Burns + Whisper で動画生成
+    type: 'reddit-short',
+  },
+  {
+    name: 'youtube:upload:reddit-short',
+    cron: '0 20 * * 1,2,3,4,5',    // 平日 20:00 — アップロード（AI動画の2時間後）
+    type: 'reddit-short',
+  },
+
   // ── YouTube ショート（毎日） ────────────────────────────────────
   {
     name: 'youtube:generate:short',

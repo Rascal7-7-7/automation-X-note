@@ -61,6 +61,13 @@ const STYLE = {
   },
 };
 
+// 'reddit-short' など派生タイプを short/long に正規化
+function resolveStyleKey(type) {
+  if (STYLE[type]) return type;
+  if (type.includes('long')) return 'long';
+  return 'short';
+}
+
 // ── メイン ──────────────────────────────────────────────────────────
 
 export async function runRender({ type = 'short', date } = {}) {
@@ -160,7 +167,8 @@ async function renderWithHeyGen(draft, type, outDir) {
 // ── シーン分割 ──────────────────────────────────────────────────────
 
 function parseScenes(script, type) {
-  if (!script) return [{ text: 'AI副業ハック', duration: type === 'short' ? 10 : 30 }];
+  const fmt = resolveStyleKey(type); // 'short' or 'long'
+  if (!script) return [{ text: 'AI副業ハック', duration: fmt === 'short' ? 10 : 30 }];
 
   const lines = script
     .split('\n')
@@ -184,7 +192,7 @@ function parseScenes(script, type) {
     .map(l => l.trim())
     .filter(l => l.length >= 8);                       // 短すぎる残骸を除去
 
-  if (type === 'short') {
+  if (fmt === 'short') {
     // ショート: 合計40秒（5シーン×8秒）、テロップ1行40文字上限
     return lines.slice(0, 5).map(text => ({
       text: text.slice(0, 40),
@@ -271,7 +279,7 @@ function buildImagePrompt(text, type) {
 }
 
 async function generateFallbackImage(outDir, index, type) {
-  const s = STYLE[type] ?? STYLE.short;
+  const s = STYLE[resolveStyleKey(type)];
   const imgPath = path.join(outDir, `fallback_${index}.png`);
 
   // グラデーションパターン（シーンごとに変化）
@@ -336,7 +344,7 @@ async function generateTTS(scenes, outDir) {
 // ── Ken Burns エフェクト付きクリップ生成 ─────────────────────────────────
 
 async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx) {
-  const s      = STYLE[type];
+  const s      = STYLE[resolveStyleKey(type)];
   const fps    = 30;
   const frames = Math.round(duration * fps);
   // ズーム余裕1.2倍にスケールアップ→クロップして zoompan に渡す
@@ -369,7 +377,7 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
 // ── FFmpeg 動画合成 ──────────────────────────────────────────────────
 
 async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPath }) {
-  const s = STYLE[type];
+  const s = STYLE[resolveStyleKey(type)];
   const totalDuration = scenes.reduce((sum, sc) => sum + sc.duration, 0);
   const outDir = path.dirname(outPath);
 
@@ -645,7 +653,7 @@ print("\\n".join(entries), end="", flush=True)
  * @returns {string} assPath
  */
 function convertSRTtoASS(srtPath, type, assPath) {
-  const s         = STYLE[type] ?? STYLE.short;
+  const s         = STYLE[resolveStyleKey(type)];
   const W         = s.width;
   const H         = s.height;
   const fontSize  = Math.round(H * 0.032);   // ~61px（ショート）/ ~35px（ロング）
