@@ -41,6 +41,12 @@ export async function runPost({ account = 1 } = {}) {
   }
 
   const draft = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
+
+  if (draft.status === 'posted') {
+    logger.info(MODULE, `account${account}: already posted today — skipping`);
+    return { posted: false, reason: 'already_posted', account };
+  }
+
   const { accessToken, accountId } = getCredentials(account);
 
   if (!accessToken || !accountId) {
@@ -123,8 +129,9 @@ async function postViaGraphApi(draft, accessToken, accountId) {
 // ── ヘルパー ────────────────────────────────────────────────────────
 
 function markPosted(draftPath, draft, postId) {
+  const { pendingReason: _, updatedAt: __, ...rest } = draft;
   fs.writeFileSync(draftPath, JSON.stringify({
-    ...draft,
+    ...rest,
     status:   'posted',
     postId,
     postedAt: new Date().toISOString(),

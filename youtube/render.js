@@ -254,7 +254,7 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
     // scene 1以降はコメント/リアクション系プロンプトを優先
     const prompt = (i >= 1 && type === 'reddit-short')
       ? buildCommentScenePrompt(scenes[i].text, type)
-      : buildImagePrompt(scenes[i].text, type);
+      : buildImagePrompt(scenes[i].text, type, i);
 
     try {
       const result = await ai.models.generateImages({
@@ -335,62 +335,130 @@ function buildCommentScenePrompt(text, type) {
 // 日本語シーンテキストをキーワード解析して内容に合った英語画像プロンプトを生成
 const SCENE_VISUALS = [
   { keys: ['副業', '稼ぐ', '収入', '月10万', '月5万', 'お金', '稼ぎ', '報酬', '給料'],
-    en: 'japanese person smiling at laptop, yen coins and bills, side income success, modern home office' },
+    en: [
+      'japanese person smiling at laptop, yen coins and bills, side income success, modern home office',
+      'smartphone screen showing earnings dashboard with yen symbol, japanese apartment, success concept',
+      'pile of japanese yen bills with laptop and notebook, financial growth, warm indoor lighting',
+    ]},
   { keys: ['Claude', 'claude', 'Gemini', 'GPT', 'ChatGPT', 'OpenAI', '生成AI', 'LLM'],
-    en: 'glowing AI assistant interface on screen, chat bubble with robot icon, futuristic blue glow' },
+    en: [
+      'glowing AI assistant chat interface on dark screen, chat bubbles, futuristic blue glow',
+      'smartphone displaying AI chatbot conversation with japanese text, modern clean desk setup',
+      'AI brain neural network visualization, holographic interface, dark blue and cyan tones',
+    ]},
   { keys: ['AI', 'エーアイ', '人工知能'],
-    en: 'neural network visualization, glowing nodes, artificial intelligence concept, tech blue background' },
+    en: [
+      'neural network nodes glowing, artificial intelligence concept, dark tech blue background',
+      'robot hand and human hand interaction, AI collaboration concept, white clean background',
+      'digital brain with circuit patterns, glowing gold and blue, futuristic technology art',
+    ]},
   { keys: ['プログラミング', 'コード', 'コーディング', 'エンジニア', 'プログラマー'],
-    en: 'dark IDE with colorful code on monitor, programmer at desk, green and white code lines' },
-  { keys: ['アプリ', 'スマホ', 'スマートフォン', 'モバイル', 'スマートフォン'],
-    en: 'smartphone showing modern app interface, app development, clean mobile UI on screen' },
+    en: [
+      'bright clean IDE with colorful syntax highlighted code, modern coding setup, white theme',
+      'multiple monitors showing dashboards and code, software development workspace, warm lighting',
+      'terminal window with green code output, developer environment, dark but professional',
+    ]},
+  { keys: ['アプリ', 'スマホ', 'スマートフォン', 'モバイル'],
+    en: [
+      'hand holding smartphone showing clean minimal app UI, japanese interior background',
+      'multiple app icons on phone screen, mobile app concept, colorful modern design',
+      'smartphone flat lay on white desk, app interface visible, clean product shot',
+    ]},
   { keys: ['ノーコード', 'No-Code', 'nocode', 'ローコード'],
-    en: 'drag and drop interface on screen, no-code builder with colorful blocks, visual workflow editor' },
-  { keys: ['初心者', '未経験', '誰でも', '簡単', '入門'],
-    en: 'beginner learning technology enthusiastically, tutorial on screen, lightbulb moment concept' },
+    en: [
+      'drag and drop visual workflow editor on screen, colorful blocks connected by arrows',
+      'no-code builder interface with cards and modules, bright and approachable UI',
+      'flowchart automation diagram, connected colorful nodes, clean white background',
+    ]},
+  { keys: ['初心者', '未経験', '誰でも', '簡単', '入門', '始め'],
+    en: [
+      'asian young person learning with laptop and notebook, enthusiastic expression, bright room',
+      'step by step numbered guide on screen, beginner tutorial concept, clean infographic style',
+      'lightbulb moment illustration, person with idea, bright warm colors, motivation concept',
+    ]},
   { keys: ['案件', '仕事', 'クライアント', 'フリーランス', '受注'],
-    en: 'freelancer closing a deal, laptop and coffee, professional success in modern cafe' },
+    en: [
+      'freelancer at laptop in bright modern cafe, japanese style setting, professional success',
+      'laptop screen showing contract or project dashboard, remote work concept, clean desk',
+      'person closing a deal via laptop video call, professional, home office setup',
+    ]},
   { keys: ['YouTube', 'ユーチューブ', '動画', '配信', 'チャンネル'],
-    en: 'person recording video content, ring light and camera setup, creator studio' },
+    en: [
+      'youtube analytics dashboard on screen, subscriber graph growing upward, creator success',
+      'video editing timeline on monitor, content creator workspace, multiple screens',
+      'ring light and camera setup, professional recording studio, clean creator space',
+    ]},
   { keys: ['投資', 'NISA', '株', '資産', '運用', '利益'],
-    en: 'stock market chart going up, investment growth concept, financial success visualization' },
+    en: [
+      'stock market chart with upward trend, candlestick graph, financial success visualization',
+      'japanese yen coins stacked on growth chart, investment concept, clean white background',
+      'portfolio dashboard on screen showing growth metrics, financial data, modern minimal design',
+    ]},
   { keys: ['自動', '自動化', 'ボット', 'スクリプト', '効率'],
-    en: 'robot automating tasks on computer, gears and efficiency concept, workflow automation' },
+    en: [
+      'automated workflow with gears and arrows, efficiency concept, blue and white tech design',
+      'robot and human working together, automation concept, bright modern illustration style',
+      'timer and checkmarks, time saving and productivity, clean infographic concept',
+    ]},
   { keys: ['Reddit', 'reddit', 'レディット'],
-    en: 'social media feed on screen, viral post with many upvotes, online community discussion' },
+    en: [
+      'social media feed on screen, viral post with many upvotes, online community discussion',
+      'person reading interesting post on phone, surprised expression, casual home setting',
+      'comment thread with many reactions, online discussion concept, screen glow',
+    ]},
   { keys: ['海外', '世界', 'グローバル', '外国'],
-    en: 'world map with connection lines, global internet concept, international tech community' },
-  { keys: ['コメント', '反応', 'バズ', '話題'],
-    en: 'social media comments flooding in, viral content reaction, engagement and notifications' },
-  { keys: ['コメント', '反応', 'ネット', 'SNS', 'ネット民'],
-    en: 'person reacting to social media on phone, expression of surprise or laughter, casual home setting' },
+    en: [
+      'world map with glowing connection lines, global internet concept, blue and gold tones',
+      'earth globe with digital network overlay, international technology, dark background',
+      'passport and laptop, global freelance concept, travel and work lifestyle',
+    ]},
+  { keys: ['コメント', '反応', 'バズ', '話題', 'SNS', 'ネット'],
+    en: [
+      'smartphone screen with heart and like icons flooding in, social media success concept',
+      'viral post notification bubbles, engagement metrics going up, colorful app interface',
+      'person looking at phone with pleased smile, japanese interior, social media moment',
+    ]},
   { keys: ['笑える', '爆笑', '笑', 'ウケる'],
-    en: 'person laughing at phone screen, hilarious reaction, casual and relatable' },
+    en: [
+      'person laughing while looking at phone, hilarious reaction, bright casual setting',
+      'group of friends laughing at something funny on screen, relatable social moment',
+      'comedy reaction face illustration, surprised and amused expression, vibrant colors',
+    ]},
   { keys: ['怖い', '恐ろしい', 'ヤバい', 'やばい'],
-    en: 'person with shocked or scared expression looking at computer screen' },
+    en: [
+      'person with shocked wide-eyed expression at computer screen, dramatic lighting',
+      'alarming warning notification on screen, red alert concept, high contrast',
+      'surprised reaction looking at phone, dramatic moment, cinematic composition',
+    ]},
 ];
 
-function buildImagePrompt(text, type) {
+const FALLBACK_VISUALS = [
+  'modern technology workspace, clean minimal setup, professional productive environment, soft lighting',
+  'digital data charts and graphs on screen, colorful data visualization, tech concept art',
+  'smartphone and laptop on clean white desk, modern productivity setup, minimalist style',
+  'japanese urban street with smartphone navigation, technology in daily life, city background',
+  'glowing holographic interface concept, futuristic tech, blue and white tones, dark background',
+  'person at clean desk with laptop and coffee, work from home lifestyle, bright modern interior',
+];
+
+function buildImagePrompt(text, type, index = 0) {
   const ratio = resolveStyleKey(type) === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
 
-  // キーワードマッチで内容に合ったビジュアルを選択
-  let visualDesc = null;
   for (const v of SCENE_VISUALS) {
     if (v.keys.some(k => text.includes(k))) {
-      visualDesc = v.en;
-      break;
+      const options = Array.isArray(v.en) ? v.en : [v.en];
+      const visualDesc = options[index % options.length];
+      return (
+        `${ratio} YouTube background photo, ${visualDesc}, ` +
+        `cinematic lighting, vibrant colors, no text overlays, no logos, high quality, 4K, photorealistic`
+      );
     }
   }
 
-  // マッチなし → テーマ名をそのまま使ったテックビジュアル
-  if (!visualDesc) {
-    visualDesc = `modern technology concept related to "${text.slice(0, 30)}", clean professional setting`;
-  }
-
+  const visualDesc = FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
   return (
     `${ratio} YouTube background photo, ${visualDesc}, ` +
-    `cinematic lighting, vibrant colors, no text overlays, no logos, ` +
-    `high quality, 4K, photorealistic`
+    `cinematic lighting, vibrant colors, no text overlays, no logos, high quality, 4K, photorealistic`
   );
 }
 
