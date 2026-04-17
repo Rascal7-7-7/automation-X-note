@@ -35,45 +35,63 @@ async function login(page) {
 
   await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded', timeout: 30_000 });
   await page.waitForSelector('input[autocomplete="username"]', { timeout: 15_000 });
-  await page.waitForTimeout(2_000);
+  await page.waitForTimeout(3_000);
 
-  // Step1: ユーザー名 or メールアドレス
+  // Step1: メールアドレス入力（typeメソッドでキー入力してReactのバリデーションを確実にトリガー）
   const usernameInput = page.locator('input[autocomplete="username"]');
-  await usernameInput.click();
-  // React管理のinputにはnativeInputValueSetterでイベントを発火させる必要がある
-  await page.evaluate((email) => {
-    const input = document.querySelector('input[autocomplete="username"]');
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-    nativeInputValueSetter.call(input, email);
-    input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.dispatchEvent(new Event('change', { bubbles: true }));
-  }, process.env.X_EMAIL);
+  await usernameInput.click({ force: true });
+  await page.waitForTimeout(500);
+  await usernameInput.pressSequentially(process.env.X_EMAIL, { delay: 50 });
   await page.waitForTimeout(1_000);
-  // data-testid="LoginForm_Next_Button" は現在 null のため、テキストで確実にクリック
-  await page.getByRole('button', { name: /Next|次へ/ }).first().click();
-  await page.waitForTimeout(2_000);
+
+  // 「次へ」ボタン: data-testid 優先 → role fallback
+  const nextBtn = page.locator('[data-testid="LoginForm_Next_Button"]');
+  if (await nextBtn.count() > 0) {
+    await nextBtn.click();
+  } else {
+    await page.getByRole('button', { name: /Next|次へ/ }).first().click();
+  }
+
+  // パスワード画面 OR 追加確認画面が現れるまで待つ（最大10秒）
+  await page.waitForTimeout(1_000);
+  await Promise.race([
+    page.waitForSelector('input[type="password"]', { timeout: 10_000 }),
+    page.waitForSelector('input[data-testid="ocfEnterTextTextInput"]', { timeout: 10_000 }),
+  ]).catch(() => {});
 
   logger.info(MODULE, `step2 url: ${page.url()}`);
 
-  // Step2: メールアドレス確認を求められる場合（電話番号も同様）
+  // Step2: ユーザー名確認 or 電話番号確認が出た場合
   const extraInput = page.locator('input[data-testid="ocfEnterTextTextInput"]');
   if (await extraInput.count() > 0) {
-    logger.info(MODULE, 'additional verification required');
-    await extraInput.fill(process.env.X_EMAIL);
+    logger.info(MODULE, 'additional verification required — entering username/email');
+    // ユーザー名確認の場合はXのユーザー名（@なし）を入力、電話番号確認の場合は電話番号
+    const verifyValue = process.env.X_USERNAME ?? process.env.X_EMAIL;
+    await extraInput.fill(verifyValue);
+    await page.waitForTimeout(500);
     await page.locator('[data-testid="ocfEnterTextNextButton"]').click();
-    await page.waitForTimeout(2_000);
+    await page.waitForSelector('input[type="password"]', { timeout: 10_000 });
+    await page.waitForTimeout(1_000);
   }
 
   // Step3: パスワード
   logger.info(MODULE, `step3 url: ${page.url()}`);
-  await page.waitForSelector('input[type="password"]', { timeout: 15_000 });
-  await page.locator('input[type="password"]').fill(process.env.X_PASSWORD);
-  await page.locator('[data-testid="LoginForm_Login_Button"]').or(page.getByText('ログイン')).or(page.getByText('Log in')).first().click();
-  await page.waitForTimeout(4_000);
+  const pwInput = page.locator('input[type="password"]');
+  await pwInput.waitFor({ state: 'visible', timeout: 15_000 });
+  await pwInput.fill(process.env.X_PASSWORD);
+  await page.waitForTimeout(500);
+
+  const loginBtn = page.locator('[data-testid="LoginForm_Login_Button"]');
+  if (await loginBtn.count() > 0) {
+    await loginBtn.click();
+  } else {
+    await page.getByRole('button', { name: /Log in|ログイン/ }).first().click();
+  }
+  await page.waitForTimeout(5_000);
 
   const success = await page.locator('[data-testid="SideNav_NewTweet_Button"]').count() > 0;
   if (!success) {
-    throw new Error('X login failed — check X_EMAIL and X_PASSWORD');
+    throw new Error('X login failed — check X_EMAIL / X_PASSWORD / X_USERNAME');
   }
 
   logger.info(MODULE, 'login success');
