@@ -12,6 +12,7 @@ import { runLike }                     from '../x/like.js';
 import { runReply }                    from '../x/reply.js';
 import { runQuoteRT }                  from '../x/quote-rt.js';
 import { runNotePromo }                from '../x/note-promo.js';
+import { runArticle }                  from '../x/article.js';
 import { runResearch as runNoteResearch } from '../note/research.js';
 import { runGenerate }                 from '../note/generate.js';
 import { runImage as runNoteImage }    from '../note/image.js';
@@ -40,6 +41,7 @@ const HANDLERS = {
   'x:reply':        (task) => runReply(task.keywords),
   'x:quote-rt':     (task) => runQuoteRT(task.keywords),
   'x:note-promo':   ()     => runNotePromo({ mode: MODE }),
+  'x:article':      ()     => runArticle(),
   'note:research':  ()     => runNoteResearch(),
   'note:generate':  ()     => runGenerate(),
   'note:image':     ()     => runNoteImage(),

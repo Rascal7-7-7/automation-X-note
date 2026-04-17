@@ -3,9 +3,12 @@
  * - ideas キューからアイデアを取得
  * - Claude Haiku でツイート文を生成
  * - twitter-api-v2 で投稿
+ * - X_IMAGE_ENABLED=true の場合、DALL-E 3 で画像を生成して添付
  */
 import 'dotenv/config';
 import { TwitterApi } from 'twitter-api-v2';
+import OpenAI from 'openai';
+import https from 'https';
 import { generate } from '../shared/claude-client.js';
 import { FileQueue } from '../shared/queue.js';
 import { logger } from '../shared/logger.js';
@@ -15,6 +18,70 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'x:post';
+
+const IMAGE_ENABLED = process.env.X_IMAGE_ENABLED === 'true';
+
+// ── OpenAI 遅延初期化 ─────────────────────────────────────────────────
+let openai = null;
+function getOpenAI() {
+  if (!openai) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error('OPENAI_API_KEY is not set — X image generation unavailable');
+    }
+    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  }
+  return openai;
+}
+
+const IMAGE_PROMPT_SYSTEM = `ツイートの内容に合った正方形（1:1）のSNS投稿用画像のDALL-Eプロンプトを英語で1行生成してください。
+- インフォグラフィック風、清潔感のあるデザイン
+- 日本語テキストは含めない
+- 人物は含めてもよい（日本人、ビジネスカジュアル）
+- ブランドカラー: 深い青 + 白 + アクセントゴールド
+出力: プロンプト1行のみ`;
+
+/**
+ * ツイートテキストから画像プロンプトを生成し、DALL-E 3 で画像を生成する。
+ * @param {string} tweetText
+ * @returns {Promise<Buffer>} 画像バイナリ
+ */
+async function generateTweetImage(tweetText) {
+  const imagePrompt = await generate(
+    IMAGE_PROMPT_SYSTEM,
+    `以下のツイート内容に合う画像プロンプトを生成してください:\n${tweetText}`,
+    { maxTokens: 200 },
+  );
+  logger.info(MODULE, 'image prompt generated', { imagePrompt });
+
+  const res = await getOpenAI().images.generate({
+    model:           'dall-e-3',
+    prompt:          imagePrompt.trim(),
+    n:               1,
+    size:            '1024x1024',
+    quality:         'standard',
+    response_format: 'url',
+  });
+
+  const imageUrl = res.data[0].url;
+  logger.info(MODULE, 'DALL-E 3 returned URL');
+  return downloadToBuffer(imageUrl);
+}
+
+/** HTTPS URL から Buffer にダウンロード */
+function downloadToBuffer(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (response) => {
+      if (response.statusCode !== 200) {
+        reject(new Error(`image download failed: HTTP ${response.statusCode}`));
+        return;
+      }
+      const chunks = [];
+      response.on('data', (c) => chunks.push(c));
+      response.on('end',  ()  => resolve(Buffer.concat(chunks)));
+      response.on('error', reject);
+    }).on('error', reject);
+  });
+}
 
 const SYSTEM_PROMPT = `あなたは副業・節約・時短をテーマに自分の実体験を発信する会社員です。
 AIツールを使っていますが、それは絶対に明かしません。
@@ -108,9 +175,17 @@ const twitterClient = new TwitterApi({
   accessSecret:  process.env.X_ACCESS_TOKEN_SECRET,
 });
 
-async function postTweet(text) {
-  const result = await twitterClient.v2.tweet(text);
-  return result;
+/**
+ * ツイートを投稿する。IMAGE_ENABLED=true かつ imageBuffer 指定時は画像付き投稿。
+ * @param {string} text
+ * @param {Buffer|null} imageBuffer
+ */
+async function postTweet(text, imageBuffer = null) {
+  if (imageBuffer) {
+    const mediaId = await twitterClient.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+    return twitterClient.v2.tweet({ text, media: { media_ids: [mediaId] } });
+  }
+  return twitterClient.v2.tweet(text);
 }
 
 export async function runPost() {
@@ -124,9 +199,20 @@ export async function runPost() {
     const tweetText = await generateTweet(idea);
     logger.info(MODULE, 'generated tweet', { text: tweetText });
 
-    const result = await postTweet(tweetText);
+    // 画像添付（X_IMAGE_ENABLED=true のときのみ。失敗してもテキスト投稿を継続）
+    let imageBuffer = null;
+    if (IMAGE_ENABLED) {
+      try {
+        imageBuffer = await generateTweetImage(tweetText);
+        logger.info(MODULE, 'tweet image ready', { bytes: imageBuffer.length });
+      } catch (imgErr) {
+        logger.warn(MODULE, 'image generation failed — posting text only', { message: imgErr.message });
+      }
+    }
+
+    const result = await postTweet(tweetText, imageBuffer);
     const tweetId = result?.data?.id ?? result?.id;
-    logger.info(MODULE, 'posted', { tweetId });
+    logger.info(MODULE, 'posted', { tweetId, withImage: imageBuffer !== null });
 
     appendFileSync(postedLog, JSON.stringify({
       tweetId,
