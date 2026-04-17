@@ -194,10 +194,10 @@ function parseScenes(script, type) {
     .filter(l => l.length >= 8);                       // 短すぎる残骸を除去
 
   if (fmt === 'short') {
-    // ショート: 合計96秒（12シーン×8秒）、テロップ1行40文字上限
-    return lines.slice(0, 12).map(text => ({
+    // ショート: 6シーン、duration は TTS 実測後に上書きされる（仮値 10s）
+    return lines.slice(0, 6).map(text => ({
       text: text.slice(0, 40),
-      duration: 8,
+      duration: 10,
     }));
   } else {
     // ロング: 60文字でまとめて各25秒のシーンに
@@ -443,11 +443,16 @@ async function generateTTS(scenes, outDir) {
   const vttPath = path.join(outDir, 'tts.vtt');
   if (fs.existsSync(ttsPath)) return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
 
-  const voice      = 'ja-JP-NanamiNeural';
-  const sceneTmps  = [];   // 後でクリーンアップ
-  const vttInfos   = [];   // { vttPath, offset } for merging
+  const voice     = 'ja-JP-NanamiNeural';
+  // ショート: 自然なペース（+0%）、ロング系: わずかに速め（+10%）
+  const ttsRate   = scenes.length <= 8 ? '+0%' : '+10%';
+  // シーン間の無音（秒）— 読み上げ後に間を入れてテンポよく聞かせる
+  const PAUSE_SEC = 1.2;
 
+  const sceneTmps = [];
+  const vttInfos  = [];
   let offset = 0;
+
   for (let i = 0; i < scenes.length; i++) {
     const rawMp3  = path.join(outDir, `tts_raw_${i}.mp3`);
     const rawVtt  = path.join(outDir, `tts_raw_${i}.vtt`);
@@ -456,49 +461,69 @@ async function generateTTS(scenes, outDir) {
 
     try {
       await execFileAsync('edge-tts', [
-        '--text',             scenes[i].text,
-        '--voice',            voice,
-        '--rate',             '+25%',
-        '--write-media',      rawMp3,
-        '--write-subtitles',  rawVtt,
+        '--text',            scenes[i].text,
+        '--voice',           voice,
+        '--rate',            ttsRate,
+        '--write-media',     rawMp3,
+        '--write-subtitles', rawVtt,
       ]);
     } catch (err) {
       logger.warn(MODULE, `TTS scene ${i} failed: ${err.message}`);
-      // 無音ファイルを代わりに生成
       await execFileAsync('ffmpeg', [
-        '-y', '-f', 'lavfi', '-i', `anullsrc=r=24000:cl=mono`,
-        '-t', String(scenes[i].duration), '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
+        '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono',
+        '-t', '3', '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
       ]);
     }
 
-    // シーン長にパディング（whole_dur=N 秒）
+    // 実際のTTS音声の長さを取得してシーン長を動的に決める
+    const ttsDuration = await getAudioDuration(rawMp3);
+    const sceneDur    = parseFloat((ttsDuration + PAUSE_SEC).toFixed(2));
+
+    // TTS後にPAUSE_SEC秒の無音を付加
     await execFileAsync('ffmpeg', [
       '-y', '-i', rawMp3,
-      '-af', `apad=whole_dur=${scenes[i].duration}`,
-      '-t', String(scenes[i].duration),
+      '-af', `apad=whole_dur=${sceneDur}`,
+      '-t', String(sceneDur),
       '-c:a', 'libmp3lame', '-q:a', '4',
       padMp3,
     ]);
 
+    // scenes[i].duration を実測値で上書き（映像生成側が参照）
+    scenes[i].duration = sceneDur;
+
     vttInfos.push({ vttPath: rawVtt, offset });
-    offset += scenes[i].duration;
+    offset += sceneDur;
   }
 
-  // 全シーン MP3 を結合
   const listPath = path.join(outDir, 'tts_list.txt');
-  fs.writeFileSync(listPath, vttInfos.map((_, i) =>
-    `file '${path.join(outDir, `tts_pad_${i}.mp3`)}'`
-  ).join('\n'), 'utf8');
+  fs.writeFileSync(listPath,
+    scenes.map((_, i) => `file '${path.join(outDir, `tts_pad_${i}.mp3`)}'`).join('\n'),
+    'utf8'
+  );
   await execFileAsync('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', listPath, ttsPath]);
   fs.unlinkSync(listPath);
 
-  // VTT をオフセット付きでマージ
   mergeVTTWithOffset(vttInfos, vttPath);
 
   for (const p of sceneTmps) fs.rmSync(p, { force: true });
 
-  logger.info(MODULE, `TTS generated (${scenes.length} scenes, ${offset}s) → ${ttsPath}`);
+  logger.info(MODULE, `TTS generated (${scenes.length} scenes, total ${offset.toFixed(1)}s) → ${ttsPath}`);
   return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
+}
+
+/** ffprobe で音声ファイルの再生時間（秒）を取得 */
+async function getAudioDuration(filePath) {
+  try {
+    const { stdout } = await execFileAsync('ffprobe', [
+      '-v', 'error',
+      '-show_entries', 'format=duration',
+      '-of', 'default=noprint_wrappers=1:nokey=1',
+      filePath,
+    ]);
+    return parseFloat(stdout.trim()) || 3;
+  } catch {
+    return 3;
+  }
 }
 
 /** 複数 VTT ファイルをタイムスタンプオフセット付きで1ファイルにマージ */
