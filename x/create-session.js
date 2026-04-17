@@ -9,9 +9,7 @@
  * 保存後は x:like / x:reply が自動でセッションを再利用します（〜数ヶ月有効）。
  */
 import 'dotenv/config';
-import { chromium } from 'playwright-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-chromium.use(StealthPlugin());
+import { chromium } from 'playwright';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createInterface } from 'readline';
@@ -19,13 +17,16 @@ import { createInterface } from 'readline';
 const __dirname    = path.dirname(fileURLToPath(import.meta.url));
 const SESSION_FILE = path.join(__dirname, '../.x-session.json');
 
+// システムのChromeを使用（ボット検知回避）
+const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+
 const browser = await chromium.launch({
   headless: false,
+  executablePath: CHROME_PATH,
   args: ['--start-maximized'],
 });
 const context = await browser.newContext({
   viewport: null,
-  userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
   locale: 'ja-JP',
 });
 const page = await context.newPage();
