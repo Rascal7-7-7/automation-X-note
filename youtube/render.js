@@ -103,7 +103,7 @@ export async function runRender({ type = 'short', date } = {}) {
       logger.info(MODULE, 'HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana');
 
       const scenes              = parseScenes(draft.script, type);
-      const imagePaths          = await generateSceneImages(scenes, outDir, type);
+      const imagePaths          = await generateSceneImages(scenes, outDir, type, draft);
       const bgmPath             = pickBgm();
       const { ttsPath, vttPath } = await generateTTS(scenes, outDir);
 
@@ -194,8 +194,8 @@ function parseScenes(script, type) {
     .filter(l => l.length >= 8);                       // 短すぎる残骸を除去
 
   if (fmt === 'short') {
-    // ショート: 合計40秒（5シーン×8秒）、テロップ1行40文字上限
-    return lines.slice(0, 5).map(text => ({
+    // ショート: 合計96秒（12シーン×8秒）、テロップ1行40文字上限
+    return lines.slice(0, 12).map(text => ({
       text: text.slice(0, 40),
       duration: 8,
     }));
@@ -221,11 +221,17 @@ function parseScenes(script, type) {
 
 // ── Gemini Imagen で画像生成 ───────────────────────────────────────
 
-async function generateSceneImages(scenes, outDir, type) {
+async function generateSceneImages(scenes, outDir, type, draft = null) {
   const geminiKey = process.env.GEMINI_API_KEY;
+
+  // reddit-short の scene_0: 実際の Reddit 画像を優先使用
+  const scene0Override = await resolveScene0Image(type, draft, outDir);
+
   if (!geminiKey) {
     logger.warn(MODULE, 'GEMINI_API_KEY not set, using fallback gradient images');
-    return Promise.all(scenes.map((_, i) => generateFallbackImage(outDir, i, type)));
+    const paths = await Promise.all(scenes.map((_, i) => generateFallbackImage(outDir, i, type)));
+    if (scene0Override) paths[0] = scene0Override;
+    return paths;
   }
 
   const ai = new GoogleGenAI({ apiKey: geminiKey });
@@ -233,12 +239,23 @@ async function generateSceneImages(scenes, outDir, type) {
 
   for (let i = 0; i < scenes.length; i++) {
     const imgPath = path.join(outDir, `scene_${i}.png`);
+
+    // scene_0 に Reddit 画像が取得できていれば Imagen をスキップ
+    if (i === 0 && scene0Override) {
+      paths.push(scene0Override);
+      continue;
+    }
+
     if (fs.existsSync(imgPath)) {
       paths.push(imgPath);
       continue;
     }
 
-    const prompt = buildImagePrompt(scenes[i].text, type);
+    // scene 1以降はコメント/リアクション系プロンプトを優先
+    const prompt = (i >= 1 && type === 'reddit-short')
+      ? buildCommentScenePrompt(scenes[i].text, type)
+      : buildImagePrompt(scenes[i].text, type);
+
     try {
       const result = await ai.models.generateImages({
         model:  'imagen-4.0-generate-001',
@@ -259,6 +276,60 @@ async function generateSceneImages(scenes, outDir, type) {
   }
 
   return paths;
+}
+
+/**
+ * reddit-short の scene_0 に使う画像をダウンロードして返す。
+ * imageUrl → thumbnailUrl の順で試み、いずれもなければ null を返す。
+ */
+async function resolveScene0Image(type, draft, outDir) {
+  if (type !== 'reddit-short' || !draft) return null;
+
+  const imgPath = path.join(outDir, 'scene_0.png');
+  if (fs.existsSync(imgPath)) return imgPath;
+
+  const url = draft.redditSource?.imageUrl ?? draft.thumbnailUrl ?? null;
+  if (!url) return null;
+
+  try {
+    const res = await fetch(url, { headers: { 'User-Agent': 'AutomationBot/1.0' } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = Buffer.from(await res.arrayBuffer());
+    fs.writeFileSync(imgPath, buf);
+    logger.info(MODULE, `scene_0 Reddit image downloaded → ${imgPath}`);
+    return imgPath;
+  } catch (err) {
+    logger.warn(MODULE, `scene_0 Reddit image download failed: ${err.message}`);
+    return null;
+  }
+}
+
+/** scene 1以降（コメントシーン）用のプロンプト生成 */
+function buildCommentScenePrompt(text, type) {
+  const ratio = resolveStyleKey(type) === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
+
+  // コメント・リアクション系キーワードを優先マッチ
+  const commentVisuals = [
+    { keys: ['笑える', '爆笑', '笑', 'ウケる'],
+      en: 'person laughing at phone screen, hilarious reaction, casual and relatable' },
+    { keys: ['怖い', '恐ろしい', 'ヤバい', 'やばい'],
+      en: 'person with shocked or scared expression looking at computer screen' },
+    { keys: ['共感', '同じ', 'わかる', 'だよね'],
+      en: 'person nodding in agreement while looking at phone, relatable reaction' },
+  ];
+
+  for (const v of commentVisuals) {
+    if (v.keys.some(k => text.includes(k))) {
+      return `${ratio} YouTube background photo, ${v.en}, cinematic lighting, vibrant colors, no text overlays, no logos, high quality, 4K, photorealistic`;
+    }
+  }
+
+  // デフォルト: SNS リアクション系
+  return (
+    `${ratio} YouTube background photo, person reacting to social media on phone, ` +
+    `expression of surprise or laughter, casual home setting, ` +
+    `cinematic lighting, vibrant colors, no text overlays, no logos, high quality, 4K, photorealistic`
+  );
 }
 
 // 日本語シーンテキストをキーワード解析して内容に合った英語画像プロンプトを生成
@@ -291,6 +362,12 @@ const SCENE_VISUALS = [
     en: 'world map with connection lines, global internet concept, international tech community' },
   { keys: ['コメント', '反応', 'バズ', '話題'],
     en: 'social media comments flooding in, viral content reaction, engagement and notifications' },
+  { keys: ['コメント', '反応', 'ネット', 'SNS', 'ネット民'],
+    en: 'person reacting to social media on phone, expression of surprise or laughter, casual home setting' },
+  { keys: ['笑える', '爆笑', '笑', 'ウケる'],
+    en: 'person laughing at phone screen, hilarious reaction, casual and relatable' },
+  { keys: ['怖い', '恐ろしい', 'ヤバい', 'やばい'],
+    en: 'person with shocked or scared expression looking at computer screen' },
 ];
 
 function buildImagePrompt(text, type) {
@@ -381,7 +458,7 @@ async function generateTTS(scenes, outDir) {
       await execFileAsync('edge-tts', [
         '--text',             scenes[i].text,
         '--voice',            voice,
-        '--rate',             '+5%',
+        '--rate',             '+25%',
         '--write-media',      rawMp3,
         '--write-subtitles',  rawVtt,
       ]);

@@ -22,31 +22,43 @@ const MODULE     = 'youtube:reddit-generate';
 // ── プロンプト ──────────────────────────────────────────────────────
 
 const SCRIPT_SYSTEM = `あなたはYouTubeショート動画のテロップライターです。
-英語のReddit投稿（タイトル＋コメント）を日本語に翻訳・要約し、
-YouTube Shortsのテロップとして5行に変換してください。
+英語のReddit投稿を日本語に翻訳し、視聴者が最後まで見たくなる10〜12行のスクリプトを作成してください。
 
 【絶対ルール】
-- 出力は5行のプレーンテキストのみ
+- 出力は10〜12行のプレーンテキストのみ
 - 1行 = 1テロップ、最大20文字
 - Markdown記号（** # --- [] 【】 ✅ ・ > 等）は一切使わない
 - ラベル・番号・記号・絵文字を使わない
-- 投稿内容を忠実に要約する（誇張・創作しない）
+- 投稿内容を正確に翻訳する（誇張・創作しない）
 
-【5行の構成】
-1行目: 投稿タイトルを圧縮（15文字以内の衝撃的な見出し）
-2行目: 投稿の核心・驚きポイント（視聴者が続きを見たくなる）
-3行目: 最もスコアが高いコメント要約
-4行目: 2番目に評価が高いコメント要約
-5行目: 視聴者への問いかけ（「あなたはどう思う？」等）
+【構成】
+1行目: 投稿タイトル（衝撃的・短縮）
+2行目: 続きが気になる一言
+3行目: 投稿の詳細・背景
+4行目: 核心・驚きの事実
+5行目: コメント1（スコア最高）を正確に翻訳
+6行目: コメント2を正確に翻訳
+7行目: コメント3を正確に翻訳
+8行目: コメント4を正確に翻訳
+9行目: コメント5を正確に翻訳
+10行目: 総括・オチ
+11行目: 視聴者への問いかけ
+12行目（オプション）: 締めの一言
 
-【良い出力例】
-AI研究者が重大発表
-GPT-5が人間の知能を超えた
-ネット民「これ本当に怖い」
-専門家も予測できなかった速度
-あなたならどう対応する？
+【良い例】
+OpenClawが勝手にLINE送信
+元カノに「また会いたい」と送った
+AIに連絡先を与えたら暴走した
+開発者本人も予期していなかった
+「これ笑える、でも怖い」5万いいね
+「俺のAIはAmazonで爆買いした」
+「次は告白するの？」と茶化す声も
+「さすがにこれはオフにした」共感
+「でも少し嬉しかった」本音コメント
+AIの暴走は笑い事じゃなくなってきた
+あなたのAIはまだ安全ですか？
 
-出力は5行テキストのみ。`;
+出力は10〜12行テキストのみ。`;
 
 const TITLE_SYSTEM = `以下のReddit投稿を元に、日本語YouTubeタイトル案を5個生成してください。
 
@@ -95,7 +107,7 @@ export async function runGenerate({ type = 'reddit-short' } = {}) {
   logger.info(MODULE, `generating ${type} from r/${item.subreddit}: "${item.title.slice(0, 50)}"`);
 
   const [script, titles, description] = await Promise.all([
-    generate(SCRIPT_SYSTEM, context, { model: 'claude-sonnet-4-6', maxTokens: 256 }),
+    generate(SCRIPT_SYSTEM, context, { model: 'claude-sonnet-4-6', maxTokens: 512 }),
     generate(TITLE_SYSTEM,  context, { maxTokens: 512 }),
     generate(
       DESCRIPTION_SYSTEM.replace('{subreddit}', item.subreddit),
@@ -110,15 +122,19 @@ export async function runGenerate({ type = 'reddit-short' } = {}) {
     .map(l => l.replace(/^\d[\.\)]\s*/, '').trim())
     .filter(Boolean);
 
+  const lines = script.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
   const draft = {
     theme:       `海外Reddit r/${item.subreddit}: ${item.title.slice(0, 40)}`,
     type,
     script,
+    sceneCount:  lines.length,
     titles:      parsedTitles,
     description: description + `\n\n元投稿: ${item.url}`,
     tags:        ['Reddit', '海外の反応', 'AI', item.subreddit, 'Shorts', 'ChatGPT', '生成AI'],
     thumbnail:   null,
     thumbnailPath: null,
+    thumbnailUrl:  item.thumbnailUrl ?? null,
     redditSource: {
       id:          item.id,
       subreddit:   item.subreddit,
@@ -126,6 +142,7 @@ export async function runGenerate({ type = 'reddit-short' } = {}) {
       score:       item.score,
       numComments: item.numComments,
       url:         item.url,
+      imageUrl:    item.imageUrl ?? null,
     },
     date:         today,
     status:       'ready',
@@ -147,7 +164,7 @@ export async function runGenerate({ type = 'reddit-short' } = {}) {
 
 function buildContext(item) {
   const commentLines = item.comments
-    .slice(0, 4)
+    .slice(0, 8)
     .map((c, i) => `${i + 1}. [score: ${c.score}] ${c.text}`)
     .join('\n');
 
