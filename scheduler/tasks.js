@@ -68,7 +68,12 @@ export const TASKS = [
   },
   {
     name:    'instagram:image:1',
-    cron:    '30 9 * * *',           // 毎日 09:30 — DALL-E 3 生成 → Imgur アップロード → imageUrl 設定
+    cron:    '30 9 * * *',           // 毎日 09:30 — DALL-E 3 生成 → imageUrl 設定
+    account: 1,
+  },
+  {
+    name:    'instagram:render:1',
+    cron:    '0 10 * * *',           // 毎日 10:00 — Reels動画生成（HeyGen/D-ID/ffmpeg）
     account: 1,
   },
   {
@@ -78,7 +83,6 @@ export const TASKS = [
   },
 
   // ── Instagram account=2（アフィリエイト専門・週3回） ────────────
-  // 月・水・金の投稿でローテーション（同じ案件の連続投稿を防ぐ）
   {
     name:    'instagram:generate:2',
     cron:    '0 10 * * 1,3,5',       // 月・水・金 10:00 — 案件選択 + キャプション生成
@@ -86,7 +90,12 @@ export const TASKS = [
   },
   {
     name:    'instagram:image:2',
-    cron:    '30 10 * * 1,3,5',      // 月・水・金 10:30 — DALL-E 3 生成 → Imgur アップロード → imageUrl 設定
+    cron:    '30 10 * * 1,3,5',      // 月・水・金 10:30 — DALL-E 3 生成 → imageUrl 設定
+    account: 2,
+  },
+  {
+    name:    'instagram:render:2',
+    cron:    '0 11 * * 1,3,5',       // 月・水・金 11:00 — Reels動画生成
     account: 2,
   },
   {

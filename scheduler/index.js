@@ -21,6 +21,7 @@ import { collectXMetrics }             from '../analytics/collect-x.js';
 import { runBuzzAnalysis }             from '../analytics/buzz-analyzer.js';
 import { runGenerate as runInstaGenerate } from '../instagram/generate.js';
 import { runImage  as runInstaImage }   from '../instagram/image.js';
+import { runRender as runInstaRender }  from '../instagram/render.js';
 import { runPost   as runInstaPost }    from '../instagram/post.js';
 import { logger }                      from '../shared/logger.js';
 import { notifyError }                 from '../shared/notify.js';
@@ -52,6 +53,8 @@ const HANDLERS = {
   'instagram:generate:2':    (task) => runInstaGenerate({ account: task.account }),
   'instagram:image:1':       (task) => runInstaImage({ account: task.account }),
   'instagram:image:2':       (task) => runInstaImage({ account: task.account }),
+  'instagram:render:1':      (task) => runInstaRender({ account: task.account }),
+  'instagram:render:2':      (task) => runInstaRender({ account: task.account }),
   'instagram:post:1':        (task) => runInstaPost({ account: task.account }),
   'instagram:post:2':        (task) => runInstaPost({ account: task.account }),
 

@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * YouTube OAuth2 refresh_token 取得スクリプト
- * 使い方: node get-refresh-token.js
+ * 使い方: node youtube/get-refresh-token.js
  */
-
+import 'dotenv/config';
 import { execFile } from 'child_process';
 import https from 'https';
 import http from 'http';

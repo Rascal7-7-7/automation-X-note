@@ -1,50 +1,37 @@
 /**
  * Instagram Reels レンダリングモジュール
  *
- * フロー:
- *   1. instagram/drafts/account{N}/{date}/post.json を読み込む
- *   2-a. HEYGEN_API_KEY が設定されている場合:
- *        HeyGen v3 API で 9:16 アバター動画を生成（15〜30秒 Reels向け）
- *   2-b. 未設定の場合:
- *        HEYGEN_API_KEY が必要な旨を警告して終了
- *        （Reels動画は HeyGen 専用。静止画投稿は generate.js + post.js で対応）
- *   3. draft.reelsVideoPath に保存パスを書き込む
+ * 優先順位:
+ *   1. HeyGen  (HEYGEN_API_KEY)  — 高品質アバター動画
+ *   2. D-ID    (DID_API_KEY)     — 顔写真 + TTS アバター動画（安価）
+ *   3. ffmpeg  (フォールバック)   — テキスト + 画像スライドショー（無料）
  *
  * 必要な環境変数:
- *   HEYGEN_API_KEY          - HeyGen アバター動画生成（必須）
- *   HEYGEN_AVATAR_ID        - 使用するアバター ID（省略時: アカウント内の最初のアバター）
- *   HEYGEN_VOICE_ID_JA      - 日本語ボイス ID（省略時: 日本語ボイスを自動選択）
+ *   HEYGEN_API_KEY         - HeyGen（優先1）
+ *   HEYGEN_AVATAR_ID       - HeyGenアバターID（省略可）
+ *   HEYGEN_VOICE_ID_JA     - HeyGen日本語ボイスID（省略可）
+ *   DID_API_KEY            - D-ID（優先2）"email:api_key" 形式
+ *   DID_AVATAR_IMAGE_URL   - D-IDアバター顔写真URL（省略時: デフォルト女性）
+ *   DID_VOICE_ID           - D-ID音声ID（省略時: ja-JP-NanamiNeural）
  */
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { logger } from '../shared/logger.js';
-import {
-  isHeyGenAvailable,
-  generateAvatarVideo,
-  downloadVideo,
-  listVoices,
-} from '../shared/heygen-client.js';
+import { isHeyGenAvailable, generateAvatarVideo, downloadVideo as heygenDownload, listVoices } from '../shared/heygen-client.js';
+import { isDIDAvailable, generateTalkingVideo, downloadVideo as didDownload } from '../shared/did-client.js';
 
-const __dirname  = path.dirname(fileURLToPath(import.meta.url));
-const DRAFTS_DIR = path.join(__dirname, 'drafts');
-const MODULE     = 'instagram:render';
+const execFileAsync = promisify(execFile);
+const __dirname     = path.dirname(fileURLToPath(import.meta.url));
+const DRAFTS_DIR    = path.join(__dirname, 'drafts');
+const MODULE        = 'instagram:render';
 
 // ── メイン ──────────────────────────────────────────────────────────
 
-/**
- * @param {object} [options]
- * @param {number} [options.account=1] - アカウント番号
- * @param {string} [options.date]      - YYYY-MM-DD（省略時: 今日）
- * @returns {Promise<{rendered: boolean, reelsVideoPath?: string, reason?: string}>}
- */
 export async function runRender({ account = 1, date } = {}) {
-  if (!isHeyGenAvailable()) {
-    logger.warn(MODULE, 'HEYGEN_API_KEY is not set — Reels video rendering skipped');
-    return { rendered: false, reason: 'HEYGEN_API_KEY not configured' };
-  }
-
   const today     = date ?? new Date().toISOString().split('T')[0];
   const draftPath = path.join(DRAFTS_DIR, `account${account}`, today, 'post.json');
 
@@ -65,33 +52,27 @@ export async function runRender({ account = 1, date } = {}) {
     return { rendered: false, reason: 'no reelsScript in draft' };
   }
 
+  const outDir = path.join(DRAFTS_DIR, `account${account}`, today);
+  fs.mkdirSync(outDir, { recursive: true });
+
   try {
-    const outDir   = path.join(DRAFTS_DIR, `account${account}`, today);
-    const outPath  = path.join(outDir, 'reels_heygen.mp4');
+    let result;
 
-    logger.info(MODULE, `rendering Reels for account${account}: "${draft.theme}"...`);
+    if (isHeyGenAvailable()) {
+      logger.info(MODULE, 'using HeyGen for Reels render');
+      result = await renderWithHeyGen(draft, outDir);
+    } else if (isDIDAvailable()) {
+      logger.info(MODULE, 'using D-ID for Reels render');
+      result = await renderWithDID(draft, outDir);
+    } else {
+      logger.info(MODULE, 'no avatar API configured — using ffmpeg slideshow fallback');
+      result = await renderWithFFmpeg(draft, outDir);
+    }
 
-    const voiceId = await resolveJapaneseVoiceId();
-
-    const { videoUrl } = await generateAvatarVideo({
-      script:      draft.reelsScript,
-      avatarId:    process.env.HEYGEN_AVATAR_ID     ?? undefined,
-      voiceId,
-      aspectRatio: '9:16',
-      resolution:  '1080p',
-    });
-
-    await downloadVideo(videoUrl, outPath);
-
-    const updated = {
-      ...draft,
-      reelsVideoPath: outPath,
-      reelsRenderedAt: new Date().toISOString(),
-    };
+    const updated = { ...draft, ...result, reelsRenderedAt: new Date().toISOString() };
     fs.writeFileSync(draftPath, JSON.stringify(updated, null, 2));
-
-    logger.info(MODULE, `Reels rendered → ${outPath}`);
-    return { rendered: true, reelsVideoPath: outPath };
+    logger.info(MODULE, `Reels rendered → ${result.reelsVideoPath}`);
+    return { rendered: true, ...result };
 
   } catch (err) {
     logger.error(MODULE, `Reels render error: ${err.message}`);
@@ -99,42 +80,76 @@ export async function runRender({ account = 1, date } = {}) {
   }
 }
 
-// ── 日本語ボイス解決 ─────────────────────────────────────────────────
+// ── HeyGen ──────────────────────────────────────────────────────────
 
-/**
- * 日本語ボイス ID を解決する。
- * 環境変数 HEYGEN_VOICE_ID_JA が設定されていればそれを使用し、
- * 未設定の場合は HeyGen API から女性日本語ボイスを自動選択する。
- * @returns {Promise<string|undefined>}
- */
-async function resolveJapaneseVoiceId() {
-  const envVoiceId = process.env.HEYGEN_VOICE_ID_JA;
-  if (envVoiceId) {
-    return envVoiceId;
-  }
-
-  logger.info(MODULE, 'HEYGEN_VOICE_ID_JA not set, fetching Japanese voices...');
-
-  try {
-    const voices = await listVoices('Japanese');
-    if (voices.length === 0) {
-      logger.warn(MODULE, 'No Japanese voices found, using avatar default voice');
-      return undefined;
-    }
-
-    // 女性ボイスを優先
-    const female = voices.find(v => v.gender?.toLowerCase() === 'female');
-    const chosen = female ?? voices[0];
-
-    logger.info(MODULE, `auto-selected voice: ${chosen.name} (${chosen.voice_id})`);
-    return chosen.voice_id;
-  } catch (err) {
-    logger.warn(MODULE, `Failed to fetch voices: ${err.message} — using avatar default`);
-    return undefined;
-  }
+async function renderWithHeyGen(draft, outDir) {
+  const voiceId  = await resolveHeyGenVoice();
+  const outPath  = path.join(outDir, 'reels_heygen.mp4');
+  const { videoUrl } = await generateAvatarVideo({
+    script:      draft.reelsScript,
+    avatarId:    process.env.HEYGEN_AVATAR_ID ?? undefined,
+    voiceId,
+    aspectRatio: '9:16',
+    resolution:  '1080p',
+  });
+  await heygenDownload(videoUrl, outPath);
+  // HeyGenのURLは期限付きのためローカルパスのみ保存（Cloudinary等へのアップロードは別タスク）
+  return { reelsVideoPath: outPath, reelsVideoUrl: videoUrl };
 }
 
-// ── CLI 直接実行 ──────────────────────────────────────────────────────
+async function resolveHeyGenVoice() {
+  if (process.env.HEYGEN_VOICE_ID_JA) return process.env.HEYGEN_VOICE_ID_JA;
+  try {
+    const voices = await listVoices('Japanese');
+    const chosen = voices.find(v => v.gender?.toLowerCase() === 'female') ?? voices[0];
+    if (chosen) {
+      logger.info(MODULE, `HeyGen auto voice: ${chosen.name}`);
+      return chosen.voice_id;
+    }
+  } catch { /* use default */ }
+  return undefined;
+}
+
+// ── D-ID ────────────────────────────────────────────────────────────
+
+async function renderWithDID(draft, outDir) {
+  const outPath = path.join(outDir, 'reels_did.mp4');
+  const { videoUrl } = await generateTalkingVideo({ script: draft.reelsScript });
+  await didDownload(videoUrl, outPath);
+  // D-IDのresult_urlはCDN上の公開URLなのでそのままInstagram APIに渡せる
+  return { reelsVideoPath: outPath, reelsVideoUrl: videoUrl };
+}
+
+// ── ffmpeg スライドショー（フォールバック） ───────────────────────────
+
+async function renderWithFFmpeg(draft, outDir) {
+  const imagePath = draft.imagePath;
+  if (!imagePath || !fs.existsSync(imagePath)) {
+    throw new Error('ffmpeg fallback requires draft.imagePath — run instagram:image first');
+  }
+
+  const outPath  = path.join(outDir, 'reels_slideshow.mp4');
+  const fontSize = 48;
+  const text     = draft.reelsScript.replace(/['"\\:]/g, ' ').slice(0, 200);
+  const duration = 20;
+
+  // 画像 + テキストオーバーレイ → 縦型 9:16 動画
+  const drawtext = `drawtext=text='${text}':fontsize=${fontSize}:fontcolor=white:x=(w-text_w)/2:y=h*0.75:line_spacing=8:box=1:boxcolor=black@0.5:boxborderw=10`;
+
+  await execFileAsync('ffmpeg', [
+    '-y',
+    '-loop', '1', '-i', imagePath,
+    '-t', String(duration),
+    '-vf', `scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,${drawtext}`,
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+    '-r', '30',
+    outPath,
+  ]);
+
+  return { reelsVideoPath: outPath, reelsVideoUrl: null };
+}
+
+// ── CLI ──────────────────────────────────────────────────────────────
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [account, date] = process.argv.slice(2);
