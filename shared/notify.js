@@ -1,5 +1,6 @@
 /**
  * 通知モジュール
+ * - Discord Webhook（DISCORD_WEBHOOK_URL が設定されている場合）
  * - macOS デスクトップ通知（osascript）
  * - alerts.log へ記録
  */
@@ -33,12 +34,39 @@ function macosNotify(title, message, sound = 'Basso') {
   } catch { /* 通知失敗は無視 */ }
 }
 
-export function notifyError(title, message) {
-  writeLog('ERROR', title, message);
-  macosNotify(`🔴 ${title}`, message);
+async function discordNotify(title, message, color = 0xe74c3c) {
+  const url = process.env.DISCORD_WEBHOOK_URL;
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title,
+          description: message,
+          color,
+          timestamp: new Date().toISOString(),
+          footer: { text: 'automation' },
+        }],
+      }),
+    });
+  } catch { /* Discord 通知失敗は無視 */ }
 }
 
-export function notifyWarn(title, message) {
+export async function notifyError(title, message) {
+  writeLog('ERROR', title, message);
+  macosNotify(`🔴 ${title}`, message);
+  await discordNotify(`🔴 ${title}`, message, 0xe74c3c); // 赤
+}
+
+export async function notifyWarn(title, message) {
   writeLog('WARN', title, message);
   macosNotify(`⚠️ ${title}`, message, 'Ping');
+  await discordNotify(`⚠️ ${title}`, message, 0xf39c12); // オレンジ
+}
+
+export async function notifyInfo(title, message) {
+  writeLog('INFO', title, message);
+  await discordNotify(`✅ ${title}`, message, 0x2ecc71); // 緑
 }

@@ -174,4 +174,10 @@ export const TASKS = [
     name: 'instagram:check-expiry',
     cron: '0 9 * * *',             // 毎日 09:00 — トークン残日数チェック
   },
+
+  // ── YouTube テーマ週次自動生成（毎週日曜 23:00） ────────────────
+  {
+    name: 'youtube:plan',
+    cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
+  },
 ];

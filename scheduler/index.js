@@ -26,6 +26,7 @@ import { runPost   as runInstaPost }    from '../instagram/post.js';
 import { logger }                      from '../shared/logger.js';
 import { notifyError }                 from '../shared/notify.js';
 import { runGenerate as runYtGenerate }       from '../youtube/generate.js';
+import { runPlan    as runYtPlan }             from '../youtube/plan.js';
 import { runFetch   as runRedditFetch }        from '../youtube/reddit-fetch.js';
 import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.js';
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
@@ -67,6 +68,7 @@ const HANDLERS = {
   'youtube:generate:long':   (task) => runYtGenerate({ type: task.type }),
   'youtube:render:long':     (task) => runYtRender({ type: task.type }),
   'youtube:upload:long':              (task) => runYtUpload({ type: task.type }),
+  'youtube:plan':                     ()     => runYtPlan(),
 
   // Reddit読み上げ
   'youtube:reddit-fetch':             ()     => runRedditFetch(),
