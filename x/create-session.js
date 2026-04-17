@@ -23,13 +23,24 @@ const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrom
 const browser = await chromium.launch({
   headless: false,
   executablePath: CHROME_PATH,
-  args: ['--start-maximized'],
+  args: [
+    '--start-maximized',
+    '--disable-blink-features=AutomationControlled',  // navigator.webdriver を隠す
+    '--disable-infobars',
+    '--no-sandbox',
+  ],
 });
 const context = await browser.newContext({
   viewport: null,
   locale: 'ja-JP',
 });
 const page = await context.newPage();
+
+// Playwright が埋め込む自動化フラグを完全に除去
+await page.addInitScript(() => {
+  Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+  delete navigator.__proto__.webdriver;
+});
 
 await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
 
