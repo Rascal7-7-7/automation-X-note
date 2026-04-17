@@ -102,12 +102,12 @@ export async function runRender({ type = 'short', date } = {}) {
       // ── FFmpeg / Nanobanana フォールバックパス ────────────────
       logger.info(MODULE, 'HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana');
 
-      const scenes     = parseScenes(draft.script, type);
-      const imagePaths = await generateSceneImages(scenes, outDir, type);
-      const bgmPath    = pickBgm();
-      const ttsPath    = await generateTTS(scenes, outDir);
+      const scenes              = parseScenes(draft.script, type);
+      const imagePaths          = await generateSceneImages(scenes, outDir, type);
+      const bgmPath             = pickBgm();
+      const { ttsPath, vttPath } = await generateTTS(scenes, outDir);
 
-      const { captionsPath } = await assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPath });
+      const { captionsPath } = await assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath });
       videoPath = outPath;
       if (captionsPath) draft._captionsPath = captionsPath;
     }
@@ -261,21 +261,59 @@ async function generateSceneImages(scenes, outDir, type) {
   return paths;
 }
 
+// 日本語シーンテキストをキーワード解析して内容に合った英語画像プロンプトを生成
+const SCENE_VISUALS = [
+  { keys: ['副業', '稼ぐ', '収入', '月10万', '月5万', 'お金', '稼ぎ', '報酬', '給料'],
+    en: 'japanese person smiling at laptop, yen coins and bills, side income success, modern home office' },
+  { keys: ['Claude', 'claude', 'Gemini', 'GPT', 'ChatGPT', 'OpenAI', '生成AI', 'LLM'],
+    en: 'glowing AI assistant interface on screen, chat bubble with robot icon, futuristic blue glow' },
+  { keys: ['AI', 'エーアイ', '人工知能'],
+    en: 'neural network visualization, glowing nodes, artificial intelligence concept, tech blue background' },
+  { keys: ['プログラミング', 'コード', 'コーディング', 'エンジニア', 'プログラマー'],
+    en: 'dark IDE with colorful code on monitor, programmer at desk, green and white code lines' },
+  { keys: ['アプリ', 'スマホ', 'スマートフォン', 'モバイル', 'スマートフォン'],
+    en: 'smartphone showing modern app interface, app development, clean mobile UI on screen' },
+  { keys: ['ノーコード', 'No-Code', 'nocode', 'ローコード'],
+    en: 'drag and drop interface on screen, no-code builder with colorful blocks, visual workflow editor' },
+  { keys: ['初心者', '未経験', '誰でも', '簡単', '入門'],
+    en: 'beginner learning technology enthusiastically, tutorial on screen, lightbulb moment concept' },
+  { keys: ['案件', '仕事', 'クライアント', 'フリーランス', '受注'],
+    en: 'freelancer closing a deal, laptop and coffee, professional success in modern cafe' },
+  { keys: ['YouTube', 'ユーチューブ', '動画', '配信', 'チャンネル'],
+    en: 'person recording video content, ring light and camera setup, creator studio' },
+  { keys: ['投資', 'NISA', '株', '資産', '運用', '利益'],
+    en: 'stock market chart going up, investment growth concept, financial success visualization' },
+  { keys: ['自動', '自動化', 'ボット', 'スクリプト', '効率'],
+    en: 'robot automating tasks on computer, gears and efficiency concept, workflow automation' },
+  { keys: ['Reddit', 'reddit', 'レディット'],
+    en: 'social media feed on screen, viral post with many upvotes, online community discussion' },
+  { keys: ['海外', '世界', 'グローバル', '外国'],
+    en: 'world map with connection lines, global internet concept, international tech community' },
+  { keys: ['コメント', '反応', 'バズ', '話題'],
+    en: 'social media comments flooding in, viral content reaction, engagement and notifications' },
+];
+
 function buildImagePrompt(text, type) {
-  const ratio = type === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
-  const styles = [
-    'vibrant purple and blue gradient, glowing neon lines, futuristic tech aesthetic',
-    'deep space background, colorful nebula, purple and cyan glow, cinematic',
-    'abstract digital waves, bright orange and magenta gradient, modern design',
-    'glowing golden circuit board pattern, dark background, premium tech look',
-    'electric blue and violet energy burst, dynamic abstract background',
-  ];
-  const style = styles[Math.abs(text.charCodeAt(0) ?? 0) % styles.length];
+  const ratio = resolveStyleKey(type) === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
+
+  // キーワードマッチで内容に合ったビジュアルを選択
+  let visualDesc = null;
+  for (const v of SCENE_VISUALS) {
+    if (v.keys.some(k => text.includes(k))) {
+      visualDesc = v.en;
+      break;
+    }
+  }
+
+  // マッチなし → テーマ名をそのまま使ったテックビジュアル
+  if (!visualDesc) {
+    visualDesc = `modern technology concept related to "${text.slice(0, 30)}", clean professional setting`;
+  }
+
   return (
-    `YouTube Shorts background image, ${ratio}, ${style}, ` +
-    `no text, no people, no faces, no logos, ` +
-    `high quality, 4K, professional video background, ` +
-    `theme: ${text.slice(0, 40)}`
+    `${ratio} YouTube background photo, ${visualDesc}, ` +
+    `cinematic lighting, vibrant colors, no text overlays, no logos, ` +
+    `high quality, 4K, photorealistic`
   );
 }
 
@@ -318,26 +356,187 @@ async function generateFallbackImage(outDir, index, type) {
   return imgPath;
 }
 
-// ── TTS 音声生成（edge-tts） ─────────────────────────────────────────
+// ── TTS 音声生成（edge-tts・シーン別） ───────────────────────────────
+//
+// 各シーンごとに個別 TTS を生成しシーン長にパディングして結合する。
+// これにより映像・字幕・ナレーションの3つが完全に同期する。
 
 async function generateTTS(scenes, outDir) {
   const ttsPath = path.join(outDir, 'tts.mp3');
-  if (fs.existsSync(ttsPath)) return ttsPath;
+  const vttPath = path.join(outDir, 'tts.vtt');
+  if (fs.existsSync(ttsPath)) return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
 
-  // シーンテキストを読点で繋いでナチュラルな間を作る
-  const text = scenes.map(s => s.text).join('。');
+  const voice      = 'ja-JP-NanamiNeural';
+  const sceneTmps  = [];   // 後でクリーンアップ
+  const vttInfos   = [];   // { vttPath, offset } for merging
 
-  try {
-    await execFileAsync('edge-tts', [
-      '--text',        text,
-      '--voice',       'ja-JP-NanamiNeural',
-      '--rate',        '+5%',
-      '--write-media', ttsPath,
+  let offset = 0;
+  for (let i = 0; i < scenes.length; i++) {
+    const rawMp3  = path.join(outDir, `tts_raw_${i}.mp3`);
+    const rawVtt  = path.join(outDir, `tts_raw_${i}.vtt`);
+    const padMp3  = path.join(outDir, `tts_pad_${i}.mp3`);
+    sceneTmps.push(rawMp3, rawVtt, padMp3);
+
+    try {
+      await execFileAsync('edge-tts', [
+        '--text',             scenes[i].text,
+        '--voice',            voice,
+        '--rate',             '+5%',
+        '--write-media',      rawMp3,
+        '--write-subtitles',  rawVtt,
+      ]);
+    } catch (err) {
+      logger.warn(MODULE, `TTS scene ${i} failed: ${err.message}`);
+      // 無音ファイルを代わりに生成
+      await execFileAsync('ffmpeg', [
+        '-y', '-f', 'lavfi', '-i', `anullsrc=r=24000:cl=mono`,
+        '-t', String(scenes[i].duration), '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
+      ]);
+    }
+
+    // シーン長にパディング（whole_dur=N 秒）
+    await execFileAsync('ffmpeg', [
+      '-y', '-i', rawMp3,
+      '-af', `apad=whole_dur=${scenes[i].duration}`,
+      '-t', String(scenes[i].duration),
+      '-c:a', 'libmp3lame', '-q:a', '4',
+      padMp3,
     ]);
-    logger.info(MODULE, `TTS generated → ${ttsPath}`);
-    return ttsPath;
+
+    vttInfos.push({ vttPath: rawVtt, offset });
+    offset += scenes[i].duration;
+  }
+
+  // 全シーン MP3 を結合
+  const listPath = path.join(outDir, 'tts_list.txt');
+  fs.writeFileSync(listPath, vttInfos.map((_, i) =>
+    `file '${path.join(outDir, `tts_pad_${i}.mp3`)}'`
+  ).join('\n'), 'utf8');
+  await execFileAsync('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', listPath, ttsPath]);
+  fs.unlinkSync(listPath);
+
+  // VTT をオフセット付きでマージ
+  mergeVTTWithOffset(vttInfos, vttPath);
+
+  for (const p of sceneTmps) fs.rmSync(p, { force: true });
+
+  logger.info(MODULE, `TTS generated (${scenes.length} scenes, ${offset}s) → ${ttsPath}`);
+  return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
+}
+
+/** 複数 VTT ファイルをタイムスタンプオフセット付きで1ファイルにマージ */
+function mergeVTTWithOffset(vttInfos, outPath) {
+  const lines = ['WEBVTT', ''];
+  let idx = 1;
+
+  function addSec(ts, sec) {
+    // edge-tts outputs HH:MM:SS,mmm (comma) — normalize to period before parsing
+    const parts = ts.trim().replace(',', '.').split(':');
+    let h = 0, m = 0, s = 0;
+    if (parts.length === 3) { [h, m, s] = parts.map(Number); }
+    else                    { [m, s]    = parts.map(Number); }
+    const total  = h * 3600 + m * 60 + s + sec;
+    const nh = Math.floor(total / 3600);
+    const nm = Math.floor((total % 3600) / 60);
+    const ns = (total % 60).toFixed(3).padStart(6, '0');
+    return `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}:${ns}`;
+  }
+
+  for (const { vttPath, offset } of vttInfos) {
+    if (!fs.existsSync(vttPath)) continue;
+    const raw    = fs.readFileSync(vttPath, 'utf8');
+    const blocks = raw.split(/\n\n+/);
+    for (const block of blocks) {
+      const blines   = block.trim().split('\n');
+      const timeLine = blines.find(l => l.includes(' --> '));
+      if (!timeLine) continue;
+      const [s, e] = timeLine.split(' --> ');
+      const text   = blines.slice(blines.indexOf(timeLine) + 1).join('\n').replace(/<[^>]+>/g, '').trim();
+      if (!text) continue;
+      lines.push(String(idx++), `${addSec(s, offset)} --> ${addSec(e, offset)}`, text, '');
+    }
+  }
+
+  fs.writeFileSync(outPath, lines.join('\n'), 'utf8');
+}
+
+/**
+ * edge-tts が出力する WebVTT を SRT に変換する。
+ * VTT の各 cue は単語レベルの正確なタイムスタンプを持つため、
+ * シーンベースより音声と字幕が自然に同期する。
+ * 隣接する cue をグループ化して 1 カードあたり最大 MAX_CHARS 文字に収める。
+ *
+ * @param {string} vttPath - 入力 .vtt ファイルパス
+ * @param {string} srtPath - 書き出し先 .srt ファイルパス
+ * @param {number} maxChars - 1 カードの最大文字数（デフォルト 15）
+ * @returns {string|null} srtPath or null on failure
+ */
+function convertVTTtoSRT(vttPath, srtPath, maxChars = 15, totalDuration = null) {
+  try {
+    const raw = fs.readFileSync(vttPath, 'utf8');
+
+    // VTT タイムスタンプ HH:MM:SS,mmm or HH:MM:SS.mmm → 秒
+    function vttTsToSec(ts) {
+      const parts = ts.trim().replace(',', '.').split(':');
+      const [h, m, s] = parts.length === 3
+        ? [parseFloat(parts[0]), parseFloat(parts[1]), parseFloat(parts[2])]
+        : [0, parseFloat(parts[0]), parseFloat(parts[1])];
+      return h * 3600 + m * 60 + s;
+    }
+
+    // VTT cue をパース（NOTE/WEBVTT ヘッダーをスキップ）
+    const cues = [];
+    const blocks = raw.split(/\n\n+/);
+    for (const block of blocks) {
+      const lines = block.trim().split('\n');
+      const timeLine = lines.find(l => l.includes(' --> '));
+      if (!timeLine) continue;
+      const [startRaw, endRaw] = timeLine.split(' --> ');
+      const text = lines.slice(lines.indexOf(timeLine) + 1).join('').replace(/<[^>]+>/g, '').trim();
+      if (!text) continue;
+      cues.push({ start: vttTsToSec(startRaw), end: vttTsToSec(endRaw), text });
+    }
+
+    if (cues.length === 0) return null;
+
+    // 隣接 cue をグループ化（maxChars を超えたら新カード）
+    const cards = [];
+    let buf = '';
+    let bufStart = cues[0].start;
+    let bufEnd   = cues[0].end;
+
+    for (const cue of cues) {
+      if (buf.length > 0 && buf.length + cue.text.length > maxChars) {
+        cards.push({ start: bufStart, end: bufEnd, text: buf });
+        buf = cue.text;
+        bufStart = cue.start;
+        bufEnd   = cue.end;
+      } else {
+        buf     += cue.text;
+        bufEnd   = cue.end;
+      }
+    }
+    if (buf) cards.push({ start: bufStart, end: bufEnd, text: buf });
+    if (cards.length === 0) return null;
+
+    // 各カードの end を次カードの start まで延ばしてギャップを埋める
+    for (let i = 0; i < cards.length - 1; i++) {
+      cards[i].end = cards[i + 1].start - 0.05;
+    }
+    // 最後のカードを動画末まで延ばす
+    if (totalDuration != null) {
+      cards[cards.length - 1].end = totalDuration - 0.05;
+    }
+
+    const srtLines = cards.map((c, i) =>
+      `${i + 1}\n${secondsToSrtTs(c.start)} --> ${secondsToSrtTs(c.end)}\n${c.text}\n`
+    );
+
+    fs.writeFileSync(srtPath, srtLines.join('\n'), 'utf8');
+    logger.info(MODULE, `SRT generated (VTT-sync, ${cards.length} cards) → ${srtPath}`);
+    return srtPath;
   } catch (err) {
-    logger.warn(MODULE, `TTS generation failed: ${err.message}`);
+    logger.warn(MODULE, `VTT→SRT conversion failed: ${err.message}`);
     return null;
   }
 }
@@ -377,7 +576,7 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
 
 // ── FFmpeg 動画合成 ──────────────────────────────────────────────────
 
-async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPath }) {
+async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath }) {
   const s = STYLE[resolveStyleKey(type)];
   const totalDuration = scenes.reduce((sum, sc) => sum + sc.duration, 0);
   const outDir = path.dirname(outPath);
@@ -446,15 +645,19 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, outPa
 
   let resolvedAssPath = null;
   try {
-    const lang = process.env.YOUTUBE_SUBTITLE_LANG ?? 'ja';
-
-    // Whisper で精度の高い字幕生成を試みる（日本語は文字分割の精度問題があるためスキップ）
+    const lang    = process.env.YOUTUBE_SUBTITLE_LANG ?? 'ja';
+    const hasVtt  = vttPath && fs.existsSync(vttPath);
     let srtResult = null;
-    if (hasTts && lang !== 'ja') {
+
+    if (lang === 'ja' && hasVtt) {
+      // 日本語: edge-tts VTT → 音声同期 SRT（最大15文字/カード、字幕は動画末まで表示）
+      srtResult = convertVTTtoSRT(vttPath, captionsPath, 15, totalDuration);
+    } else if (hasTts && lang !== 'ja') {
+      // 英語等: Whisper で書き起こし
       srtResult = await generateSRTWithWhisper(ttsPath, captionsPath, lang);
     }
 
-    // Whisper が使えない / TTS なし → シーンテキストからタイムスタンプ計算
+    // フォールバック: シーンテキストからタイムスタンプ計算
     if (!srtResult) {
       logger.info(MODULE, 'Falling back to scene-based SRT generation');
       generateSRTFromScenes(scenes, captionsPath);
