@@ -378,16 +378,28 @@ async function publishNote(page, draft) {
     logger.warn(MODULE, 'publish confirm button not found — article may remain as draft');
   } else if (draft.price) {
     // 有料エリア設定クリック後: 境界設定モーダルが開く
-    // 「このラインより先を有料にする」で境界を確定 → 「投稿する」で投稿
     await page.waitForTimeout(1_000);
+
+    // freeBody の段落数を数えて、その直後に有料ラインを置く
+    // 例: freeBody が 8段落なら 8番目の「ラインをこの場所に変更」ボタンをクリック
+    const freeParagraphs = (draft.freeBody ?? '')
+      .split('\n\n')
+      .filter(p => p.trim().length > 0).length;
+    logger.info(MODULE, `freeBody paragraphs: ${freeParagraphs}`);
+
     try {
-      const lineBtn = page.locator('button:has-text("このラインより先を有料にする")').first();
-      if (await lineBtn.count() > 0) {
-        await lineBtn.click();
-        await page.waitForTimeout(500);
-        logger.info(MODULE, 'paid line boundary set');
+      const lineButtons = page.locator('button:has-text("ラインをこの場所に変更")');
+      const count = await lineButtons.count();
+      // freeBody段落数に対応するボタンを選択（範囲外なら最後のボタン）
+      const idx = Math.min(freeParagraphs - 1, count - 1);
+      if (count > 0 && idx >= 0) {
+        await lineButtons.nth(idx).click();
+        await page.waitForTimeout(800);
+        logger.info(MODULE, `paid line set at paragraph ${idx + 1} of ${count}`);
       }
-    } catch { /* ラインが既に設定済みの場合はスキップ */ }
+    } catch (err) {
+      logger.warn(MODULE, `paid line click failed: ${err.message}`);
+    }
 
     // モーダル内の「投稿する」をクリック
     const postBtn = page.locator('button:has-text("投稿する")').first();
@@ -399,16 +411,20 @@ async function publishNote(page, draft) {
     }
   }
 
-  // 公開後 note.com の記事URLへの遷移を待つ（30秒）
-  // パターン例: https://note.com/@user/n/nXXXX
-  //            https://editor.note.com/notes/nXXXX/published
+  // 公開後 note.com の記事URL（/n/xxxxx）への遷移を待つ
+  let finalUrl = page.url();
   try {
     await page.waitForURL(/note\.com.*\/n\//, { timeout: 30_000 });
+    finalUrl = page.url();
   } catch {
-    // 遷移しなくても続行（記事は公開済みの可能性あり）
-    await page.waitForTimeout(2_000);
+    // リダイレクトが来なかった場合: editor URL からノートIDを抜いて URL を組み立てる
+    const editorUrl = page.url();
+    const noteIdMatch = editorUrl.match(/\/notes\/(n[a-z0-9]+)\//);
+    if (noteIdMatch) {
+      finalUrl = `https://note.com/n/${noteIdMatch[1]}`;
+      logger.info(MODULE, `constructed note URL from editor: ${finalUrl}`);
+    }
   }
-  const finalUrl = page.url();
   logger.info(MODULE, `final URL: ${finalUrl}`);
   return finalUrl;
 }
