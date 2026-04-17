@@ -15,6 +15,7 @@ const REDIRECT_URI = 'http://localhost:3002/callback';
 const SCOPES = [
   'https://www.googleapis.com/auth/youtube.upload',
   'https://www.googleapis.com/auth/youtube.readonly',
+  'https://www.googleapis.com/auth/youtube.force-ssl',  // 字幕・音声API用
 ].join(' ');
 
 if (!CLIENT_ID || !CLIENT_SECRET) {

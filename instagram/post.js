@@ -62,26 +62,29 @@ export async function runPost({ account = 1 } = {}) {
 // ── Graph API 投稿 ──────────────────────────────────────────────────
 
 async function postViaGraphApi(draft, accessToken, accountId) {
-  // EAA (Facebook Page token) → graph.facebook.com
-  // IGAAN (Instagram Business Login token) → graph.instagram.com
   const host = accessToken.startsWith('EAA') ? 'graph.facebook.com' : 'graph.instagram.com';
   const BASE = `https://${host}/v21.0/${accountId}`;
+  const apiHost = host;
 
-  // Step 1: メディアコンテナ作成（image_url が必要）
-  // ※ 画像はパブリックURLが必要。ローカル画像は別途CDN/S3等にアップロードすること
+  // Reels（動画）か画像かを判定
+  const videoUrl = draft.reelsVideoUrl ?? null;
   const imageUrl = draft.imageUrl ?? draft.fallbackImageUrl;
-  if (!imageUrl) {
-    throw new Error('imageUrl not set in draft — upload image first');
+  const isReels  = !!videoUrl;
+
+  if (!videoUrl && !imageUrl) {
+    throw new Error('imageUrl / reelsVideoUrl not set in draft — upload media first');
   }
 
+  // Step 1: メディアコンテナ作成
+  const containerBody = isReels
+    ? { media_type: 'REELS', video_url: videoUrl, caption: draft.caption, access_token: accessToken }
+    : { image_url: imageUrl,                       caption: draft.caption, access_token: accessToken };
+
+  logger.info(MODULE, `creating container: ${isReels ? 'REELS' : 'IMAGE'}`);
   const containerRes = await fetch(`${BASE}/media`, {
-    method: 'POST',
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      image_url:    imageUrl,
-      caption:      draft.caption,
-      access_token: accessToken,
-    }),
+    body:    JSON.stringify(containerBody),
   });
 
   const container = await containerRes.json();
@@ -89,26 +92,24 @@ async function postViaGraphApi(draft, accessToken, accountId) {
     throw new Error(`container creation failed: ${JSON.stringify(container)}`);
   }
 
-  // Step 2: コンテナ処理完了を待つ（最大30秒）
-  const apiHost = accessToken.startsWith('EAA') ? 'graph.facebook.com' : 'graph.instagram.com';
-  for (let i = 0; i < 10; i++) {
-    await new Promise(r => setTimeout(r, 3000));
+  // Step 2: コンテナ処理完了を待つ（Reels は最大5分、画像は最大30秒）
+  const maxPolls   = isReels ? 60 : 10;
+  const pollInterval = isReels ? 5000 : 3000;
+  for (let i = 0; i < maxPolls; i++) {
+    await new Promise(r => setTimeout(r, pollInterval));
     const statusRes = await fetch(
       `https://${apiHost}/v21.0/${container.id}?fields=status_code&access_token=${accessToken}`
     );
     const { status_code } = await statusRes.json();
     if (status_code === 'FINISHED') break;
-    if (status_code === 'ERROR') throw new Error(`container processing failed: status_code=ERROR`);
+    if (status_code === 'ERROR') throw new Error('container processing failed: status_code=ERROR');
   }
 
   // Step 3: 公開
   const publishRes = await fetch(`${BASE}/media_publish`, {
-    method: 'POST',
+    method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      creation_id:  container.id,
-      access_token: accessToken,
-    }),
+    body:    JSON.stringify({ creation_id: container.id, access_token: accessToken }),
   });
 
   const published = await publishRes.json();
