@@ -143,7 +143,7 @@ async function xurlQuoteRT(tweetId, commentary) {
 
 async function generateCommentary(tweetText) {
   const prompt = `以下のツイートを引用RTする際のコメントを1件作成してください。\nツイート: ${tweetText}`;
-  return generate(QUOTE_SYSTEM, prompt, { maxTokens: 250 });
+  return generate(QUOTE_SYSTEM, prompt, { maxTokens: 250, model: 'claude-sonnet-4-6' });
 }
 
 // ── メイン ────────────────────────────────────────────────────────

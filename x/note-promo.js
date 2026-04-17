@@ -84,7 +84,7 @@ async function generatePromoTweet(draft) {
 概要: ${draft.summary}
 テーマ: ${draft.theme}`;
 
-  return generate(PROMO_SYSTEM, prompt, { maxTokens: 300 });
+  return generate(PROMO_SYSTEM, prompt, { maxTokens: 300, model: 'claude-sonnet-4-6' });
 }
 
 // ── メイン ───────────────────────────────────────────────────────────

@@ -143,7 +143,7 @@ async function xurlReply(tweetId, text) {
 
 async function generateReply(tweetText) {
   const prompt = `以下のツイートに対するリプライを1件作成してください。\nツイート: ${tweetText}`;
-  return generate(REPLY_SYSTEM, prompt, { maxTokens: 200 });
+  return generate(REPLY_SYSTEM, prompt, { maxTokens: 200, model: 'claude-sonnet-4-6' });
 }
 
 // ── メイン ────────────────────────────────────────────────────────

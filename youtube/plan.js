@@ -58,7 +58,7 @@ export async function runPlan() {
   logger.info(MODULE, `generating themes for ${missing.length} missing dates`);
 
   const prompt = `以下の日付のYouTubeショートテーマを生成してください:\n${missing.join('\n')}`;
-  const raw = await generate(PLAN_SYSTEM, prompt, { maxTokens: 1024 });
+  const raw = await generate(PLAN_SYSTEM, prompt, { maxTokens: 1024, model: 'claude-sonnet-4-6' });
 
   let added = 0;
   for (const line of raw.split('\n')) {
