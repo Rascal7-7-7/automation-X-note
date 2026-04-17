@@ -727,8 +727,8 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
     let srtResult = null;
 
     if (lang === 'ja' && hasVtt) {
-      // 日本語: edge-tts VTT → 音声同期 SRT（最大15文字/カード、字幕は動画末まで表示）
-      srtResult = convertVTTtoSRT(vttPath, captionsPath, 15, totalDuration);
+      // 日本語: edge-tts VTT → 音声同期 SRT（最大25文字/カード、字幕は動画末まで表示）
+      srtResult = convertVTTtoSRT(vttPath, captionsPath, 25, totalDuration);
     } else if (hasTts && lang !== 'ja') {
       // 英語等: Whisper で書き起こし
       srtResult = await generateSRTWithWhisper(ttsPath, captionsPath, lang);
