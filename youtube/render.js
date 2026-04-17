@@ -476,7 +476,7 @@ async function generateTTS(scenes, outDir) {
     }
 
     // 実際のTTS音声の長さを取得してシーン長を動的に決める
-    const ttsDuration = await getAudioDuration(rawMp3);
+    const ttsDuration = await getAudioDuration(rawMp3, 3);
     const sceneDur    = parseFloat((ttsDuration + PAUSE_SEC).toFixed(2));
 
     // TTS後にPAUSE_SEC秒の無音を付加
@@ -511,20 +511,6 @@ async function generateTTS(scenes, outDir) {
   return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
 }
 
-/** ffprobe で音声ファイルの再生時間（秒）を取得 */
-async function getAudioDuration(filePath) {
-  try {
-    const { stdout } = await execFileAsync('ffprobe', [
-      '-v', 'error',
-      '-show_entries', 'format=duration',
-      '-of', 'default=noprint_wrappers=1:nokey=1',
-      filePath,
-    ]);
-    return parseFloat(stdout.trim()) || 3;
-  } catch {
-    return 3;
-  }
-}
 
 /** 複数 VTT ファイルをタイムスタンプオフセット付きで1ファイルにマージ */
 function mergeVTTWithOffset(vttInfos, outPath) {
