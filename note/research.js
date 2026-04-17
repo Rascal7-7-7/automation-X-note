@@ -20,12 +20,36 @@ const MODULE = 'note:research';
 
 const ideaQueue = new FileQueue(path.join(__dirname, 'queue/ideas.jsonl'));
 
-const SCRAPE_TARGETS = [
-  { url: 'https://note.com/hashtag/AI活用',   tag: 'AI活用'  },
-  { url: 'https://note.com/hashtag/副業',     tag: '副業'    },
-  { url: 'https://note.com/hashtag/生産性',   tag: '生産性'  },
-  { url: 'https://note.com/hashtag/ChatGPT', tag: 'ChatGPT' },
+// 5カテゴリ × 複数タグのプール。毎回ランダムに4件選択してバランスよくリサーチ
+const TAG_POOL = [
+  // AI副業（収入・案件獲得）
+  { url: 'https://note.com/hashtag/AI副業',        tag: 'AI副業',        category: 'ai-income'    },
+  { url: 'https://note.com/hashtag/フリーランス',   tag: 'フリーランス',   category: 'ai-income'    },
+  // AI×生産性（時短・自動化）
+  { url: 'https://note.com/hashtag/AI活用',        tag: 'AI活用',        category: 'productivity' },
+  { url: 'https://note.com/hashtag/生産性',        tag: '生産性',        category: 'productivity' },
+  { url: 'https://note.com/hashtag/業務効率化',    tag: '業務効率化',    category: 'productivity' },
+  // 初心者向けAI入門
+  { url: 'https://note.com/hashtag/ChatGPT',      tag: 'ChatGPT',      category: 'ai-beginner'  },
+  { url: 'https://note.com/hashtag/AI入門',        tag: 'AI入門',        category: 'ai-beginner'  },
+  // インスタグラム・SNS運用
+  { url: 'https://note.com/hashtag/Instagram運用', tag: 'Instagram運用', category: 'sns'          },
+  { url: 'https://note.com/hashtag/SNS運用',       tag: 'SNS運用',       category: 'sns'          },
+  // noteを使って稼ぐ方法
+  { url: 'https://note.com/hashtag/副業',          tag: '副業',          category: 'note-income'  },
+  { url: 'https://note.com/hashtag/note収益化',    tag: 'note収益化',    category: 'note-income'  },
 ];
+
+/** カテゴリごとに1件ずつ（重複なし）ランダム選択して4件返す */
+function selectScrapeTargets() {
+  const categories = ['ai-income', 'productivity', 'ai-beginner', 'sns', 'note-income'];
+  // 5カテゴリから4つをランダムに選び、各カテゴリから1タグをピック
+  const shuffled = [...categories].sort(() => Math.random() - 0.5).slice(0, 4);
+  return shuffled.map(cat => {
+    const pool = TAG_POOL.filter(t => t.category === cat);
+    return pool[Math.floor(Math.random() * pool.length)];
+  });
+}
 
 const SELECTORS = {
   articleCard: [
@@ -105,8 +129,12 @@ async function scrapeNoteArticles() {
   const page = await context.newPage();
   const allArticles = [];
 
+  // 実行ごとにカテゴリをランダム選択（週3回の投稿でテーマが偏らないよう）
+  const targets = selectScrapeTargets();
+  logger.info(MODULE, `selected categories: ${targets.map(t => t.category).join(', ')}`);
+
   try {
-    for (const target of SCRAPE_TARGETS) {
+    for (const target of targets) {
       logger.info(MODULE, `scraping: ${target.url}`);
       await page.goto(target.url, { waitUntil: 'networkidle', timeout: 20_000 });
       await page.waitForTimeout(1_500);
@@ -164,7 +192,9 @@ async function synthesizeThemes(articles) {
 
   const raw = await generate(THEME_SYSTEM, `人気記事リスト:\n${list}`, { maxTokens: 768 });
 
-  const match = raw.match(/\[[\s\S]*\]/);
+  // コードブロック（```json ... ```）と生JSONの両パターンに対応
+  const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
+  const match = stripped.match(/\[[\s\S]*\]/);
   if (!match) {
     logger.warn(MODULE, 'theme JSON not found', { raw: raw.slice(0, 200) });
     return [];
