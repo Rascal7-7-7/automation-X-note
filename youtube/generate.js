@@ -26,44 +26,62 @@ const MODULE     = 'youtube:generate';
 
 // ── プロンプト ──────────────────────────────────────────────────────
 
-// 5種のバズテンプレ — 違和感・AI暴露・ストーリー・ループ・比較
+// 5種のバズテンプレ — 断定型フック + 3段階違和感 + 崩壊/ループエンド
 const SHORT_BUZZ_TEMPLATES = [
-  { id: 1, name: '違和感系',   hook: 'この映像どこか変です',   cta: '気づきましたか？コメントで教えて' },
-  { id: 2, name: 'AI暴露系',   hook: 'これ全部AIです',         cta: 'もう現実と区別つかない' },
-  { id: 3, name: 'ストーリー系', hook: 'この世界にはルールがある', cta: '最後まで見て全部わかる' },
-  { id: 4, name: 'ループ系',   hook: '最初から見直してください', cta: 'ループしてる？コメントで' },
-  { id: 5, name: '比較系',     hook: 'AI vs 現実 どっちか当てて', cta: '答えはコメントで' },
+  { id: 1, name: '違和感系',    hook: 'この動画、最後怖いです',      cta: '何個気づいた？コメントで' },
+  { id: 2, name: 'AI暴露系',    hook: 'これを見たら戻れない',        cta: 'まだ気づいてない人いる？' },
+  { id: 3, name: 'ストーリー系', hook: 'この世界、最後に壊れます',    cta: '伏線に気づいた？コメントで' },
+  { id: 4, name: 'ループ系',    hook: '違和感に気づいたら終わり',    cta: 'もう一回見てください' },
+  { id: 5, name: '比較系',      hook: 'どちらかが嘘です',           cta: '答えは最初から見るとわかる' },
 ];
 
 const SHORT_SCRIPT_SYSTEM = `あなたはYouTubeショート動画（15秒以内）バイラルコンテンツ専門家です。
 
-核心原則:「綺麗な映像は伸びない。意味+違和感+フックが伸びる」
+核心原則:「ストーリーになっていない映像はバズらない。断定フック＋3段階違和感＋崩壊エンドが最強」
 
-【テンプレート（番号指定で選択）】
-1. 違和感系: 「この映像どこか変です」→違和感シーン→異常増加→「気づきましたか？」
-2. AI暴露系: 「これ全部AIです」→普通映像→現実崩壊→「もう区別つかない」
-3. ストーリー系: 「この世界にはルールがある」→説明なし進行→違和感の伏線→最後で回収
-4. ループ系: 違和感映像→展開→崩壊→最初に戻るループ
-5. 比較系: 「AI vs 現実」→交互表示→判別不能→「答えはコメントで」
+【必須構造（この順序を守れ）】
+[0秒] 断定型フック — 恐怖・驚き・断定。例:「この動画、最後怖いです」
+[1段階] 違和感Lv1 — ちょっと変。視聴者が「ん？」と思う程度
+[2段階] 違和感Lv2 — 明らかに変。「え、これおかしくない？」
+[3段階] 違和感Lv3 — 異常。「完全にやばい」
+[崩壊/ループ] エンド — 世界が崩れる or 最初に戻るループ or 完全崩壊
+[CTA] コメント誘導 — 「何個気づいた？」「もう一回見てください」
+
+【テンプレート別エンド設計】
+1. 違和感系: Lv1→2→3違和感 → 「気づいた？コメントで」
+2. AI暴露系: 普通 → AI痕跡Lv1→2 → 「これ全部AIでした」→崩壊
+3. ストーリー系: 普通 → 伏線Lv1→2 → 最後で全部繋がる伏線回収
+4. ループ系: 違和感 → 異常 → 崩壊 → 冒頭に戻るループ構造
+5. 比較系: AI映像 → 現実映像 → 判別不能 → 「答えはもう一周見ると分かる」
 
 【絶対ルール】
 - JSONのみ出力（説明・マークダウン不要）
-- hookText: 0秒から表示するテロップ（12文字以内・インパクト最大化）
-- script: 6要素の配列（1要素=1文、最大20文字、絵文字・記号禁止）
-- scriptの構成: [フック継続, 違和感提示, 異常増加, 崩壊/展開, オチ/問いかけ, コメント誘導]
+- hookText: 0秒テロップ（12文字以内・断定/恐怖/意外性の3択）
+- script: 6要素の配列（1要素=1文、最大18文字、絵文字・記号禁止）
+- script[4]は必ず崩壊/ループ/伏線回収のどれか
+- script[5]は必ずコメント誘導CTA
 
 出力フォーマット（このJSONのみ）:
 {"template":N,"hookText":"テキスト","script":["行1","行2","行3","行4","行5","行6"]}`;
 
 const LONG_SCRIPT_SYSTEM = `あなたはYouTube長尺動画の構成・台本専門家です。
-以下の条件で台本構成を作成してください：
-- 尺: 10〜15分を想定
-- フォーマット:
-  [INTRO] 問題提起・価値提示（30〜60秒）
-  [CHAPTER 1〜4] 各章タイトル + 要点3〜5箇条（各2〜3分）
-  [OUTRO] まとめ + CTA（30秒）
-- 各チャプターに【開始目安時刻】を付ける（例: 00:00, 01:30 ...）
+視聴者を引きつける「4段階ストーリー設計」で構成してください。
+
+【必須構造】
+[INTRO 0:00〜0:10] 結論を先に言う（例:「この世界、最後に壊れます」）＋価値提示
+[PHASE 1 〜1:30] 普通 — まだ正常に見える世界を見せる
+[PHASE 2 〜3:00] 違和感 — 小さなズレを積み上げる。「この影、動いてない？」
+[PHASE 3 〜5:00] 異常 — 明らかにおかしい。視聴者が「え？」と声を出すレベル
+[PHASE 4 〜8:00] 崩壊 — 世界のルールが完全に壊れる。伏線を全部回収
+[OUTRO 〜10:00] まとめ + ループ誘導 or 問いかけCTA（「何個気づいた？」）
+
+【各フェーズのルール】
+- INTRO: 結論先出し必須。「この動画、最後に〇〇します」形式
+- PHASE移行時: 必ず「意味のある一言」を入れる（「この影、動いてない？」等）
+- OUTRO: 必ずループ/伏線回収/コメント誘導のどれか
 - 話し言葉で自然に
+- 各フェーズに【開始目安時刻】を付ける
+
 出力: 台本構成テキストのみ`;
 
 const TITLE_SYSTEM = `YouTubeのタイトル案を5個生成してください。
@@ -185,14 +203,24 @@ export async function runGenerate({ type, topic } = {}) {
   let hookText = null;
   if (videoType === 'short') {
     try {
-      const jsonMatch = rawScript.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        script   = Array.isArray(parsed.script) ? parsed.script.join('\n') : rawScript;
-        hookText = parsed.hookText ?? SHORT_BUZZ_TEMPLATES[(templateId ?? 1) - 1]?.hook ?? null;
+      // strip markdown fences, then extract balanced JSON object
+      const stripped = rawScript.replace(/```[a-z]*\n?/g, '').trim();
+      const start = stripped.indexOf('{');
+      if (start !== -1) {
+        let depth = 0, end = -1;
+        for (let i = start; i < stripped.length; i++) {
+          if (stripped[i] === '{') depth++;
+          else if (stripped[i] === '}') { depth--; if (depth === 0) { end = i; break; } }
+        }
+        if (end !== -1) {
+          const parsed = JSON.parse(stripped.slice(start, end + 1));
+          script   = Array.isArray(parsed.script) ? parsed.script.join('\n') : rawScript;
+          hookText = parsed.hookText ?? SHORT_BUZZ_TEMPLATES[(templateId ?? 1) - 1]?.hook ?? null;
+        }
       }
-    } catch {
-      logger.warn(MODULE, 'short script JSON parse failed, using raw text');
+    } catch (e) {
+      logger.warn(MODULE, `short script JSON parse failed: ${e.message}`);
+      hookText = SHORT_BUZZ_TEMPLATES[(templateId ?? 1) - 1]?.hook ?? null;
     }
   }
 
