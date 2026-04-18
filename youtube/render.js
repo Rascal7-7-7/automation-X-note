@@ -113,7 +113,7 @@ export async function runRender({ type = 'short', date } = {}) {
       const scenes              = parseScenes(draft.script, type);
       const imagePaths          = await generateSceneImages(scenes, outDir, type, draft);
       const bgmPath             = pickBgm();
-      const { ttsPath, vttPath } = await generateTTS(scenes, outDir);
+      const { ttsPath, vttPath } = await generateTTS(scenes, outDir, type);
 
       const { captionsPath } = await assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath });
       videoPath = outPath;
@@ -246,7 +246,7 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
   const paths = [];
 
   for (let i = 0; i < scenes.length; i++) {
-    const imgPath = path.join(outDir, `scene_${i}.png`);
+    const imgPath = path.join(outDir, `${resolveStyleKey(type)}_scene_${i}.png`);
 
     // scene_0 に Reddit 画像が取得できていれば Imagen をスキップ
     if (i === 0 && scene0Override) {
@@ -293,7 +293,7 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
 async function resolveScene0Image(type, draft, outDir) {
   if (type !== 'reddit-short' || !draft) return null;
 
-  const imgPath = path.join(outDir, 'scene_0.png');
+  const imgPath = path.join(outDir, `${resolveStyleKey(type)}_scene_0.png`);
   if (fs.existsSync(imgPath)) return imgPath;
 
   const url = draft.redditSource?.imageUrl ?? draft.thumbnailUrl ?? null;
@@ -472,7 +472,7 @@ function buildImagePrompt(text, type, index = 0) {
 
 async function generateFallbackImage(outDir, index, type) {
   const s = STYLE[resolveStyleKey(type)];
-  const imgPath = path.join(outDir, `fallback_${index}.png`);
+  const imgPath = path.join(outDir, `${resolveStyleKey(type)}_fallback_${index}.png`);
 
   // グラデーションパターン（シーンごとに変化）
   const gradients = [
@@ -514,9 +514,10 @@ async function generateFallbackImage(outDir, index, type) {
 // 各シーンごとに個別 TTS を生成しシーン長にパディングして結合する。
 // これにより映像・字幕・ナレーションの3つが完全に同期する。
 
-async function generateTTS(scenes, outDir) {
-  const ttsPath = path.join(outDir, 'tts.mp3');
-  const vttPath = path.join(outDir, 'tts.vtt');
+async function generateTTS(scenes, outDir, type = 'short') {
+  const prefix  = resolveStyleKey(type); // 'short' or 'long'
+  const ttsPath = path.join(outDir, `${prefix}_tts.mp3`);
+  const vttPath = path.join(outDir, `${prefix}_tts.vtt`);
   if (fs.existsSync(ttsPath)) return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
 
   const voice     = 'ja-JP-NanamiNeural';
