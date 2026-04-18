@@ -118,7 +118,7 @@ async function xurlLike(tweetId) {
 // ── メイン ────────────────────────────────────────────────────────
 
 export async function runLike(keywords, opts = {}) {
-  const scoreThreshold = opts.scoreThreshold ?? 5;
+  const scoreThreshold = opts.scoreThreshold ?? 3;
   const maxPerRun      = opts.maxPerRun      ?? 5;
 
   const liked = loadLiked();
@@ -139,7 +139,7 @@ export async function runLike(keywords, opts = {}) {
         if (count >= maxPerRun) break;
 
         try {
-          xurlLike(tweet.id);
+          await xurlLike(tweet.id);
           liked.add(tweet.id);
           count++;
           logger.info(MODULE, `liked tweet ${tweet.id} (score:${tweet.score})`);

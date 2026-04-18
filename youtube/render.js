@@ -42,6 +42,14 @@ const FONTS_DIR   = path.join(ASSETS_DIR, 'fonts');
 
 const MODULE = 'youtube:render';
 
+// ── テロップカラーパレット（YPP 反復コンテンツ対策：動画ごとに変化） ──────────
+// ASS カラー形式: &HAABBGGRR (アルファ・青・緑・赤)
+const CAPTION_PALETTES = [
+  { primary: '&H00FFFFFF', hook: '&H0000FFFF' }, // 白 / 黄
+  { primary: '&H0000FFFF', hook: '&H00FFFFFF' }, // 黄 / 白
+  { primary: '&H00F0F0F0', hook: '&H0010D0FF' }, // オフホワイト / オレンジ
+];
+
 // ── テロップ設定 ──────────────────────────────────────────────────
 const STYLE = {
   short: {
@@ -819,7 +827,7 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
       generateSRTFromScenes(scenes, captionsPath);
     }
 
-    convertSRTtoASS(captionsPath, type, assPath);
+    convertSRTtoASS(captionsPath, type, assPath, Math.floor(Math.random() * CAPTION_PALETTES.length));
     resolvedAssPath = assPath;
   } catch (err) {
     logger.warn(MODULE, `Subtitle generation failed, skipping: ${err.message}`);
@@ -1014,14 +1022,18 @@ print("\\n".join(entries), end="", flush=True)
  * @param {string} assPath - 書き出し先の .ass ファイルパス
  * @returns {string} assPath
  */
-function convertSRTtoASS(srtPath, type, assPath) {
-  const s         = STYLE[resolveStyleKey(type)];
-  const W         = s.width;
-  const H         = s.height;
-  const fontSize  = Math.round(H * 0.032);   // ~61px（ショート）/ ~35px（ロング）
-  const marginV   = Math.round(H * 0.22);    // 下端から 22%（YouTube Shorts UI の上）
-  const marginLR  = Math.round(W * 0.05);
-  const boxPad    = Math.round(fontSize * 0.35);
+function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0) {
+  const s            = STYLE[resolveStyleKey(type)];
+  const W            = s.width;
+  const H            = s.height;
+  const fontSize     = Math.round(H * 0.032);         // ~61px（ショート）/ ~35px（ロング）
+  const hookFontSize = Math.round(fontSize * 1.25);   // 冒頭フックは 1.25 倍
+  const marginV      = Math.round(H * 0.22);          // 下端から 22%（YouTube Shorts UI の上）
+  const marginLR     = Math.round(W * 0.05);
+  const boxPad       = Math.round(fontSize * 0.35);
+  const hookBoxPad   = Math.round(hookFontSize * 0.35);
+
+  const palette = CAPTION_PALETTES[paletteIdx % CAPTION_PALETTES.length];
 
   const assHeader = [
     '[Script Info]',
@@ -1033,7 +1045,10 @@ function convertSRTtoASS(srtPath, type, assPath) {
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    `Style: Default,Noto Sans JP,${fontSize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
+    // 通常字幕スタイル
+    `Style: Default,Noto Sans JP,${fontSize},${palette.primary},&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
+    // 冒頭フック専用スタイル（大きめ・フック色・太字）
+    `Style: Hook,Noto Sans JP,${hookFontSize},${palette.hook},&H000000FF,&H00000000,&HCC000000,1,0,0,0,100,100,1,0,3,${hookBoxPad},0,2,${marginLR},${marginLR},${marginV},1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -1048,17 +1063,25 @@ function convertSRTtoASS(srtPath, type, assPath) {
 
   const srtText = fs.readFileSync(srtPath, 'utf8').trim();
   const blocks  = srtText.split(/\n\n+/);
-  const dialogues = blocks.flatMap(block => {
+  const dialogues = blocks.flatMap((block, blockIdx) => {
     const lines = block.trim().split('\n');
     if (lines.length < 3 || !lines[1].includes(' --> ')) return [];
     const [startRaw, endRaw] = lines[1].split(' --> ');
     const text = lines.slice(2).join(' ')
       .replace(/\{/g, '\\{').replace(/\}/g, '\\}');
-    return [`Dialogue: 0,${srtTsToAss(startRaw)},${srtTsToAss(endRaw)},Default,,0,0,0,,${text}`];
+
+    const isHook = blockIdx === 0;
+    const style  = isHook ? 'Hook' : 'Default';
+    // 冒頭フックは t=0 から表示（TTS タイミングに依存しない）
+    const startTs = isHook ? '0:00:00.00' : srtTsToAss(startRaw);
+    // フェードイン 250ms（視聴者の目を引く）
+    const fadeTag = '{\\fad(250,0)}';
+
+    return [`Dialogue: 0,${startTs},${srtTsToAss(endRaw)},${style},,0,0,0,,${fadeTag}${text}`];
   });
 
   fs.writeFileSync(assPath, assHeader + '\n' + dialogues.join('\n') + '\n', 'utf8');
-  logger.info(MODULE, `ASS subtitle written (${dialogues.length} lines) → ${assPath}`);
+  logger.info(MODULE, `ASS subtitle written (${dialogues.length} lines, palette:${paletteIdx}) → ${assPath}`);
   return assPath;
 }
 
