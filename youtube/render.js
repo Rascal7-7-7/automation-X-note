@@ -441,31 +441,36 @@ const SCENE_VISUALS = [
 ];
 
 // 違和感系 surreal/uncanny visuals — matched to buzz template strategy
+// AI体験コンテンツ用ビジュアル — 「AIでここまでできる」を視覚的に体験させる
+// 構造: AIデモ → AI比較 → AI裏側 → AI進化 → AIループ に対応
 const UNCANNY_VISUALS = [
-  // 違和感系: hyperrealistic but slightly wrong
-  'hyperrealistic japanese city street at dusk, buildings have subtly wrong proportions, shadows point in impossible directions, photorealistic, eerie atmosphere, cinematic',
-  'photorealistic living room scene, clock on wall shows time running backwards, reflections misaligned, uncanny valley feeling, 8K detail',
-  'ultra-realistic forest path in japan, trees perfectly symmetrical in unnatural way, sky gradient inverted, surreal dread, photorealistic',
-  'japanese convenience store interior, products on shelves have blank labels, fluorescent light flickers, one customer standing perfectly still, unsettling realism',
-  // AI暴露系: looks real but AI tells on itself
-  'photorealistic portrait of a person with eyes that are slightly too symmetrical, skin texture too perfect, subtle AI artifact glow at edges, uncanny valley',
-  'realistic japanese apartment, furniture arranged mathematically perfect, no dust or imperfections, AI-generated perfection, eerie cleanliness',
-  'street photo that looks real — but hands have 6 fingers, shadows are wrong, text on signs is gibberish, AI artifact imagery',
-  // ループ系: seamless or circular imagery
-  'infinite staircase descending into itself, m.c. escher style but photorealistic, mind-bending perspective, japanese aesthetic, dark cinematic lighting',
-  'circular corridor repeating endlessly, identical doors, identical lighting, subtle differences each loop, uncanny dread',
-  // 比較系: two worlds side by side
-  'split image: left side hyperrealistic japanese street photo, right side same scene but AI-generated with subtle wrongness, comparison, photorealistic',
-  'before and after diptych, real world vs AI-rendered world, subtle differences visible on close inspection, cinematic composition',
+  // AIデモ型: AI生成と分からないクオリティの映像
+  'hyperrealistic AI-generated japanese city street, photorealistic quality indistinguishable from real photography, perfect lighting, ultra-detailed, cinematic 9:16',
+  'AI-generated portrait of japanese person, uncanny valley quality, skin too perfect, symmetrical features, subtle digital glow at edges, studio lighting',
+  'photorealistic AI scene: tokyo intersection at night, neon reflections on wet pavement, impossible perfection, no real camera artifacts, generated world',
+  // AI比較型: AIと現実の並列/混在
+  'split screen comparison: left=real photo of japanese street, right=AI-generated same scene with subtle wrongness, photorealistic, side by side',
+  'photorealistic scene where real and AI-generated elements blend — some objects too perfect, some normal, viewer cannot tell which is which',
+  'before/after: original photograph on left, AI-enhanced or AI-replaced version on right, differences barely visible but present, cinematic',
+  // AI裏側型: プロンプト/生成プロセスの可視化
+  'dark futuristic interface showing AI prompt text glowing on screen, code and parameters visible, generation in progress, cyberpunk aesthetic, cinematic',
+  'visualization of AI neural network generating an image — layers of abstraction becoming a photorealistic scene, dark blue background, glowing nodes',
+  'computer screen showing AI image generation mid-process, half-formed photorealistic japanese cityscape emerging from noise, dramatic lighting',
+  // AI進化型: 技術の進化を示す視覚
+  'side by side comparison: blurry low-quality AI art from 2022 on left vs photorealistic AI image 2025 on right, dramatic quality difference, dark background',
+  'timeline visualization of AI art evolution, pixelated to photorealistic progression, glowing gradient, tech aesthetic, cinematic 9:16',
+  // AIループ型: シームレスなAI生成世界
+  'infinite AI-generated corridor, each room perfectly identical yet subtly different, generated world looping, uncanny repetition, dark moody lighting',
+  'circular japanese room where walls seamlessly repeat, AI-generated perfect symmetry, slightly wrong physics, loop structure visible, eerie atmosphere',
 ];
 
 const FALLBACK_VISUALS = [
-  'hyperrealistic japanese city at night, neon reflections on wet pavement, slightly too perfect, surreal atmosphere, 8K cinematic',
-  'ultra-detailed ai-generated face close up, too symmetrical, eyes slightly wrong, uncanny valley portrait, dramatic lighting',
-  'photorealistic room where every object is in mathematically perfect alignment, unsettling cleanliness, soft horror aesthetic',
-  'surreal japanese suburban street, shadows going wrong directions, sky gradient impossible, eerie stillness, photorealistic',
-  'glitch art aesthetic, reality tearing at edges, digital artifacts bleeding through photorealistic scene, cinematic 16:9',
-  'infinite mirror reflection with subtle differences each iteration, uncanny repetition, dark moody japanese interior',
+  'ai-generated japanese city at night, photorealistic quality, neon glow, indistinguishable from real photo, cinematic 9:16 vertical',
+  'futuristic dark interface, AI generation visualization, glowing text and parameters, cyberpunk aesthetic, vertical portrait',
+  'split comparison real vs AI-generated scene, side by side, barely visible differences, dramatic lighting, portrait orientation',
+  'AI neural network visualization becoming photorealistic portrait, layers of abstraction, blue and purple tones, dark background',
+  'photorealistic AI scene too perfect — no noise grain, impossible symmetry, generated world aesthetic, eerie cinematic atmosphere',
+  'infinite corridor generated by AI, seamless loop structure, dark moody japanese interior, uncanny repetition, vertical 9:16',
 ];
 
 function buildImagePrompt(text, type, index = 0) {
