@@ -115,7 +115,7 @@ export async function runRender({ type = 'short', date } = {}) {
       const bgmPath             = pickBgm();
       const { ttsPath, vttPath } = await generateTTS(scenes, outDir, type);
 
-      const { captionsPath } = await assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath });
+      const { captionsPath } = await assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath, hookText: draft.hookText ?? null });
       videoPath = outPath;
       if (captionsPath) draft._captionsPath = captionsPath;
     }
@@ -268,7 +268,7 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
       const result = await ai.models.generateImages({
         model:  'imagen-4.0-generate-001',
         prompt,
-        config: { numberOfImages: 1, outputMimeType: 'image/png' },
+        config: { numberOfImages: 1, outputMimeType: 'image/png', aspectRatio: resolveStyleKey(type) === 'long' ? '16:9' : '9:16' },
       });
 
       const imageBytes = result.generatedImages?.[0]?.image?.imageBytes;
@@ -440,18 +440,44 @@ const SCENE_VISUALS = [
     ]},
 ];
 
+// 違和感系 surreal/uncanny visuals — matched to buzz template strategy
+const UNCANNY_VISUALS = [
+  // 違和感系: hyperrealistic but slightly wrong
+  'hyperrealistic japanese city street at dusk, buildings have subtly wrong proportions, shadows point in impossible directions, photorealistic, eerie atmosphere, cinematic',
+  'photorealistic living room scene, clock on wall shows time running backwards, reflections misaligned, uncanny valley feeling, 8K detail',
+  'ultra-realistic forest path in japan, trees perfectly symmetrical in unnatural way, sky gradient inverted, surreal dread, photorealistic',
+  'japanese convenience store interior, products on shelves have blank labels, fluorescent light flickers, one customer standing perfectly still, unsettling realism',
+  // AI暴露系: looks real but AI tells on itself
+  'photorealistic portrait of a person with eyes that are slightly too symmetrical, skin texture too perfect, subtle AI artifact glow at edges, uncanny valley',
+  'realistic japanese apartment, furniture arranged mathematically perfect, no dust or imperfections, AI-generated perfection, eerie cleanliness',
+  'street photo that looks real — but hands have 6 fingers, shadows are wrong, text on signs is gibberish, AI artifact imagery',
+  // ループ系: seamless or circular imagery
+  'infinite staircase descending into itself, m.c. escher style but photorealistic, mind-bending perspective, japanese aesthetic, dark cinematic lighting',
+  'circular corridor repeating endlessly, identical doors, identical lighting, subtle differences each loop, uncanny dread',
+  // 比較系: two worlds side by side
+  'split image: left side hyperrealistic japanese street photo, right side same scene but AI-generated with subtle wrongness, comparison, photorealistic',
+  'before and after diptych, real world vs AI-rendered world, subtle differences visible on close inspection, cinematic composition',
+];
+
 const FALLBACK_VISUALS = [
-  'modern technology workspace, clean minimal setup, professional productive environment, soft lighting',
-  'digital data charts and graphs on screen, colorful data visualization, tech concept art',
-  'smartphone and laptop on clean white desk, modern productivity setup, minimalist style',
-  'japanese urban street with smartphone navigation, technology in daily life, city background',
-  'glowing holographic interface concept, futuristic tech, blue and white tones, dark background',
-  'person at clean desk with laptop and coffee, work from home lifestyle, bright modern interior',
+  'hyperrealistic japanese city at night, neon reflections on wet pavement, slightly too perfect, surreal atmosphere, 8K cinematic',
+  'ultra-detailed ai-generated face close up, too symmetrical, eyes slightly wrong, uncanny valley portrait, dramatic lighting',
+  'photorealistic room where every object is in mathematically perfect alignment, unsettling cleanliness, soft horror aesthetic',
+  'surreal japanese suburban street, shadows going wrong directions, sky gradient impossible, eerie stillness, photorealistic',
+  'glitch art aesthetic, reality tearing at edges, digital artifacts bleeding through photorealistic scene, cinematic 16:9',
+  'infinite mirror reflection with subtle differences each iteration, uncanny repetition, dark moody japanese interior',
 ];
 
 function buildImagePrompt(text, type, index = 0) {
   const ratio = resolveStyleKey(type) === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
 
+  // For shorts: use surreal/uncanny visuals that match the buzz template strategy
+  if (resolveStyleKey(type) === 'short') {
+    const visual = UNCANNY_VISUALS[index % UNCANNY_VISUALS.length];
+    return `${ratio}, ${visual}, no text overlays, no logos, no watermarks`;
+  }
+
+  // For long-form: keyword-matched visuals from SCENE_VISUALS, then fallback
   for (const v of SCENE_VISUALS) {
     if (v.keys.some(k => text.includes(k))) {
       const options = Array.isArray(v.en) ? v.en : [v.en];
@@ -464,10 +490,7 @@ function buildImagePrompt(text, type, index = 0) {
   }
 
   const visualDesc = FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
-  return (
-    `${ratio} YouTube background photo, ${visualDesc}, ` +
-    `cinematic lighting, vibrant colors, no text overlays, no logos, high quality, 4K, photorealistic`
-  );
+  return `${ratio}, ${visualDesc}, no text overlays, no logos, no watermarks`;
 }
 
 async function generateFallbackImage(outDir, index, type) {
@@ -717,13 +740,15 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
   const H1 = Math.round(s.height * 1.2);
   const scaleCrop = `scale=${W1}:${H1}:force_original_aspect_ratio=increase,crop=${W1}:${H1}`;
 
+  // scale=${s.width}:${s.height} を末尾に追加して出力解像度を強制固定
+  const forceSize = `scale=${s.width}:${s.height}`;
   const effects = [
     // ズームイン（中央）
-    `${scaleCrop},zoompan=z='1+0.1*(on/${frames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps}`,
+    `${scaleCrop},zoompan=z='1+0.1*(on/${frames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
     // 右パン（固定ズーム）
-    `${scaleCrop},zoompan=z='1.08':x='iw*0.07*(on/${frames})':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps}`,
+    `${scaleCrop},zoompan=z='1.08':x='iw*0.07*(on/${frames})':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
     // ズームアウト（中央）
-    `${scaleCrop},zoompan=z='max(1.1-0.1*(on/${frames}),1.0)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps}`,
+    `${scaleCrop},zoompan=z='max(1.1-0.1*(on/${frames}),1.0)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
   ];
 
   await execFileAsync('ffmpeg', [
@@ -741,7 +766,7 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
 
 // ── FFmpeg 動画合成 ──────────────────────────────────────────────────
 
-async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath }) {
+async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath, hookText = null }) {
   const s = STYLE[resolveStyleKey(type)];
   const totalDuration = scenes.reduce((sum, sc) => sum + sc.duration, 0);
   const outDir = path.dirname(outPath);
@@ -815,8 +840,9 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
     let srtResult = null;
 
     if (lang === 'ja' && hasVtt) {
-      // 日本語: edge-tts VTT → 音声同期 SRT（最大25文字/カード、字幕は動画末まで表示）
-      srtResult = convertVTTtoSRT(vttPath, captionsPath, 25, totalDuration);
+      // 日本語: edge-tts VTT → 音声同期 SRT（short=12文字/カード, long=20文字/カード）
+      const maxCharsForType = resolveStyleKey(type) === 'long' ? 20 : 12;
+      srtResult = convertVTTtoSRT(vttPath, captionsPath, maxCharsForType, totalDuration);
     } else if (hasTts && lang !== 'ja') {
       // 英語等: Whisper で書き起こし
       srtResult = await generateSRTWithWhisper(ttsPath, captionsPath, lang);
@@ -828,7 +854,7 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
       generateSRTFromScenes(scenes, captionsPath);
     }
 
-    convertSRTtoASS(captionsPath, type, assPath, Math.floor(Math.random() * CAPTION_PALETTES.length));
+    convertSRTtoASS(captionsPath, type, assPath, Math.floor(Math.random() * CAPTION_PALETTES.length), hookText);
     resolvedAssPath = assPath;
   } catch (err) {
     logger.warn(MODULE, `Subtitle generation failed, skipping: ${err.message}`);
@@ -1023,16 +1049,18 @@ print("\\n".join(entries), end="", flush=True)
  * @param {string} assPath - 書き出し先の .ass ファイルパス
  * @returns {string} assPath
  */
-function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0) {
+function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0, hookText = null) {
   const s            = STYLE[resolveStyleKey(type)];
   const W            = s.width;
   const H            = s.height;
-  const fontSize     = Math.round(H * 0.032);         // ~61px（ショート）/ ~35px（ロング）
+  const fontSize     = Math.round(H * 0.026);         // ~50px（ショート）/ ~28px（ロング）— はみ出し防止
   const hookFontSize = Math.round(fontSize * 1.25);   // 冒頭フックは 1.25 倍
+  const cardFontSize = Math.round(H * 0.045);         // CardHook: 画面中央の大きなテロップ
   const marginV      = Math.round(H * 0.22);          // 下端から 22%（YouTube Shorts UI の上）
   const marginLR     = Math.round(W * 0.05);
   const boxPad       = Math.round(fontSize * 0.35);
   const hookBoxPad   = Math.round(hookFontSize * 0.35);
+  const cardBoxPad   = Math.round(cardFontSize * 0.4);
 
   const palette = CAPTION_PALETTES[paletteIdx % CAPTION_PALETTES.length];
 
@@ -1042,7 +1070,7 @@ function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0) {
     `PlayResX: ${W}`,
     `PlayResY: ${H}`,
     'ScaledBorderAndShadow: yes',
-    'WrapStyle: 1',
+    'WrapStyle: 0',
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
@@ -1050,6 +1078,8 @@ function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0) {
     `Style: Default,Noto Sans JP,${fontSize},${palette.primary},&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
     // 冒頭フック専用スタイル（大きめ・フック色・太字）
     `Style: Hook,Noto Sans JP,${hookFontSize},${palette.hook},&H000000FF,&H00000000,&HCC000000,1,0,0,0,100,100,1,0,3,${hookBoxPad},0,2,${marginLR},${marginLR},${marginV},1`,
+    // CardHook: 画面中央に0〜2.5秒表示する大きなテロップ（generate.jsのhookText）
+    `Style: CardHook,Noto Sans JP,${cardFontSize},&H00FFFFFF,&H000000FF,&H00000000,&HDD000000,1,0,0,0,100,100,2,0,3,${cardBoxPad},0,5,0,0,0,1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -1080,6 +1110,11 @@ function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0) {
 
     return [`Dialogue: 0,${startTs},${srtTsToAss(endRaw)},${style},,0,0,0,,${fadeTag}${text}`];
   });
+
+  if (hookText) {
+    const escaped = hookText.replace(/\{/g, '\\{').replace(/\}/g, '\\}');
+    dialogues.unshift(`Dialogue: 1,0:00:00.00,0:00:02.50,CardHook,,0,0,0,,{\\fad(0,300)}${escaped}`);
+  }
 
   fs.writeFileSync(assPath, assHeader + '\n' + dialogues.join('\n') + '\n', 'utf8');
   logger.info(MODULE, `ASS subtitle written (${dialogues.length} lines, palette:${paletteIdx}) → ${assPath}`);

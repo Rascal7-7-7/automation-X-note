@@ -26,34 +26,34 @@ const MODULE     = 'youtube:generate';
 
 // ── プロンプト ──────────────────────────────────────────────────────
 
-const SHORT_SCRIPT_SYSTEM = `あなたはYouTubeショート動画のナレーション台本専門家です。
-画面に表示されるナレーション台本を6行だけ生成してください。
+// 5種のバズテンプレ — 違和感・AI暴露・ストーリー・ループ・比較
+const SHORT_BUZZ_TEMPLATES = [
+  { id: 1, name: '違和感系',   hook: 'この映像どこか変です',   cta: '気づきましたか？コメントで教えて' },
+  { id: 2, name: 'AI暴露系',   hook: 'これ全部AIです',         cta: 'もう現実と区別つかない' },
+  { id: 3, name: 'ストーリー系', hook: 'この世界にはルールがある', cta: '最後まで見て全部わかる' },
+  { id: 4, name: 'ループ系',   hook: '最初から見直してください', cta: 'ループしてる？コメントで' },
+  { id: 5, name: '比較系',     hook: 'AI vs 現実 どっちか当てて', cta: '答えはコメントで' },
+];
+
+const SHORT_SCRIPT_SYSTEM = `あなたはYouTubeショート動画（15秒以内）バイラルコンテンツ専門家です。
+
+核心原則:「綺麗な映像は伸びない。意味+違和感+フックが伸びる」
+
+【テンプレート（番号指定で選択）】
+1. 違和感系: 「この映像どこか変です」→違和感シーン→異常増加→「気づきましたか？」
+2. AI暴露系: 「これ全部AIです」→普通映像→現実崩壊→「もう区別つかない」
+3. ストーリー系: 「この世界にはルールがある」→説明なし進行→違和感の伏線→最後で回収
+4. ループ系: 違和感映像→展開→崩壊→最初に戻るループ
+5. 比較系: 「AI vs 現実」→交互表示→判別不能→「答えはコメントで」
 
 【絶対ルール】
-- 出力は6行のプレーンテキストのみ
-- 1行 = 読み上げる1文、最大30文字
-- Markdown記号（** # --- [] 【】 ✅ ・ > 等）は一切使わない
-- ラベル・番号・セクション名は一切つけない
-- 記号・絵文字・装飾文字を使わない
-- 「〜してみてください」など曖昧な表現を避け、具体的な行動を示す
+- JSONのみ出力（説明・マークダウン不要）
+- hookText: 0秒から表示するテロップ（12文字以内・インパクト最大化）
+- script: 6要素の配列（1要素=1文、最大20文字、絵文字・記号禁止）
+- scriptの構成: [フック継続, 違和感提示, 異常増加, 崩壊/展開, オチ/問いかけ, コメント誘導]
 
-【6行の構成】
-1行目: フック（視聴者が最初の3秒で止まる一言・数字や驚きを入れる）
-2行目: 問題提起（視聴者が今感じている具体的な悩み）
-3行目: 解決策1（今日すぐ使える具体的な手順・ツール名を入れる）
-4行目: 解決策2（さらに一歩進んだ実践的なコツ）
-5行目: 成果・期待効果（実際に何が変わるか数字で示す）
-6行目: CTA（「概要欄のリンクから詳細を確認」または「チャンネル登録で毎日AI活用術を配信中」）
-
-【良い出力例 — AI副業】
-月3万円をAIだけで稼いだ方法を公開
-副業で何から始めればいいか迷ってませんか
-まずClaude AIで記事を5本書いてnoteに投稿
-1本500円の有料設定で月25本で12,500円が目標
-実際に3ヶ月で月収3万円を達成できました
-概要欄のリンクから具体的な手順を確認してください
-
-出力は上記のような6行テキストのみ。説明・ラベル・記号は一切不要。`;
+出力フォーマット（このJSONのみ）:
+{"template":N,"hookText":"テキスト","script":["行1","行2","行3","行4","行5","行6"]}`;
 
 const LONG_SCRIPT_SYSTEM = `あなたはYouTube長尺動画の構成・台本専門家です。
 以下の条件で台本構成を作成してください：
@@ -158,10 +158,19 @@ export async function runGenerate({ type, topic } = {}) {
   const scriptSystem = videoType === 'short' ? SHORT_SCRIPT_SYSTEM : LONG_SCRIPT_SYSTEM;
 
   const scriptModel = videoType === 'long' ? 'claude-opus-4-7' : 'claude-sonnet-4-6';
-  const [script, titles, description, thumbnail] = await Promise.all([
-    generate(scriptSystem, context, {
+
+  // ショートはランダムテンプレ番号を渡してJSON出力を要求
+  const templateId  = videoType === 'short'
+    ? SHORT_BUZZ_TEMPLATES[Math.floor(Math.random() * SHORT_BUZZ_TEMPLATES.length)].id
+    : null;
+  const scriptContext = templateId
+    ? `${context}\n使用テンプレート番号: ${templateId}`
+    : context;
+
+  const [rawScript, titles, description, thumbnail] = await Promise.all([
+    generate(scriptSystem, scriptContext, {
       model: scriptModel,
-      maxTokens: videoType === 'long' ? 3000 : 1024,
+      maxTokens: videoType === 'long' ? 3000 : 512,
     }),
     generate(TITLE_SYSTEM, context, { maxTokens: 512 }),
     generate(DESCRIPTION_SYSTEM, context, {
@@ -170,6 +179,22 @@ export async function runGenerate({ type, topic } = {}) {
     }),
     generate(THUMBNAIL_SYSTEM, context, { maxTokens: 512 }),
   ]);
+
+  // ショートはJSONパース → script文字列 + hookText 抽出
+  let script = rawScript;
+  let hookText = null;
+  if (videoType === 'short') {
+    try {
+      const jsonMatch = rawScript.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        script   = Array.isArray(parsed.script) ? parsed.script.join('\n') : rawScript;
+        hookText = parsed.hookText ?? SHORT_BUZZ_TEMPLATES[(templateId ?? 1) - 1]?.hook ?? null;
+      }
+    } catch {
+      logger.warn(MODULE, 'short script JSON parse failed, using raw text');
+    }
+  }
 
   // タグ生成（説明文からハッシュタグを抽出）
   const tags = extractTags(description);
@@ -180,6 +205,8 @@ export async function runGenerate({ type, topic } = {}) {
   const draft = {
     theme,
     type: videoType,
+    hookText,
+    buzzTemplate: templateId,
     script,
     titles: parseTitles(titles),
     description,
