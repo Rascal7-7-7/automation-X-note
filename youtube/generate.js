@@ -177,21 +177,23 @@ async function generateThumbnailImage(thumbnailText, draftDir) {
 
 export async function runGenerate({ type, topic } = {}) {
   const today    = new Date().toISOString().split('T')[0];
-  const { theme, videoType } = getTodayContent({ type, topic });
+  const { theme, videoType, series, episode, template: planTemplate, aiTool } = getTodayContent({ type, topic });
 
-  logger.info(MODULE, `generating ${videoType} for theme: "${theme}"`);
+  logger.info(MODULE, `generating ${videoType} for theme: "${theme}"${series ? ` [${series} #${episode}]` : ''}`);
 
   const draftDir = path.join(DRAFTS_DIR, today);
   if (!fs.existsSync(draftDir)) fs.mkdirSync(draftDir, { recursive: true });
 
-  const context = `テーマ: ${theme}\n動画タイプ: ${videoType === 'short' ? 'YouTubeショート（60秒以内）' : 'YouTube長尺動画（10〜15分）'}`;
+  const seriesLabel = series && episode ? `\nシリーズ: ${series} #${episode}` : '';
+  const aiToolLabel = aiTool ? `\n使用AIツール: ${aiTool}` : '';
+  const context = `テーマ: ${theme}\n動画タイプ: ${videoType === 'short' ? 'YouTubeショート（60秒以内）' : 'YouTube長尺動画（10〜15分）'}${seriesLabel}${aiToolLabel}`;
   const scriptSystem = videoType === 'short' ? SHORT_SCRIPT_SYSTEM : LONG_SCRIPT_SYSTEM;
 
   const scriptModel = videoType === 'long' ? 'claude-opus-4-7' : 'claude-sonnet-4-6';
 
-  // ショートはランダムテンプレ番号を渡してJSON出力を要求
-  const templateId  = videoType === 'short'
-    ? SHORT_BUZZ_TEMPLATES[Math.floor(Math.random() * SHORT_BUZZ_TEMPLATES.length)].id
+  // planで指定があればそれを使う、なければランダム
+  const templateId = videoType === 'short'
+    ? (planTemplate ?? SHORT_BUZZ_TEMPLATES[Math.floor(Math.random() * SHORT_BUZZ_TEMPLATES.length)].id)
     : null;
   const scriptContext = templateId
     ? `${context}\n使用テンプレート番号: ${templateId}`
@@ -245,6 +247,9 @@ export async function runGenerate({ type, topic } = {}) {
   const draft = {
     theme,
     type: videoType,
+    series:      series  ?? null,
+    episode:     episode ?? null,
+    aiTool:      aiTool  ?? null,
     hookText,
     buzzTemplate: templateId,
     script,
@@ -279,9 +284,14 @@ function getTodayContent({ type, topic } = {}) {
       const plan = JSON.parse(fs.readFileSync(planFile, 'utf8'));
       const key  = new Date().toISOString().split('T')[0];
       if (plan[key]) {
+        const entry = plan[key];
         return {
-          theme:     plan[key].theme ?? defaultTheme(dayIndex),
-          videoType: plan[key].type  ?? 'short',
+          theme:     entry.theme     ?? defaultTheme(dayIndex),
+          videoType: entry.type      ?? 'short',
+          series:    entry.series    ?? null,
+          episode:   entry.episode   ?? null,
+          template:  entry.template  ?? null,
+          aiTool:    entry.aiTool    ?? null,
         };
       }
     } catch { /* fallback */ }
@@ -300,6 +310,10 @@ function getTodayContent({ type, topic } = {}) {
   return {
     theme:     topic ?? defaults[dayIndex],
     videoType: type  ?? 'short',
+    series:    null,
+    episode:   null,
+    template:  null,
+    aiTool:    null,
   };
 }
 

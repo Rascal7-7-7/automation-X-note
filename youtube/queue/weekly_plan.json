@@ -60,12 +60,20 @@
     "type": "short"
   },
   "2026-05-01": {
-    "theme": "NotionAIで議事録・企画書を5分で仕上げる技",
-    "type": "short"
+    "theme": "Kling AIが3ヶ月で変えた映像クオリティ、進化の差が異常すぎる比較",
+    "type": "short",
+    "series": "AI進化シリーズ",
+    "episode": 1,
+    "template": 4,
+    "aiTool": "Kling AI"
   },
   "2026-05-02": {
-    "theme": "Google Geminiの隠れた便利機能5選",
-    "type": "short"
+    "theme": "Claudeに「普通の文章」を頼んだら返ってきた違和感の正体",
+    "type": "short",
+    "series": "AI違和感シリーズ",
+    "episode": 1,
+    "template": 5,
+    "aiTool": "Claude"
   },
   "2026-05-03": {
     "theme": "AIで作業を自動化して月30時間を節約する方法",
@@ -361,10 +369,6 @@
   },
   "2026-07-12": {
     "theme": "AI副業で成果が出ない人が見落としていること",
-    "type": "short"
-  },
-  "2026-07-13": {
-    "theme": "生成AIとフリーランスで月収50万円を達成する方法",
     "type": "short"
   }
 }
