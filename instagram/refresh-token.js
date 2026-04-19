@@ -22,7 +22,7 @@ import readline from 'readline';
 import { execFileSync } from 'child_process';
 
 const APP_ID     = process.env.IG_APP_ID || process.env.FB_APP_ID;
-const APP_SECRET = process.env.FB_APP_SECRET;
+const APP_SECRET = process.env.IG_APP_SECRET || process.env.FB_APP_SECRET;
 const REDIRECT   = 'https://localhost/callback';
 
 // ── バリデーション ───────────────────────────────────────────────
