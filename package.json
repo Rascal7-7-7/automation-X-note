@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "bridge": "node bridge/server.js",
-    "n8n": "N8N_USER_FOLDER=./n8n/data N8N_BASIC_AUTH_ACTIVE=false N8N_HOST=localhost N8N_PORT=5678 N8N_PROTOCOL=http GENERIC_TIMEZONE=Asia/Tokyo N8N_SECURE_COOKIE=false npx n8n start",
+    "n8n": "N8N_USER_FOLDER=./n8n/data N8N_BASIC_AUTH_ACTIVE=false N8N_HOST=localhost N8N_PORT=5678 N8N_PROTOCOL=http GENERIC_TIMEZONE=Asia/Tokyo N8N_SECURE_COOKIE=false ./node_modules/.bin/n8n start",
     "start": "concurrently -n bridge,n8n -c cyan,magenta \"npm run bridge\" \"npm run n8n\"",
     "scheduler": "node scheduler/index.js",
     "dev:x:research": "MODE=dev DEV_TASK=x:enqueue node scheduler/index.js",
@@ -17,6 +17,7 @@
     "@google/genai": "^1.50.1",
     "dotenv": "^16.4.0",
     "express": "^5.2.1",
+    "n8n": "^2.16.1",
     "node-cron": "^3.0.3",
     "openai": "^4.77.0",
     "playwright": "^1.49.0",

@@ -1,0 +1,40 @@
+module.exports = {
+  apps: [
+    {
+      name: 'sns-bridge',
+      script: 'bridge/server.js',
+      cwd: '/Users/Rascal/work/automation',
+      interpreter: 'node',
+      env: { NODE_ENV: 'production' },
+      restart_delay: 3000,
+      max_restarts: 10,
+    },
+    {
+      name: 'sns-n8n',
+      script: './node_modules/.bin/n8n',
+      args: 'start',
+      cwd: '/Users/Rascal/work/automation',
+      interpreter: 'none',
+      env: {
+        N8N_USER_FOLDER: '/Users/Rascal/work/automation/n8n/data',
+        N8N_BASIC_AUTH_ACTIVE: 'false',
+        N8N_HOST: 'localhost',
+        N8N_PORT: '5678',
+        N8N_PROTOCOL: 'http',
+        GENERIC_TIMEZONE: 'Asia/Tokyo',
+        N8N_SECURE_COOKIE: 'false',
+      },
+      restart_delay: 5000,
+      max_restarts: 10,
+    },
+    {
+      name: 'sns-scheduler',
+      script: 'scheduler/index.js',
+      cwd: '/Users/Rascal/work/automation',
+      interpreter: 'node',
+      env: { NODE_ENV: 'production' },
+      restart_delay: 3000,
+      max_restarts: 10,
+    },
+  ],
+};
