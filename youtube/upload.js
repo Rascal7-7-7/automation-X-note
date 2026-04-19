@@ -40,8 +40,8 @@ const {
 
 // ── メイン ──────────────────────────────────────────────────────────
 
-export async function runUpload({ type = 'short', videoPath: overrideVideoPath } = {}) {
-  const today     = new Date().toISOString().split('T')[0];
+export async function runUpload({ type = 'short', videoPath: overrideVideoPath, date } = {}) {
+  const today     = date ?? new Date().toISOString().split('T')[0];
   const draftPath = path.join(DRAFTS_DIR, today, `${type}.json`);
 
   if (!fs.existsSync(draftPath)) {
@@ -112,23 +112,27 @@ async function refreshAccessToken() {
 // ── 動画アップロード（Resumable Upload） ──────────────────────────────
 
 async function uploadVideo(accessToken, draft, videoPath) {
-  const title       = draft.titles?.[0] ?? draft.theme;
   const isShort     = draft.type === 'short';
+  const baseTitle   = draft.titles?.[0] ?? draft.theme;
+  const title       = isShort && !baseTitle.includes('#Shorts')
+    ? `${baseTitle} #Shorts`
+    : baseTitle;
   const categoryId  = '28'; // 科学と技術（AI系コンテンツに適切）
   const fileSize    = fs.statSync(videoPath).size;
   const mimeType    = videoPath.endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
+  const tags        = draft.tags ?? [];
+  if (isShort && !tags.includes('Shorts')) tags.unshift('Shorts');
 
   const metadata = {
     snippet: {
       title,
       description: draft.description ?? '',
-      tags:        draft.tags ?? [],
+      tags,
       categoryId,
     },
     status: {
       privacyStatus:           'public',
       selfDeclaredMadeForKids: false,
-      ...(isShort ? {} : {}),
     },
   };
 

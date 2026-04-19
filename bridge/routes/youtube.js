@@ -37,9 +37,9 @@ router.post('/generate', async (req, res) => {
 
 router.post('/upload', async (req, res) => {
   try {
-    const { type = 'short', videoPath } = req.body ?? {};
+    const { type = 'short', videoPath, date } = req.body ?? {};
     const { runUpload } = await import('../../youtube/upload.js');
-    const result = await runUpload({ type, videoPath });
+    const result = await runUpload({ type, videoPath, date });
     res.json({ ok: true, ...result });
   } catch (err) {
     logger.error(MODULE, err.message);

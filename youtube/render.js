@@ -538,7 +538,36 @@ async function generateFallbackImage(outDir, index, type) {
   return imgPath;
 }
 
-// ── TTS 音声生成（edge-tts・シーン別） ───────────────────────────────
+// ── AivisSpeech TTS（ローカルAPI・高品質日本語）────────────────────────
+
+const AIVIS_API        = 'http://localhost:10101';
+const AIVIS_SPEAKER_ID = process.env.AIVIS_SPEAKER_ID ?? 888753763; // まお — おちつき
+
+async function isAivisRunning() {
+  try {
+    const res = await fetch(`${AIVIS_API}/version`, { signal: AbortSignal.timeout(500) });
+    return res.ok;
+  } catch { return false; }
+}
+
+async function generateAivisScene(text, speedScale, wavPath) {
+  const qRes = await fetch(
+    `${AIVIS_API}/audio_query?text=${encodeURIComponent(text)}&speaker=${AIVIS_SPEAKER_ID}`,
+    { method: 'POST' },
+  );
+  if (!qRes.ok) throw new Error(`audio_query failed: ${await qRes.text()}`);
+  const query = await qRes.json();
+  query.speedScale = speedScale;
+
+  const sRes = await fetch(
+    `${AIVIS_API}/synthesis?speaker=${AIVIS_SPEAKER_ID}`,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(query) },
+  );
+  if (!sRes.ok) throw new Error(`synthesis failed: ${await sRes.text()}`);
+  fs.writeFileSync(wavPath, Buffer.from(await sRes.arrayBuffer()));
+}
+
+// ── TTS 音声生成（AivisSpeech優先 → edge-ttsフォールバック）──────────
 //
 // 各シーンごとに個別 TTS を生成しシーン長にパディングして結合する。
 // これにより映像・字幕・ナレーションの3つが完全に同期する。
@@ -549,36 +578,53 @@ async function generateTTS(scenes, outDir, type = 'short') {
   const vttPath = path.join(outDir, `${prefix}_tts.vtt`);
   if (fs.existsSync(ttsPath)) return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
 
+  const useAivis  = await isAivisRunning();
   const voice     = 'ja-JP-NanamiNeural';
-  // ショート: 自然なペース（+0%）、ロング系: わずかに速め（+10%）
   const ttsRate   = scenes.length <= 8 ? '+0%' : '+10%';
-  // シーン間の無音（秒）— 読み上げ後に間を入れてテンポよく聞かせる
+  const aivisSpeed = scenes.length <= 8 ? 1.0 : 1.1;
   const PAUSE_SEC = 1.2;
+
+  if (useAivis) logger.info(MODULE, 'TTS: AivisSpeech (おちつき)');
+  else          logger.info(MODULE, 'TTS: edge-tts fallback');
 
   const sceneTmps = [];
   const vttInfos  = [];
   let offset = 0;
 
   for (let i = 0; i < scenes.length; i++) {
+    const rawWav  = path.join(outDir, `tts_raw_${i}.wav`);
     const rawMp3  = path.join(outDir, `tts_raw_${i}.mp3`);
     const rawVtt  = path.join(outDir, `tts_raw_${i}.vtt`);
     const padMp3  = path.join(outDir, `tts_pad_${i}.mp3`);
-    sceneTmps.push(rawMp3, rawVtt, padMp3);
+    sceneTmps.push(rawWav, rawMp3, rawVtt, padMp3);
 
-    try {
-      await execFileAsync('edge-tts', [
-        '--text',            scenes[i].text,
-        '--voice',           voice,
-        '--rate',            ttsRate,
-        '--write-media',     rawMp3,
-        '--write-subtitles', rawVtt,
-      ]);
-    } catch (err) {
-      logger.warn(MODULE, `TTS scene ${i} failed: ${err.message}`);
-      await execFileAsync('ffmpeg', [
-        '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono',
-        '-t', '3', '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
-      ]);
+    if (useAivis) {
+      try {
+        await generateAivisScene(scenes[i].text, aivisSpeed, rawWav);
+        await execFileAsync('ffmpeg', ['-y', '-i', rawWav, '-c:a', 'libmp3lame', '-q:a', '2', rawMp3]);
+      } catch (err) {
+        logger.warn(MODULE, `AivisSpeech scene ${i} failed: ${err.message}`);
+        await execFileAsync('ffmpeg', [
+          '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono',
+          '-t', '3', '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
+        ]);
+      }
+    } else {
+      try {
+        await execFileAsync('edge-tts', [
+          '--text',            scenes[i].text,
+          '--voice',           voice,
+          '--rate',            ttsRate,
+          '--write-media',     rawMp3,
+          '--write-subtitles', rawVtt,
+        ]);
+      } catch (err) {
+        logger.warn(MODULE, `TTS scene ${i} failed: ${err.message}`);
+        await execFileAsync('ffmpeg', [
+          '-y', '-f', 'lavfi', '-i', 'anullsrc=r=24000:cl=mono',
+          '-t', '3', '-c:a', 'libmp3lame', '-q:a', '4', rawMp3,
+        ]);
+      }
     }
 
     // 実際のTTS音声の長さを取得してシーン長を動的に決める
@@ -597,7 +643,7 @@ async function generateTTS(scenes, outDir, type = 'short') {
     // scenes[i].duration を実測値で上書き（映像生成側が参照）
     scenes[i].duration = sceneDur;
 
-    vttInfos.push({ vttPath: rawVtt, offset });
+    if (!useAivis) vttInfos.push({ vttPath: rawVtt, offset });
     offset += sceneDur;
   }
 
@@ -828,7 +874,7 @@ async function addLoopEnding(outPath) {
   const tmpOrig = outPath.replace('.mp4', '_preloop.mp4');
   const listPath = outPath.replace('.mp4', '_loop.txt');
 
-  await execFileAsync('ffmpeg', ['-y', '-i', outPath, '-t', '1.5', '-c', 'copy', tmpHead], { timeout: 30000 });
+  await execFileAsync('ffmpeg', ['-y', '-i', outPath, '-t', '1.5', '-c:v', 'copy', '-an', tmpHead], { timeout: 30000 });
   fs.renameSync(outPath, tmpOrig);
   fs.writeFileSync(listPath, `file '${tmpOrig}'\nfile '${tmpHead}'`);
   await execFileAsync('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', listPath, '-c', 'copy', outPath], { timeout: 60000 });
@@ -847,6 +893,9 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
   const hasTts = ttsPath && fs.existsSync(ttsPath);
 
   // ── SE トラック生成 ────────────────────────────────────────────────
+  // ── Ken Burns クリップ生成 ──────────────────────────────────────────
+  const typePrefix = path.basename(outPath, '.mp4'); // 'short'/'long'/'reddit-short' — 同時実行時の衝突防止
+
   let seTrackPath = null;
   try {
     seTrackPath = await generateSETrack(scenes, SE_DIR, totalDuration, outDir, typePrefix);
@@ -854,9 +903,6 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
     logger.warn(MODULE, `SE track generation failed, skipping: ${err.message}`);
   }
   const hasSe = seTrackPath && fs.existsSync(seTrackPath);
-
-  // ── Ken Burns クリップ生成 ──────────────────────────────────────────
-  const typePrefix = path.basename(outPath, '.mp4'); // 'short'/'long'/'reddit-short' — 同時実行時の衝突防止
   const clipPaths = [];
   for (let i = 0; i < scenes.length; i++) {
     const clipPath = path.join(outDir, `${typePrefix}_kb_clip_${i}.mp4`);
@@ -989,16 +1035,6 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
     fs.rmSync(tmp, { force: true });
   }
   if (hasSe) fs.rmSync(seTrackPath, { force: true });
-
-  // ── ループエンディング（ショート: 最初の1.5sを末尾に追加） ────────────
-  if (resolveStyleKey(type) === 'short') {
-    try {
-      await addLoopEnding(outPath);
-      logger.info(MODULE, 'loop ending appended');
-    } catch (err) {
-      logger.warn(MODULE, `loop ending failed, skipping: ${err.message}`);
-    }
-  }
 
   return { captionsPath: fs.existsSync(captionsPath) ? captionsPath : null };
 }
