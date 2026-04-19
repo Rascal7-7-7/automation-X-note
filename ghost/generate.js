@@ -35,38 +35,52 @@ function getFeatureImage(tags = []) {
   return `https://images.unsplash.com/${FEATURE_IMAGES[idx]}?w=1200&q=80&fm=jpg&fit=crop`;
 }
 
-const OUTLINE_SYSTEM = `You are an expert English-language content writer targeting global audiences interested in AI, automation, and side income.
+const OUTLINE_SYSTEM = `You are an expert SEO content strategist targeting English-speaking audiences interested in AI, automation, and side income.
 
-Given a topic (and optional Reddit/HN discussion context), return a JSON outline ONLY:
+Given a topic (and optional Reddit/HN context), return a JSON outline ONLY:
 {
-  "title": "Engaging title with numbers or power words",
-  "summary": "2-sentence summary under 160 chars (SEO meta description)",
-  "sections": ["Section 1", "Section 2", "Section 3", "Section 4", "Section 5"],
+  "title": "SEO-optimized title with primary keyword near the start",
+  "summary": "Meta description: 150-160 chars, include primary keyword, clear value proposition",
+  "primaryKeyword": "main SEO keyword phrase (3-5 words)",
+  "sections": ["Keyword-rich H2 1", "Keyword-rich H2 2", "Keyword-rich H2 3", "Keyword-rich H2 4", "FAQ: Top Questions About [topic]"],
+  "faqQuestions": ["Question 1?", "Question 2?", "Question 3?"],
   "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
-  "youtubeQuery": "YouTube search query for an embed (or null if not applicable)"
+  "youtubeQuery": "YouTube search query for tutorial embed (or null)"
 }
 
 Title rules:
-- Include a number (e.g. "5 Ways", "3 Tools", "in 30 Days")
-- Power words: Ultimate, Proven, Beginner's, Step-by-Step, Real
-- Focus: AI side hustle, automation income, Claude Code, Japan tech scene
+- Primary keyword in first 60 chars
+- Include number OR "How to" OR "Guide" OR "Best"
+- Power words: Ultimate, Proven, Complete, Step-by-Step, 2026
+- Focus: AI tools, automation income, Claude Code, side hustle
 
-Tags: 5 lowercase English keywords (no #).
-youtubeQuery: if a YouTube tutorial/demo would add value, suggest a search query. Otherwise null.`;
+sections[4] MUST be an FAQ section title.
+faqQuestions: 3 questions real users search for about this topic.
+Tags: 5 lowercase English SEO keywords.`;
 
 function buildBodySystem(hasRedditContext) {
-  return `You are an expert English content writer for a Ghost blog (rascal.ghost.io) targeting global readers interested in AI automation and side income.
+  return `You are an expert SEO content writer for Rascal.AI (rascal.ghost.io), targeting global readers interested in AI automation and side income.
 
-Write a 1500-2000 word article in HTML based on the outline.${hasRedditContext ? '\nThe article should reference real online discussions and community sentiment where relevant.' : ''}
+Write a 2000-2500 word article in HTML based on the outline.${hasRedditContext ? '\nWeave in real online community sentiment and discussion where relevant.' : ''}
 
-Rules:
-- Start directly with content (no <html>/<body> tags)
-- Use <h2> for sections, <h3> for sub-headings
-- Use <p>, <ul>/<li>, <strong> for emphasis
-- Include concrete numbers, examples, actionable steps
-- First-person voice where natural ("I automated...", "In my experience...")
-- If a YouTube embed URL is provided, insert it as: <figure class="kg-card kg-embed-card"><iframe width="560" height="315" src="YOUTUBE_EMBED_URL" frameborder="0" allowfullscreen></iframe></figure>
-- End with a strong call-to-action paragraph
+SEO rules:
+- Use primary keyword in the first paragraph and naturally throughout
+- <h2> tags must contain keywords (not generic "Introduction")
+- Add <h3> sub-headings within each section
+- Use <strong> for key terms on first use
+- Include at least one data point or statistic per section
+
+Structure rules:
+- Start with a compelling hook paragraph (no heading)
+- Use <h2> for main sections, <h3> for sub-headings
+- Use <p>, <ul>/<li>, <strong> for formatting
+- If YouTube embed URL provided: <figure class="kg-card kg-embed-card"><iframe width="560" height="315" src="EMBED_URL" frameborder="0" allowfullscreen></iframe></figure>
+- Final section MUST be FAQ formatted as:
+  <h2>FAQ: [Topic] — Your Questions Answered</h2>
+  <h3>Question 1?</h3><p>Answer...</p>
+  <h3>Question 2?</h3><p>Answer...</p>
+  <h3>Question 3?</h3><p>Answer...</p>
+- End with CTA: "Subscribe to Rascal.AI newsletter for weekly AI automation strategies."
 - Do NOT wrap in markdown code blocks`;
 }
 
@@ -116,14 +130,17 @@ export async function runGenerate(opts = {}) {
 
   // Stage 2: Body
   const sectionList = outline.sections.map((s, i) => `${i + 1}. ${s}`).join('\n');
+  const faqList = (outline.faqQuestions ?? []).map((q, i) => `  Q${i + 1}: ${q}`).join('\n');
   const bodyPrompt = [
     `Title: ${outline.title}`,
+    `Primary keyword: ${outline.primaryKeyword ?? ''}`,
     `Summary: ${outline.summary}`,
     `\nSections:\n${sectionList}`,
-    redditContext ? `\nReddit/community context to weave in:\n${redditContext}` : '',
+    faqList ? `\nFAQ questions to answer:\n${faqList}` : '',
+    redditContext ? `\nCommunity context to weave in:\n${redditContext}` : '',
     youtubeEmbedUrl ? `\nEmbed this YouTube video in a relevant section: ${youtubeEmbedUrl}` : '',
     sourceUrl ? `\nYou may reference this discussion: ${sourceUrl}` : '',
-    '\nWrite the full article now.',
+    '\nWrite the full 2000-2500 word article now.',
   ].filter(Boolean).join('\n');
 
   const html = await generate(buildBodySystem(!!redditContext), bodyPrompt, {

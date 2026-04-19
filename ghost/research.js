@@ -29,9 +29,23 @@ const HEADERS = {
   'Accept': 'application/json',
 };
 
+const AI_KEYWORDS = [
+  'ai', 'llm', 'claude', 'gpt', 'chatgpt', 'gemini', 'openai', 'anthropic',
+  'automation', 'agent', 'model', 'machine learning', 'deep learning',
+  'artificial intelligence', 'robot', 'automate', 'income', 'side hustle',
+  'productivity', 'tool', 'workflow', 'generate', 'image', 'video', 'coding',
+];
+
 function isBlocked(text) {
   const lower = text.toLowerCase();
   return BLOCK_KEYWORDS.some(kw => lower.includes(kw));
+}
+
+function isQualityTopic(title) {
+  if (title.length < 25) return false; // too short/vague
+  if (/^(me |my |i |this |these |those |what |why |when |how )/i.test(title) && title.length < 40) return false;
+  const lower = title.toLowerCase();
+  return AI_KEYWORDS.some(kw => lower.includes(kw));
 }
 
 async function fetchReddit(subreddit) {
@@ -41,7 +55,7 @@ async function fetchReddit(subreddit) {
     const data = await res.json();
     return (data?.data?.children ?? [])
       .map(c => c.data)
-      .filter(p => p.score >= 500 && !isBlocked(p.title))
+      .filter(p => p.score >= 300 && !isBlocked(p.title) && isQualityTopic(p.title))
       .map(p => ({
         id: p.id,
         title: p.title,

@@ -76,17 +76,17 @@ export const TASKS = [
     cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
   },
 
-  // ── Ghost 英語ブログ（毎週火曜） ─────────────────────────────────
+  // ── Ghost 英語ブログ（毎日） ──────────────────────────────────────
   {
     name: 'ghost:research',
-    cron: '0 7 * * 2',             // 火曜 07:00 — Reddit/HNトレンド取得
+    cron: '0 6 * * *',             // 毎日 06:00 — Reddit/HNトレンド取得
   },
   {
     name: 'ghost:generate',
-    cron: '0 9 * * 2',             // 火曜 09:00 — 英語記事生成（research後）
+    cron: '0 8 * * *',             // 毎日 08:00 — 英語記事生成
   },
   {
     name: 'ghost:post',
-    cron: '0 14 * * 2',            // 火曜 14:00 — Ghost投稿（生成5時間後）
+    cron: '0 13 * * *',            // 毎日 13:00 — Ghost公開
   },
 ];
