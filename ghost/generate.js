@@ -151,7 +151,17 @@ export async function runGenerate(opts = {}) {
   const draft = {
     title: outline.title,
     summary: outline.summary,
-    html: html.replace(/```html?\n?/g, '').replace(/```/g, '').trim(),
+    html: html.replace(/```html?\n?/g, '').replace(/```/g, '').trim() + `
+<hr>
+<div style="background:#f0f4ff;border-left:4px solid #6366F1;padding:20px 24px;margin:32px 0;border-radius:4px">
+<p style="margin:0 0 8px;font-weight:bold;font-size:15px">🇯🇵 日本語でも情報発信中</p>
+<p style="margin:0 0 12px;font-size:14px;color:#444">AIを使った副業・自動化の実践的な内容を日本語で詳しく解説しています。</p>
+<p style="margin:0;font-size:14px">
+📝 <a href="https://note.com/rascal_ai" style="color:#6366F1;font-weight:bold">note（詳しい解説記事）</a> &nbsp;|&nbsp;
+📷 <a href="https://www.instagram.com/ai_side_hack_/" style="color:#6366F1;font-weight:bold">Instagram（毎日更新）</a> &nbsp;|&nbsp;
+🐦 <a href="https://x.com/Rascal_AI_Dev" style="color:#6366F1;font-weight:bold">X / Twitter</a>
+</p>
+</div>`,
     tags: outline.tags,
     excerpt: outline.summary,
     featureImage: getFeatureImage(outline.tags),
