@@ -73,15 +73,26 @@ export async function runPost(opts = {}) {
   const api = createClient();
   const postStatus = isDev ? 'draft' : 'published';
 
+  const metaDesc = draft.summary ?? draft.excerpt ?? '';
   const payload = {
     title: draft.title,
     html: draft.html ?? `<p>${draft.body ?? ''}</p>`,
     status: postStatus,
-    custom_excerpt: draft.excerpt ?? draft.summary ?? '',
+    custom_excerpt: metaDesc,
     tags: (draft.tags ?? []).map(t => ({ name: t })),
+    meta_title:           draft.title,
+    meta_description:     metaDesc,
+    og_title:             draft.title,
+    og_description:       metaDesc,
+    twitter_title:        draft.title,
+    twitter_description:  metaDesc,
   };
 
-  if (draft.featureImage) payload.feature_image = draft.featureImage;
+  if (draft.featureImage) {
+    payload.feature_image    = draft.featureImage;
+    payload.og_image         = draft.featureImage;
+    payload.twitter_image    = draft.featureImage;
+  }
   if (draft.newsletterId && !isDev) {
     payload.newsletter = { id: draft.newsletterId };
   }
