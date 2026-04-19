@@ -34,3 +34,7 @@ note/__pycache__/
 
 # OS
 .DS_Store
+
+
+# APM dependencies
+apm_modules/

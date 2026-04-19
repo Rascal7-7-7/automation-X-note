@@ -180,3 +180,76 @@ SNS投稿に画像が必要なときは **Pixa MCP を優先的に使う**（Nan
 管理画面・ダッシュボードを作るときは以下を参照:
 `/home/rascal/work/awesome-design-md-main/design-md/notion/notion.md`
 `/home/rascal/work/awesome-design-md-main/design-md/cursor/cursor.md`
+
+---
+
+## Claude Code Routines — クラウド自動投稿
+
+Routines は Anthropic クラウド上で動作するスケジュール自動化。**Mac をシャットダウンしていても実行される**。
+
+### セットアップ
+```
+claude.ai/code/routines からアクセス、または CLI で /schedule を実行
+```
+
+### SNS自動化への適用レシピ
+
+| Routine名 | トリガー | プロンプト概要 |
+|----------|---------|--------------|
+| `daily-x-post` | 毎朝7時(cron) | trend-researcher → x-writer → publisher で X 投稿 |
+| `weekly-note` | 月曜10時(cron) | trend-researcher + market-researcher → note-writer → 下書き保存 |
+| `insta-daily` | 毎日19時(cron) | insta-writer → content-reviewer → publisher でInstagram投稿 |
+| `engagement-check` | 毎日21時(cron) | data-collector → growth-analyst でエンゲージメント集計 |
+| `github-deploy` | GitHub push時 | デプロイ後スモークテスト自動実行 |
+
+### プラン別制限
+- Pro: 1日5回 / Max: 1日15回 / Team/Enterprise: 1日25回
+
+### Monitor ツール — リアルタイムログ監視
+バックグラウンドタスク実行中、ログを会話にストリーミング:
+```
+/loop でセルフペース自動化を起動し Monitor でログ確認
+```
+
+---
+
+## 新コマンド早見表（April 2026）
+
+| コマンド | 用途 |
+|---------|------|
+| `/btw <質問>` | 実行中のタスクを止めずに質問 |
+| `/focus` | 中間プロセスを非表示・最終結果のみ表示 |
+| `/effort <low\|medium\|high\|xhigh\|max>` | 思考量の調整（SNS生成は medium で十分） |
+| `/loop` | セルフペース繰り返しタスク（投稿ループ等） |
+| `/autofix-pr` | PR自動修正をターミナルから有効化 |
+| `Esc+Esc` | チェックポイントメニューを開いてリワインド |
+
+### 推奨エフォート設定
+- コンテンツ生成（x-writer/note-writer）: `medium`
+- トレンドリサーチ: `low`
+- エンゲージメント分析・戦略立案: `high`
+
+---
+
+## Caveman スキル — トークン節約（リサーチ専用）
+
+**caveman** は Claude の出力を電文体に変換し、平均65%・最大87%のトークン削減を実現するスキル。
+
+### インストール（未導入の場合）
+```
+claude plugin marketplace add JuliusBrussee/caveman && claude plugin install caveman@caveman
+```
+
+### 使用レベル
+| レベル | コマンド | 用途 |
+|--------|---------|------|
+| Lite | `/caveman lite` | 軽めの節約・文法維持 |
+| Full | `/caveman` | デフォルト。SNSリサーチに推奨 |
+| Ultra | `/caveman ultra` | 最大圧縮。ステータス確認等 |
+
+### automation プロジェクトでの使い方
+- **使うべき場面**: trend-researcher・market-researcher のリサーチフェーズ
+- **使ってはいけない場面**: content-reviewer・growth-analyst（品質低下・推論弱体化のリスク）
+- 停止: "normal mode" または "stop caveman"
+
+> ⚠️ ErickSky の警告: Caveman は戦略分析・品質チェックには不向き。リサーチ限定で使うこと。

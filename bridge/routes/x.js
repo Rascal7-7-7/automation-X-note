@@ -75,4 +75,28 @@ router.post('/quote-rt', async (req, res) => {
   }
 });
 
+// POST /api/x/follow-quote-rt — フォロー中のバズ投稿を引用RT
+router.post('/follow-quote-rt', async (req, res) => {
+  try {
+    const { runFollowQuoteRT } = await import('../../x/follow-quote-rt.js');
+    const result = await runFollowQuoteRT(req.body ?? {});
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// POST /api/x/github-intro — GitHub AI系トレンドリポジトリ紹介投稿
+router.post('/github-intro', async (req, res) => {
+  try {
+    const { runGithubIntro } = await import('../../x/github-intro.js');
+    const result = await runGithubIntro(req.body ?? {});
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

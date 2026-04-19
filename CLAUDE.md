@@ -104,4 +104,10 @@ Use when writing Playwright tests, fixing flaky tests, debugging failures, imple
 - `.claude/skills/playwright-best-practices/testing-patterns/security-testing.md`
 - `.claude/skills/playwright-best-practices/testing-patterns/visual-regression.md`: **Use when**: Page contains timestamps, avatars, ad slots, relative dates, random images, or A/B variants.
 
+## SNS Content Commands
+
+120 Claude Code SNS content commands for X/note/Instagram. Reference when generating content, writing hooks, building funnels, or analyzing engagement. Covers research, viral generation, sales/monetization, content creation, quality improvement, business analysis, engagement boost, and follower growth.
+
+- `.claude/skills/sns-content-commands/SKILL.md`
+
 <!-- autoskills:end -->
