@@ -39,6 +39,7 @@ const DRAFTS_DIR  = path.join(__dirname, 'drafts');
 const ASSETS_DIR  = path.join(__dirname, 'assets');
 const BGM_DIR     = path.join(ASSETS_DIR, 'bgm');
 const FONTS_DIR   = path.join(ASSETS_DIR, 'fonts');
+const SE_DIR      = path.join(ASSETS_DIR, 'se');
 
 const MODULE = 'youtube:render';
 
@@ -736,7 +737,7 @@ function convertVTTtoSRT(vttPath, srtPath, maxChars = 15, totalDuration = null) 
 
 // ── Ken Burns エフェクト付きクリップ生成 ─────────────────────────────────
 
-async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx) {
+async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx, punch = false) {
   const s      = STYLE[resolveStyleKey(type)];
   const fps    = 30;
   const frames = Math.round(duration * fps);
@@ -747,13 +748,20 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
 
   // scale=${s.width}:${s.height} を末尾に追加して出力解像度を強制固定
   const forceSize = `scale=${s.width}:${s.height}`;
+
+  // ズームパンチ: 最初9フレーム(0.3s)で1.15→1.0に急速収束、その後通常エフェクト
+  const zPunch = punch
+    ? `if(lt(on,9),1.15-0.015*on,`
+    : '';
+  const zPunchClose = punch ? ')' : '';
+
   const effects = [
     // ズームイン（中央）
-    `${scaleCrop},zoompan=z='1+0.1*(on/${frames})':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
+    `${scaleCrop},zoompan=z='${zPunch}1+0.1*(on/${frames})${zPunchClose}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
     // 右パン（固定ズーム）
-    `${scaleCrop},zoompan=z='1.08':x='iw*0.07*(on/${frames})':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
+    `${scaleCrop},zoompan=z='${zPunch}1.08${zPunchClose}':x='iw*0.07*(on/${frames})':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
     // ズームアウト（中央）
-    `${scaleCrop},zoompan=z='max(1.1-0.1*(on/${frames}),1.0)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
+    `${scaleCrop},zoompan=z='${zPunch}max(1.1-0.1*(on/${frames}),1.0)${zPunchClose}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=${frames}:s=${s.width}x${s.height}:fps=${fps},${forceSize}`,
   ];
 
   await execFileAsync('ffmpeg', [
@@ -769,6 +777,65 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx)
   return outPath;
 }
 
+// ── SE トラック生成 ──────────────────────────────────────────────────
+
+async function generateSETrack(scenes, seDir, totalDuration, outDir) {
+  const whoosh = path.join(seDir, 'whoosh.mp3');
+  const impact = path.join(seDir, 'impact.mp3');
+  const glitch = path.join(seDir, 'glitch.mp3');
+
+  if (!fs.existsSync(whoosh)) return null;
+
+  // シーン開始時刻を計算
+  const starts = [];
+  let t = 0;
+  for (const sc of scenes) { starts.push(t); t += sc.duration; }
+
+  // (file, delayMs) イベントリストを構築
+  const events = [];
+  for (let i = 1; i < scenes.length; i++) {
+    events.push({ file: whoosh, delayMs: Math.round(starts[i] * 1000) });
+  }
+  if (scenes.length > 4 && fs.existsSync(impact)) {
+    events.push({ file: impact, delayMs: Math.round(starts[4] * 1000) });
+  }
+  if (scenes.length > 5 && fs.existsSync(glitch)) {
+    events.push({ file: glitch, delayMs: Math.round(starts[5] * 1000) });
+  }
+  if (events.length === 0) return null;
+
+  const sePath = path.join(outDir, '_se_track.wav');
+  const inputs = events.flatMap(e => ['-i', e.file]);
+  const filterParts = events.map((e, i) => `[${i}:a]adelay=${e.delayMs}|${e.delayMs},volume=0.4[se${i}]`);
+  const mixIn = events.map((_, i) => `[se${i}]`).join('');
+  const filterComplex = filterParts.join(';') + `;${mixIn}amix=inputs=${events.length}:normalize=0[seout]`;
+
+  await execFileAsync('ffmpeg', [
+    '-y', ...inputs,
+    '-filter_complex', filterComplex,
+    '-map', '[seout]',
+    '-t', String(totalDuration),
+    sePath,
+  ], { timeout: 60000 });
+
+  return sePath;
+}
+
+// ── ループエンディング（ショート専用）────────────────────────────────
+
+async function addLoopEnding(outPath) {
+  const tmpHead = outPath.replace('.mp4', '_loop_head.mp4');
+  const tmpOrig = outPath.replace('.mp4', '_preloop.mp4');
+  const listPath = outPath.replace('.mp4', '_loop.txt');
+
+  await execFileAsync('ffmpeg', ['-y', '-i', outPath, '-t', '1.5', '-c', 'copy', tmpHead], { timeout: 30000 });
+  fs.renameSync(outPath, tmpOrig);
+  fs.writeFileSync(listPath, `file '${tmpOrig}'\nfile '${tmpHead}'`);
+  await execFileAsync('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', listPath, '-c', 'copy', outPath], { timeout: 60000 });
+
+  for (const f of [tmpHead, tmpOrig, listPath]) fs.rmSync(f, { force: true });
+}
+
 // ── FFmpeg 動画合成 ──────────────────────────────────────────────────
 
 async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPath, outPath, hookText = null }) {
@@ -779,11 +846,20 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
   const hasBgm = bgmPath && fs.existsSync(bgmPath);
   const hasTts = ttsPath && fs.existsSync(ttsPath);
 
+  // ── SE トラック生成 ────────────────────────────────────────────────
+  let seTrackPath = null;
+  try {
+    seTrackPath = await generateSETrack(scenes, SE_DIR, totalDuration, outDir);
+  } catch (err) {
+    logger.warn(MODULE, `SE track generation failed, skipping: ${err.message}`);
+  }
+  const hasSe = seTrackPath && fs.existsSync(seTrackPath);
+
   // ── Ken Burns クリップ生成 ──────────────────────────────────────────
   const clipPaths = [];
   for (let i = 0; i < scenes.length; i++) {
     const clipPath = path.join(outDir, `kb_clip_${i}.mp4`);
-    await generateKenBurnsClip(imagePaths[i], scenes[i].duration, type, clipPath, i);
+    await generateKenBurnsClip(imagePaths[i], scenes[i].duration, type, clipPath, i, i > 0);
     clipPaths.push(clipPath);
     logger.info(MODULE, `Ken Burns clip ${i + 1}/${scenes.length} done`);
   }
@@ -798,28 +874,45 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
 
   if (hasBgm) ffmpegArgs.push('-stream_loop', '-1', '-i', bgmPath);
   if (hasTts) ffmpegArgs.push('-i', ttsPath);
+  if (hasSe) ffmpegArgs.push('-i', seTrackPath);
+
+  // 入力インデックスを動的に計算（BGM=1, TTS=bgm+1, SE=bgm+tts+1）
+  const bgmIdx = hasBgm ? 1 : -1;
+  const ttsIdx = hasBgm ? 2 : (hasTts ? 1 : -1);
+  const seIdx  = (hasBgm ? 1 : 0) + (hasTts ? 1 : 0) + 1;
 
   if (hasTts && hasBgm) {
     const fadeStart = Math.max(0, totalDuration - 2);
+    let filterComplex;
+    if (hasSe) {
+      filterComplex =
+        `[${ttsIdx}:a]apad=whole_dur=${totalDuration}[ttspad];` +
+        `[${bgmIdx}:a]volume=0.12[bgm];` +
+        `[${seIdx}:a]volume=0.35[se];` +
+        `[ttspad][bgm][se]amix=inputs=3:duration=first:normalize=0,` +
+        `afade=t=out:st=${fadeStart}:d=2[aout]`;
+    } else {
+      filterComplex =
+        `[${ttsIdx}:a]apad=whole_dur=${totalDuration}[ttspad];` +
+        `[${bgmIdx}:a]volume=0.12[bgm];` +
+        `[ttspad][bgm]amix=inputs=2:duration=first:normalize=0,` +
+        `afade=t=out:st=${fadeStart}:d=2[aout]`;
+    }
     ffmpegArgs.push(
-      '-filter_complex',
-      `[2:a]apad=whole_dur=${totalDuration}[ttspad];` +
-      `[1:a]volume=0.12[bgm];` +
-      `[ttspad][bgm]amix=inputs=2:duration=first:normalize=0,` +
-      `afade=t=out:st=${fadeStart}:d=2[aout]`,
+      '-filter_complex', filterComplex,
       '-map', '0:v', '-map', '[aout]',
       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k',
     );
   } else if (hasTts) {
     ffmpegArgs.push(
-      '-map', '0:v', '-map', '1:a',
+      '-map', '0:v', '-map', `${ttsIdx}:a`,
       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k',
       '-shortest',
     );
   } else if (hasBgm) {
     const fadeStart = Math.max(0, totalDuration - 2);
     ffmpegArgs.push(
-      '-map', '0:v', '-map', '1:a',
+      '-map', '0:v', '-map', `${bgmIdx}:a`,
       '-c:v', 'copy', '-c:a', 'aac', '-b:a', '128k',
       '-af', `afade=t=out:st=${fadeStart}:d=2`,
       '-shortest',
@@ -893,6 +986,17 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
   // 中間ファイルを削除（captionsPath は upload.js のために保持）
   for (const tmp of [nosubPath, assPath]) {
     fs.rmSync(tmp, { force: true });
+  }
+  if (hasSe) fs.rmSync(seTrackPath, { force: true });
+
+  // ── ループエンディング（ショート: 最初の1.5sを末尾に追加） ────────────
+  if (resolveStyleKey(type) === 'short') {
+    try {
+      await addLoopEnding(outPath);
+      logger.info(MODULE, 'loop ending appended');
+    } catch (err) {
+      logger.warn(MODULE, `loop ending failed, skipping: ${err.message}`);
+    }
   }
 
   return { captionsPath: fs.existsSync(captionsPath) ? captionsPath : null };
