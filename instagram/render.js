@@ -186,6 +186,19 @@ function pickBgm() {
   return path.join(BGM_DIR, files[Math.floor(Math.random() * files.length)]);
 }
 
+// 1080px幅、marginLR=54px → 有効幅972px ÷ 54px/文字 = 18文字/行
+const MAX_CHARS_PER_LINE = 18;
+
+// 1テキスト行を18文字ごとにASS \N で折り返す（\N混入なし前提）
+function wrapJapanese(text) {
+  if (text.length <= MAX_CHARS_PER_LINE) return text;
+  const lines = [];
+  for (let i = 0; i < text.length; i += MAX_CHARS_PER_LINE) {
+    lines.push(text.slice(i, i + MAX_CHARS_PER_LINE));
+  }
+  return lines.join('\\N');
+}
+
 function parseScriptSegments(reelsScript) {
   const SKIP = [
     /^---/,
@@ -195,13 +208,16 @@ function parseScriptSegments(reelsScript) {
     /^\d+\s*[〜~\-]\s*\d+秒/,
     /^（\d+[-〜]\d+秒）/,
     /^ステップ\d/,
-    /^台本[:：]/,
-    /Reels台本/,
+    /台本/,          // "Reels台本：" 等すべて
     /^想定ビジュアル/,
     /^パターン[AB]/,
     /^CTA/,
     /^〈/,
-    /^\*\s*〈/,
+    /^\*?\s*〈/,
+    /^[-－]\s/,      // "- 画面分割..." 等の視覚注記
+    /^画面/,
+    /^テキストオーバーレイ/,
+    /^最後は/,
   ];
   return reelsScript
     .split('\n')
@@ -210,7 +226,7 @@ function parseScriptSegments(reelsScript) {
       .replace(/\*\*/g, '')
       .replace(/【.*?】/g, '')
       .replace(/^\*\s+/, '')
-      .replace(/^「/, '').replace(/」$/, '') // 鍵括弧除去
+      .replace(/^「/, '').replace(/」$/, '')
       .trim()
     )
     .filter(l => l.length > 3 && !SKIP.some(re => re.test(l)));
@@ -238,7 +254,7 @@ function buildAssFile(segments, totalDuration, assPath) {
     `PlayResX: ${W}`,
     `PlayResY: ${H}`,
     'ScaledBorderAndShadow: yes',
-    'WrapStyle: 0',
+    'WrapStyle: 1',
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
@@ -256,14 +272,18 @@ function buildAssFile(segments, totalDuration, assPath) {
   const grouped = [];
   const chunkSize = Math.ceil(capped.length / maxSegs);
   for (let i = 0; i < capped.length; i += chunkSize) {
-    grouped.push(capped.slice(i, i + chunkSize).join(' '));
+    grouped.push(capped.slice(i, i + chunkSize).join('\\N'));
   }
 
   const segDur = totalDuration / grouped.length;
   const dialogues = grouped.map((seg, i) => {
     const start = i * segDur;
     const end   = Math.min((i + 1) * segDur, totalDuration);
-    const text  = seg.replace(/\{/g, '\\{').replace(/\}/g, '\\}');
+    // \N で結合済みの各サブラインを個別に18文字折り返し
+    const text  = seg
+      .split('\\N')
+      .map(sub => wrapJapanese(sub.replace(/\{/g, '\\{').replace(/\}/g, '\\}')))
+      .join('\\N');
     return `Dialogue: 0,${toAssTime(start)},${toAssTime(end)},Default,,0,0,0,,{\\fad(200,200)}${text}`;
   });
 
