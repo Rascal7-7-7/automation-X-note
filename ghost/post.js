@@ -9,7 +9,23 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import GhostAdminAPI from '@tryghost/admin-api';
+import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
+
+const TWEET_SYSTEM = `You are a social media manager for Rascal.AI — an English blog about AI automation and side income.
+Write a single promotional tweet (≤260 chars) for a new blog post.
+Rules:
+- English only
+- Hook first: start with a stat, question, or bold claim
+- Include the URL at the end
+- 2-3 relevant hashtags: #AI #Automation #SideIncome #AITools #Productivity
+- No quotes around the tweet
+- Output tweet text only`;
+
+async function generatePromoTweet(title, excerpt, url) {
+  const prompt = `New blog post:\nTitle: ${title}\nExcerpt: ${excerpt}\nURL: ${url}`;
+  return generate(TWEET_SYSTEM, prompt, { model: 'claude-haiku-4-5-20251001', maxTokens: 200 });
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'ghost:post';
@@ -75,6 +91,19 @@ export async function runPost(opts = {}) {
 
   markPosted(file.filePath, ghostUrl);
   logger.info(MODULE, `${postStatus}: ${ghostUrl}`);
+
+  // X プロモツイート（prod のみ）
+  if (!isDev) {
+    try {
+      const { postTweet } = await import('../x/post.js');
+      const tweet = await generatePromoTweet(draft.title, draft.excerpt ?? draft.summary ?? '', ghostUrl);
+      const result = await postTweet(tweet);
+      const tweetId = result?.data?.id ?? result?.id;
+      logger.info(MODULE, `x promo posted: ${tweetId}`);
+    } catch (err) {
+      logger.warn(MODULE, `x promo failed (non-fatal): ${err.message}`);
+    }
+  }
 
   return { ghostUrl, title: draft.title };
 }

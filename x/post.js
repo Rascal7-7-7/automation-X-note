@@ -180,7 +180,7 @@ const twitterClient = new TwitterApi({
  * @param {string} text
  * @param {Buffer|null} imageBuffer
  */
-async function postTweet(text, imageBuffer = null) {
+export async function postTweet(text, imageBuffer = null) {
   if (imageBuffer) {
     const mediaId = await twitterClient.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
     return twitterClient.v2.tweet({ text, media: { media_ids: [mediaId] } });
