@@ -60,8 +60,10 @@ const HANDLERS = {
   'instagram:image:2':       (task) => runInstaImage({ account: task.account }),
   'instagram:render:1':      (task) => runInstaRender({ account: task.account }),
   'instagram:render:2':      (task) => runInstaRender({ account: task.account }),
-  'instagram:post:1':        (task) => runInstaPost({ account: task.account }),
-  'instagram:post:2':        (task) => runInstaPost({ account: task.account }),
+  'instagram:post-image:1':  (task) => runInstaPost({ account: task.account, type: 'image' }),
+  'instagram:post-image:2':  (task) => runInstaPost({ account: task.account, type: 'image' }),
+  'instagram:post-reels:1':  (task) => runInstaPost({ account: task.account, type: 'reels' }),
+  'instagram:post-reels:2':  (task) => runInstaPost({ account: task.account, type: 'reels' }),
 
   'instagram:check-expiry':  ()     => runInstaCheckExpiry(),
 

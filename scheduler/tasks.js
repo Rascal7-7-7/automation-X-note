@@ -16,16 +16,18 @@ export const TASKS = [
   },
 
   // ── Instagram account1 パイプライン（火・木・土 19時台） ──────────
-  { name: 'instagram:generate:1', account: 1, cron: '0 19 * * 2,4,6' },   // 19:00 生成
-  { name: 'instagram:image:1',    account: 1, cron: '10 19 * * 2,4,6' },  // 19:10 画像生成
-  { name: 'instagram:render:1',   account: 1, cron: '25 19 * * 2,4,6' },  // 19:25 Reels生成
-  { name: 'instagram:post:1',     account: 1, cron: '45 19 * * 2,4,6' },  // 19:45 投稿
+  { name: 'instagram:generate:1',   account: 1, cron: '0 19 * * 2,4,6' },   // 19:00 生成
+  { name: 'instagram:image:1',      account: 1, cron: '10 19 * * 2,4,6' },  // 19:10 画像生成
+  { name: 'instagram:render:1',     account: 1, cron: '25 19 * * 2,4,6' },  // 19:25 Reels生成
+  { name: 'instagram:post-image:1', account: 1, cron: '45 19 * * 2,4,6' },  // 19:45 静止画投稿
+  { name: 'instagram:post-reels:1', account: 1, cron: '50 19 * * 2,4,6' },  // 19:50 Reels投稿
 
   // ── Instagram account2 パイプライン（火・木・土 20時台） ──────────
-  { name: 'instagram:generate:2', account: 2, cron: '0 20 * * 2,4,6' },   // 20:00 生成
-  { name: 'instagram:image:2',    account: 2, cron: '10 20 * * 2,4,6' },  // 20:10 画像生成
-  { name: 'instagram:render:2',   account: 2, cron: '25 20 * * 2,4,6' },  // 20:25 Reels生成
-  { name: 'instagram:post:2',     account: 2, cron: '45 20 * * 2,4,6' },  // 20:45 投稿
+  { name: 'instagram:generate:2',   account: 2, cron: '0 20 * * 2,4,6' },   // 20:00 生成
+  { name: 'instagram:image:2',      account: 2, cron: '10 20 * * 2,4,6' },  // 20:10 画像生成
+  { name: 'instagram:render:2',     account: 2, cron: '25 20 * * 2,4,6' },  // 20:25 Reels生成
+  { name: 'instagram:post-image:2', account: 2, cron: '45 20 * * 2,4,6' },  // 20:45 静止画投稿
+  { name: 'instagram:post-reels:2', account: 2, cron: '50 20 * * 2,4,6' },  // 20:50 Reels投稿
 
   // ── YouTube Reddit読み上げ（毎日） ───────────────────────────────────
   {
