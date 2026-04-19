@@ -23,14 +23,19 @@ const DRAFTS_DIR = path.join(__dirname, 'drafts');
 const MODULE     = 'instagram:post';
 
 function getCredentials(account) {
-  const suffix = account === 2 ? '_2' : '_1';
+  const suffix    = account === 2 ? '_2' : '_1';
+  const altSuffix = String(account); // e.g. "1" or "2" (no leading underscore variant)
   return {
-    accessToken:  process.env[`INSTAGRAM_ACCESS_TOKEN${suffix}`]       ?? process.env.INSTAGRAM_ACCESS_TOKEN,
-    accountId:    process.env[`INSTAGRAM_BUSINESS_ACCOUNT_ID${suffix}`] ?? process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID,
+    accessToken: process.env[`INSTAGRAM_ACCESS_TOKEN${suffix}`]
+      ?? process.env[`INSTAGRAM_ACCESS_TOKEN${altSuffix}`]
+      ?? process.env.INSTAGRAM_ACCESS_TOKEN,
+    accountId: process.env[`INSTAGRAM_BUSINESS_ACCOUNT_ID${suffix}`]
+      ?? process.env[`INSTAGRAM_BUSINESS_ACCOUNT_ID${altSuffix}`]
+      ?? process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID,
   };
 }
 
-export async function runPost({ account = 1 } = {}) {
+export async function runPost({ account = 1, type = 'auto' } = {}) {
   const today     = new Date().toISOString().split('T')[0];
   const draftDir  = path.join(DRAFTS_DIR, `account${account}`, today);
   const draftPath = path.join(draftDir, 'post.json');
@@ -42,8 +47,11 @@ export async function runPost({ account = 1 } = {}) {
 
   const draft = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
 
-  if (draft.status === 'posted') {
-    logger.info(MODULE, `account${account}: already posted today — skipping`);
+  // type-specific duplicate check
+  const isReelsRequest = type === 'reels' || (type === 'auto' && !!draft.reelsVideoUrl);
+  const postedKey = isReelsRequest ? 'reelsPosted' : 'imagePosted';
+  if (draft[postedKey]) {
+    logger.info(MODULE, `account${account}: ${postedKey} already — skipping`);
     return { posted: false, reason: 'already_posted', account };
   }
 
@@ -54,10 +62,15 @@ export async function runPost({ account = 1 } = {}) {
     return savePending(draftPath, draft, undefined, account);
   }
 
+  // force image type when explicitly requested
+  const draftForPost = (type === 'image')
+    ? { ...draft, reelsVideoUrl: null }
+    : draft;
+
   try {
-    const postId = await postViaGraphApi(draft, accessToken, accountId);
-    markPosted(draftPath, draft, postId);
-    logger.info(MODULE, `account${account} posted: ${postId}`);
+    const postId = await postViaGraphApi(draftForPost, accessToken, accountId);
+    markPosted(draftPath, draft, postId, postedKey);
+    logger.info(MODULE, `account${account} ${isReelsRequest ? 'reels' : 'image'} posted: ${postId}`);
     return { posted: true, postId, account };
   } catch (err) {
     logger.error(MODULE, `account${account} Graph API error: ${err.message}`);
@@ -128,11 +141,15 @@ async function postViaGraphApi(draft, accessToken, accountId) {
 
 // ── ヘルパー ────────────────────────────────────────────────────────
 
-function markPosted(draftPath, draft, postId) {
+function markPosted(draftPath, draft, postId, postedKey = 'imagePosted') {
   const { pendingReason: _, updatedAt: __, ...rest } = draft;
+  const bothPosted = rest.imagePosted && rest.reelsPosted
+    || (postedKey === 'imagePosted' && rest.reelsPosted)
+    || (postedKey === 'reelsPosted' && rest.imagePosted);
   fs.writeFileSync(draftPath, JSON.stringify({
     ...rest,
-    status:   'posted',
+    [postedKey]: true,
+    status:   bothPosted ? 'posted' : rest.status,
     postId,
     postedAt: new Date().toISOString(),
   }, null, 2));

@@ -19,8 +19,9 @@ router.post('/generate', async (req, res) => {
 router.post('/post', async (req, res) => {
   try {
     const account = Number(req.body?.account ?? 1);
+    const type    = req.body?.type ?? 'auto';
     const { runPost } = await import('../../instagram/post.js');
-    const result = await runPost({ account });
+    const result = await runPost({ account, type });
     res.json({ ok: true, ...result });
   } catch (err) {
     logger.error(MODULE, err.message);
