@@ -34,6 +34,11 @@ const GITHUB_REPO   = 'automation-X-note';
 const GITHUB_BRANCH = 'main';
 const REELS_PATH    = 'instagram-reels';
 
+// YouTube assets を共用（Noto Sans JP フォント + BGM）
+const YT_ASSETS_DIR = path.join(__dirname, '../youtube/assets');
+const FONTS_DIR     = path.join(YT_ASSETS_DIR, 'fonts');
+const BGM_DIR       = path.join(YT_ASSETS_DIR, 'bgm');
+
 // ── メイン ──────────────────────────────────────────────────────────
 
 export async function runRender({ account = 1, date } = {}) {
@@ -127,7 +132,7 @@ async function renderWithDID(draft, outDir) {
 
 // ── GitHub へアップロード ─────────────────────────────────────────────
 
-async function uploadToGitHub(videoBuffer, filename) {
+async function uploadToGitHub(videoBuffer, filename, retries = 3) {
   const token = execFileSync('gh', ['auth', 'token'], {
     encoding: 'utf8',
     stdio:    ['pipe', 'pipe', 'pipe'],
@@ -137,32 +142,133 @@ async function uploadToGitHub(videoBuffer, filename) {
   const apiUrl   = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}`;
   const base64   = videoBuffer.toString('base64');
 
-  const body = {
-    message: `chore: add instagram reels ${filename}`,
-    content: base64,
-    branch:  GITHUB_BRANCH,
-  };
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const body = {
+      message: `chore: add instagram reels ${filename}`,
+      content: base64,
+      branch:  GITHUB_BRANCH,
+    };
 
-  const res  = await fetch(apiUrl, {
-    method:  'PUT',
-    headers: {
-      Authorization:          `Bearer ${token}`,
-      'Content-Type':         'application/json',
-      Accept:                 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-    },
-    body: JSON.stringify(body),
-  });
+    const res  = await fetch(apiUrl, {
+      method:  'PUT',
+      headers: {
+        Authorization:          `Bearer ${token}`,
+        'Content-Type':         'application/json',
+        Accept:                 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+      },
+      body: JSON.stringify(body),
+    });
 
-  const data = await res.json();
-  if (res.status !== 201) {
+    if (res.status === 201) {
+      return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
+    }
+
+    // 409 = branch HEAD moved (parallel upload race) — wait and retry
+    if (res.status === 409 && attempt < retries - 1) {
+      const wait = 2000 + attempt * 1000;
+      logger.warn(MODULE, `GitHub upload 409 conflict, retrying in ${wait}ms (attempt ${attempt + 1})`);
+      await new Promise(r => setTimeout(r, wait));
+      continue;
+    }
+
+    const data = await res.json();
     throw new Error(`GitHub upload failed (${res.status}): ${JSON.stringify(data)}`);
   }
-
-  return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
 }
 
 // ── ffmpeg スライドショー（フォールバック） ───────────────────────────
+
+function pickBgm() {
+  if (!fs.existsSync(BGM_DIR)) return null;
+  const files = fs.readdirSync(BGM_DIR).filter(f => /\.(mp3|wav)$/.test(f));
+  if (!files.length) return null;
+  return path.join(BGM_DIR, files[Math.floor(Math.random() * files.length)]);
+}
+
+function parseScriptSegments(reelsScript) {
+  const SKIP = [
+    /^---/,
+    /^\[/,
+    /^#/,
+    /^【/,
+    /^\d+\s*[〜~\-]\s*\d+秒/,
+    /^（\d+[-〜]\d+秒）/,
+    /^ステップ\d/,
+    /^台本[:：]/,
+    /Reels台本/,
+    /^想定ビジュアル/,
+    /^パターン[AB]/,
+    /^CTA/,
+    /^〈/,
+    /^\*\s*〈/,
+  ];
+  return reelsScript
+    .split('\n')
+    .map(l => l
+      .replace(/^#{1,3}\s*/, '')
+      .replace(/\*\*/g, '')
+      .replace(/【.*?】/g, '')
+      .replace(/^\*\s+/, '')
+      .replace(/^「/, '').replace(/」$/, '') // 鍵括弧除去
+      .trim()
+    )
+    .filter(l => l.length > 3 && !SKIP.some(re => re.test(l)));
+}
+
+function toAssTime(secs) {
+  const h  = Math.floor(secs / 3600);
+  const m  = Math.floor((secs % 3600) / 60);
+  const s  = Math.floor(secs % 60);
+  const cs = Math.round((secs % 1) * 100);
+  return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;
+}
+
+function buildAssFile(segments, totalDuration, assPath) {
+  const W        = 1080;
+  const H        = 1920;
+  const fontSize = Math.round(H * 0.028);   // ~54px
+  const marginV  = Math.round(H * 0.15);
+  const marginLR = Math.round(W * 0.05);
+  const boxPad   = Math.round(fontSize * 0.35);
+
+  const header = [
+    '[Script Info]',
+    'ScriptType: v4.00+',
+    `PlayResX: ${W}`,
+    `PlayResY: ${H}`,
+    'ScaledBorderAndShadow: yes',
+    'WrapStyle: 0',
+    '',
+    '[V4+ Styles]',
+    'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
+    `Style: Default,Noto Sans JP,${fontSize},&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
+    '',
+    '[Events]',
+    'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
+  ].join('\n');
+
+  // 最低3秒/セグメント — 多すぎる場合は隣接セグメントをマージ
+  const MIN_SEG_DUR = 3;
+  const maxSegs = Math.max(1, Math.floor(totalDuration / MIN_SEG_DUR));
+  const capped  = segments.slice(0, maxSegs * 2); // 先頭から取りすぎ防止
+  // maxSegs に収まるようにグループ化（余剰行は前のセグメントに結合）
+  const grouped = [];
+  const chunkSize = Math.ceil(capped.length / maxSegs);
+  for (let i = 0; i < capped.length; i += chunkSize) {
+    grouped.push(capped.slice(i, i + chunkSize).join(' '));
+  }
+
+  const segDur = totalDuration / grouped.length;
+  const dialogues = grouped.map((seg, i) => {
+    const start = i * segDur;
+    const end   = Math.min((i + 1) * segDur, totalDuration);
+    const text  = seg.replace(/\{/g, '\\{').replace(/\}/g, '\\}');
+    return `Dialogue: 0,${toAssTime(start)},${toAssTime(end)},Default,,0,0,0,,{\\fad(200,200)}${text}`;
+  });
+
+  fs.writeFileSync(assPath, header + '\n' + dialogues.join('\n') + '\n', 'utf8');
+}
 
 async function downloadImageToFile(url, destPath) {
   const https = await import('https');
@@ -181,36 +287,51 @@ async function downloadImageToFile(url, destPath) {
 async function renderWithFFmpeg(draft, outDir, { account, today }) {
   let imagePath = draft.imagePath;
 
-  // imagePath未設定またはファイルなし → imageUrlからダウンロード
   if (!imagePath || !fs.existsSync(imagePath)) {
     if (!draft.imageUrl) {
       throw new Error('ffmpeg fallback requires draft.imagePath or imageUrl — run instagram:image first');
     }
-    const ext      = path.extname(new URL(draft.imageUrl).pathname) || '.png';
-    const tmpPath  = path.join(outDir, `_dl_image${ext}`);
-    logger.info(MODULE, `imagePath missing, downloading from imageUrl → ${tmpPath}`);
+    const ext     = path.extname(new URL(draft.imageUrl).pathname) || '.png';
+    const tmpPath = path.join(outDir, `_dl_image${ext}`);
+    logger.info(MODULE, `downloading imageUrl → ${tmpPath}`);
     await downloadImageToFile(draft.imageUrl, tmpPath);
     imagePath = tmpPath;
   }
 
+  const duration = 25;
   const filename = `reels_${today}_account${account}_${Date.now()}.mp4`;
   const outPath  = path.join(outDir, filename);
-  const fontSize = 48;
-  const text     = draft.reelsScript.replace(/['"\\:]/g, ' ').slice(0, 200);
-  const duration = 20;
+  const assPath  = path.join(outDir, 'reels.ass');
+  const bgmPath  = pickBgm();
 
-  // 画像 + テキストオーバーレイ → 縦型 9:16 動画
-  const drawtext = `drawtext=text='${text}':fontsize=${fontSize}:fontcolor=white:x=(w-text_w)/2:y=h*0.75:line_spacing=8:box=1:boxcolor=black@0.5:boxborderw=10`;
+  // ASS字幕生成（Noto Sans JP）
+  const segments = parseScriptSegments(draft.reelsScript);
+  if (segments.length > 0) {
+    buildAssFile(segments, duration, assPath);
+    logger.info(MODULE, `ASS subtitles: ${segments.length} segments`);
+  }
 
-  await execFileAsync('ffmpeg', [
+  const hasAss   = fs.existsSync(assPath) && segments.length > 0;
+  const fontsDir = FONTS_DIR.replace(/\\/g, '/').replace(/:/g, '\\:');
+  const assEsc   = assPath.replace(/\\/g, '/').replace(/:/g, '\\:');
+
+  const scaleFilter = 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2';
+  const vf = hasAss
+    ? `${scaleFilter},ass='${assEsc}':fontsdir='${fontsDir}'`
+    : scaleFilter;
+
+  const ffmpegArgs = [
     '-y',
     '-loop', '1', '-i', imagePath,
+    ...(bgmPath ? ['-stream_loop', '-1', '-i', bgmPath] : []),
     '-t', String(duration),
-    '-vf', `scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2,${drawtext}`,
-    '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
-    '-r', '30',
+    '-vf', vf,
+    '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-r', '30',
+    ...(bgmPath ? ['-c:a', 'aac', '-b:a', '128k', '-af', 'volume=0.25', '-shortest'] : []),
     outPath,
-  ]);
+  ];
+
+  await execFileAsync('ffmpeg', ffmpegArgs);
 
   logger.info(MODULE, `uploading reels to GitHub → ${filename}`);
   const videoBuffer   = fs.readFileSync(outPath);
