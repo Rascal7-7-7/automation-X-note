@@ -122,10 +122,33 @@ async function renderWithDID(draft, outDir) {
 
 // ── ffmpeg スライドショー（フォールバック） ───────────────────────────
 
+async function downloadImageToFile(url, destPath) {
+  const https = await import('https');
+  const http  = await import('http');
+  const lib   = url.startsWith('https') ? https : http;
+  return new Promise((resolve, reject) => {
+    lib.get(url, res => {
+      if (res.statusCode !== 200) { reject(new Error(`download failed: ${res.statusCode}`)); return; }
+      const chunks = [];
+      res.on('data', c => chunks.push(c));
+      res.on('end', () => { fs.writeFileSync(destPath, Buffer.concat(chunks)); resolve(destPath); });
+    }).on('error', reject);
+  });
+}
+
 async function renderWithFFmpeg(draft, outDir) {
-  const imagePath = draft.imagePath;
+  let imagePath = draft.imagePath;
+
+  // imagePath未設定またはファイルなし → imageUrlからダウンロード
   if (!imagePath || !fs.existsSync(imagePath)) {
-    throw new Error('ffmpeg fallback requires draft.imagePath — run instagram:image first');
+    if (!draft.imageUrl) {
+      throw new Error('ffmpeg fallback requires draft.imagePath or imageUrl — run instagram:image first');
+    }
+    const ext      = path.extname(new URL(draft.imageUrl).pathname) || '.png';
+    const tmpPath  = path.join(outDir, `_dl_image${ext}`);
+    logger.info(MODULE, `imagePath missing, downloading from imageUrl → ${tmpPath}`);
+    await downloadImageToFile(draft.imageUrl, tmpPath);
+    imagePath = tmpPath;
   }
 
   const outPath  = path.join(outDir, 'reels_slideshow.mp4');

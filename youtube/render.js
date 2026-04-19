@@ -219,9 +219,9 @@ function parseScenes(script, type) {
       } else {
         buffer = buffer ? `${buffer} ${line}` : line;
       }
-      if (scenes.length >= 20) break;
+      if (scenes.length >= 12) break;
     }
-    if (buffer && scenes.length < 20) {
+    if (buffer && scenes.length < 12) {
       scenes.push({ text: buffer.trim().slice(0, 60), duration: 25 });
     }
     return scenes.length > 0 ? scenes : [{ text: 'AI副業ハック', duration: 30 }];
@@ -779,7 +779,7 @@ async function generateKenBurnsClip(imgPath, duration, type, outPath, effectIdx,
 
 // ── SE トラック生成 ──────────────────────────────────────────────────
 
-async function generateSETrack(scenes, seDir, totalDuration, outDir) {
+async function generateSETrack(scenes, seDir, totalDuration, outDir, prefix = '') {
   const whoosh = path.join(seDir, 'whoosh.mp3');
   const impact = path.join(seDir, 'impact.mp3');
   const glitch = path.join(seDir, 'glitch.mp3');
@@ -804,7 +804,7 @@ async function generateSETrack(scenes, seDir, totalDuration, outDir) {
   }
   if (events.length === 0) return null;
 
-  const sePath = path.join(outDir, '_se_track.wav');
+  const sePath = path.join(outDir, `${prefix}_se_track.wav`);
   const inputs = events.flatMap(e => ['-i', e.file]);
   const filterParts = events.map((e, i) => `[${i}:a]adelay=${e.delayMs}|${e.delayMs},volume=0.4[se${i}]`);
   const mixIn = events.map((_, i) => `[se${i}]`).join('');
@@ -849,16 +849,17 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
   // ── SE トラック生成 ────────────────────────────────────────────────
   let seTrackPath = null;
   try {
-    seTrackPath = await generateSETrack(scenes, SE_DIR, totalDuration, outDir);
+    seTrackPath = await generateSETrack(scenes, SE_DIR, totalDuration, outDir, typePrefix);
   } catch (err) {
     logger.warn(MODULE, `SE track generation failed, skipping: ${err.message}`);
   }
   const hasSe = seTrackPath && fs.existsSync(seTrackPath);
 
   // ── Ken Burns クリップ生成 ──────────────────────────────────────────
+  const typePrefix = path.basename(outPath, '.mp4'); // 'short'/'long'/'reddit-short' — 同時実行時の衝突防止
   const clipPaths = [];
   for (let i = 0; i < scenes.length; i++) {
-    const clipPath = path.join(outDir, `kb_clip_${i}.mp4`);
+    const clipPath = path.join(outDir, `${typePrefix}_kb_clip_${i}.mp4`);
     await generateKenBurnsClip(imagePaths[i], scenes[i].duration, type, clipPath, i, i > 0);
     clipPaths.push(clipPath);
     logger.info(MODULE, `Ken Burns clip ${i + 1}/${scenes.length} done`);
