@@ -15,6 +15,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@google/genai": "^1.50.1",
+    "@tryghost/admin-api": "^1.14.7",
     "dotenv": "^16.4.0",
     "express": "^5.2.1",
     "n8n": "^2.16.1",

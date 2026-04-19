@@ -11,6 +11,7 @@ import noteRouter from './routes/note.js';
 import instaRouter from './routes/instagram.js';
 import analyticsRouter from './routes/analytics.js';
 import youtubeRouter from './routes/youtube.js';
+import ghostRouter from './routes/ghost.js';
 
 const app = express();
 const PORT = process.env.BRIDGE_PORT ?? 3001;
@@ -22,6 +23,7 @@ app.use('/api/note',      noteRouter);
 app.use('/api/instagram', instaRouter);
 app.use('/api/analytics', analyticsRouter);
 app.use('/api/youtube',   youtubeRouter);
+app.use('/api/ghost',     ghostRouter);
 
 app.get('/health', (_req, res) =>
   res.json({ ok: true, ts: new Date().toISOString() })

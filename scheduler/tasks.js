@@ -75,4 +75,14 @@ export const TASKS = [
     name: 'youtube:plan',
     cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
   },
+
+  // ── Ghost 英語ブログ（毎週火曜） ─────────────────────────────────
+  {
+    name: 'ghost:generate',
+    cron: '0 9 * * 2',             // 火曜 09:00 — 英語記事生成（note生成の翌日）
+  },
+  {
+    name: 'ghost:post',
+    cron: '0 14 * * 2',            // 火曜 14:00 — Ghost投稿（生成5時間後）
+  },
 ];

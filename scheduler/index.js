@@ -32,6 +32,8 @@ import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
+import { runGenerate as runGhostGenerate }     from '../ghost/generate.js';
+import { runPost     as runGhostPost }         from '../ghost/post.js';
 
 const MODULE = 'scheduler';
 const MODE   = process.env.MODE ?? 'dev';
@@ -69,6 +71,9 @@ const HANDLERS = {
   'youtube:render:long':     (task) => runYtRender({ type: task.type }),
   'youtube:upload:long':              (task) => runYtUpload({ type: task.type }),
   'youtube:plan':                     ()     => runYtPlan(),
+
+  'ghost:generate': () => runGhostGenerate(),
+  'ghost:post':     () => runGhostPost({ mode: MODE }),
 
   // Reddit読み上げ
   'youtube:reddit-fetch':             ()     => runRedditFetch(),
