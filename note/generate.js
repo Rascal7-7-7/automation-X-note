@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
+import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { FileQueue } from '../shared/queue.js';
 import { logger } from '../shared/logger.js';
 import { logNoteDraft } from '../analytics/logger.js';
@@ -152,16 +153,17 @@ ${paidSections.map((s, i) => `${i + 3}. ${s}`).join('\n')}
 
 上記セクションの本文を書いてください。具体的なツール・テンプレート・手順を必ず含めてください。`;
 
-  const [freeBody, paidBodyRaw] = await Promise.all([
-    generate(FREE_ARTICLE_SYSTEM, freePrompt, {
-      model: 'claude-opus-4-7',
-      maxTokens: 2048,
-    }),
+  const [{ content: freeBody, review: freeReview }, paidBodyRaw] = await Promise.all([
+    generateWithReview(
+      (hint) => generate(FREE_ARTICLE_SYSTEM, freePrompt + (hint ? `\n\n改善指示:\n${hint}` : ''), { model: 'claude-opus-4-7', maxTokens: 2048 }),
+      'note', 'note-tech'
+    ),
     generate(PAID_ARTICLE_SYSTEM, paidPrompt, {
       model: 'claude-opus-4-7',
       maxTokens: 3072,
     }),
   ]);
+  logger.info('note:generate', `free section review score: ${freeReview.avgScore}`);
 
   const paidBody = paidBodyRaw + CTA_TEXT;
 

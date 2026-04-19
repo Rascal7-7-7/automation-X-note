@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
+import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { FileQueue } from '../shared/queue.js';
 import { logger } from '../shared/logger.js';
 
@@ -33,6 +34,35 @@ const FEATURE_IMAGES = [
 function getFeatureImage(tags = []) {
   const idx = Math.floor(Math.random() * FEATURE_IMAGES.length);
   return `https://images.unsplash.com/${FEATURE_IMAGES[idx]}?w=1200&q=80&fm=jpg&fit=crop`;
+}
+
+const CAMPAIGNS_PATH = path.join(__dirname, 'asp-campaigns.json');
+function loadActiveCampaigns() {
+  try {
+    const data = JSON.parse(fs.readFileSync(CAMPAIGNS_PATH, 'utf8'));
+    return (data.campaigns ?? []).filter(c => c.active && c.affiliateUrl);
+  } catch { return []; }
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function insertAffiliateLinks(html, campaigns) {
+  if (!campaigns.length) return html;
+  let result = html;
+  for (const campaign of campaigns) {
+    const pattern = campaign.keywords.map(escapeRegex).join('|');
+    if (!new RegExp(pattern, 'i').test(result)) continue;
+    const ctaBlock = `\n<div style="background:#f8f9ff;border:1px solid #e0e4ff;border-left:4px solid #4F46E5;padding:16px 20px;margin:24px 0;border-radius:6px"><p style="margin:0 0 8px;font-weight:bold;font-size:14px">Recommended Tool</p><p style="margin:0 0 12px;font-size:14px;color:#444">${campaign.description}</p><a href="${campaign.affiliateUrl}" style="display:inline-block;background:#4F46E5;color:white;padding:8px 20px;border-radius:4px;font-weight:bold;font-size:14px;text-decoration:none">${campaign.ctaText}</a></div>\n`;
+    const paraMatch = result.match(new RegExp(`(<p[^>]*>[^<]*(?:${pattern})[^<]*<\\/p>)`, 'i'));
+    if (paraMatch) {
+      result = result.replace(paraMatch[0], paraMatch[0] + ctaBlock);
+    } else {
+      result = result.replace(/(<h2[^>]*>[^<]*FAQ)/i, ctaBlock + '$1');
+    }
+  }
+  return result;
 }
 
 const OUTLINE_SYSTEM = `You are an expert SEO content strategist targeting English-speaking audiences interested in AI, automation, and side income.
@@ -143,15 +173,25 @@ export async function runGenerate(opts = {}) {
     '\nWrite the full 2000-2500 word article now.',
   ].filter(Boolean).join('\n');
 
-  const html = await generate(buildBodySystem(!!redditContext), bodyPrompt, {
-    model: 'claude-sonnet-4-6',
-    maxTokens: 4000,
-  });
+  const { content: rawHtml, review: articleReview } = await generateWithReview(
+    (hint) => generate(
+      buildBodySystem(!!redditContext),
+      bodyPrompt + (hint ? `\n\nEditor feedback to address:\n${hint}` : ''),
+      { model: 'claude-sonnet-4-6', maxTokens: 4000 }
+    ),
+    'Ghost', 'ghost'
+  );
+  logger.info(MODULE, `article review score: ${articleReview.avgScore}`);
+
+  const cleanHtml = insertAffiliateLinks(
+    rawHtml.replace(/```html?\n?/g, '').replace(/```/g, '').trim(),
+    loadActiveCampaigns(),
+  );
 
   const draft = {
     title: outline.title,
     summary: outline.summary,
-    html: html.replace(/```html?\n?/g, '').replace(/```/g, '').trim() + `
+    html: cleanHtml + `
 <hr>
 <div style="background:#f0f4ff;border-left:4px solid #6366F1;padding:20px 24px;margin:32px 0;border-radius:4px">
 <p style="margin:0 0 8px;font-weight:bold;font-size:15px">🇯🇵 日本語でも情報発信中</p>

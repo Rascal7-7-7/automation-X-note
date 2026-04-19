@@ -17,6 +17,7 @@ import { execFileSync } from 'child_process';
 import fs from 'fs';
 import { FileQueue, processWithRetry } from '../shared/queue.js';
 import { generate } from '../shared/claude-client.js';
+import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { logger } from '../shared/logger.js';
 import { canPost } from '../shared/daily-limit.js';
 import { logXPost } from '../analytics/logger.js';
@@ -38,7 +39,7 @@ const POSTED_KEEP_DAYS = 30; // 直近30日分を保持
 const BANNED_WORDS = ['詐欺', '絶対儲かる', '100%成功', '必ず稼げる'];
 
 // X の実際の上限は280文字だが、URLや画像などの付加要素を考慮して保守的に設定
-const MAX_TWEET_LENGTH = 140;
+const MAX_TWEET_LENGTH = 280;
 
 export function validateTweet(text) {
   if (!text || text.trim().length === 0) return { ok: false, reason: 'empty' };
@@ -210,9 +211,15 @@ function cleanTweetOutput(raw) {
 }
 
 async function generateTweet(item) {
-  const prompt = `キーワード: ${item.keyword}\n参考ツイート: ${item.text ?? ''}`;
-  const raw = await generate(TWEET_SYSTEM, prompt, { maxTokens: 300 });
-  return cleanTweetOutput(raw);
+  const { content } = await generateWithReview(
+    (hint) => generate(
+      TWEET_SYSTEM,
+      `キーワード: ${item.keyword}\n参考ツイート: ${item.text ?? ''}${hint ? `\n\n改善指示:\n${hint}` : ''}`,
+      { maxTokens: 300 }
+    ).then(cleanTweetOutput),
+    'X', 'x-general'
+  );
+  return content;
 }
 
 // ── リプライ投稿 ─────────────────────────────────────────────────────

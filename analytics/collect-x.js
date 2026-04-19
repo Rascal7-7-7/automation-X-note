@@ -52,6 +52,10 @@ export async function collectXMetrics() {
 
     logger.info(MODULE, `collected metrics for ${response.data?.length ?? 0} tweets`);
   } catch (err) {
+    if (err.code === 401 || err.status === 401) {
+      logger.warn(MODULE, 'X_BEARER_TOKEN invalid or expired — skipping metrics (non-fatal)');
+      return;
+    }
     logger.error(MODULE, 'metrics collection failed', { message: err.message });
     throw err;
   }

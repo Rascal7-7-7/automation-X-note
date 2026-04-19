@@ -115,9 +115,28 @@ export async function getXBrowser(opts = {}) {
 
   const loggedIn = await isLoggedIn(page);
   if (!loggedIn) {
-    await login(page);
-    await context.storageState({ path: SESSION_FILE });
-    logger.info(MODULE, `session saved: ${SESSION_FILE}`);
+    try {
+      await login(page);
+      await context.storageState({ path: SESSION_FILE });
+      logger.info(MODULE, `session saved: ${SESSION_FILE}`);
+    } catch (err) {
+      // セッションが壊れている場合は削除して新規ログイン
+      if (fs.existsSync(SESSION_FILE)) {
+        fs.unlinkSync(SESSION_FILE);
+        logger.warn(MODULE, 'stale session deleted — retrying fresh login');
+        await page.close();
+        const freshContext = await browser.newContext({
+          userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36',
+          locale: 'ja-JP',
+        });
+        const freshPage = await freshContext.newPage();
+        await login(freshPage);
+        await freshContext.storageState({ path: SESSION_FILE });
+        logger.info(MODULE, 'fresh session saved');
+        return { browser, context: freshContext, page: freshPage };
+      }
+      throw err;
+    }
   }
 
   return { browser, context, page };

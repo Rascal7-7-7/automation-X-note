@@ -32,7 +32,7 @@ module.exports = {
       script: 'scheduler/index.js',
       cwd: '/Users/Rascal/work/automation',
       interpreter: 'node',
-      env: { NODE_ENV: 'production' },
+      env: { NODE_ENV: 'production', MODE: 'prod' },
       restart_delay: 3000,
       max_restarts: 10,
     },

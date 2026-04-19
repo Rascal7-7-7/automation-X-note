@@ -16,6 +16,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
+import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { logger } from '../shared/logger.js';
 import { runAffiliateGenerate } from './affiliate.js';
 
@@ -151,14 +152,15 @@ export async function runGenerate({ account = 1, type } = {}) {
 
   const context = `バズる型: ${buzzType.name}（${buzzType.hook}）\nテーマ: ${theme}`;
 
-  const [caption, reelsScript, imagePrompt] = await Promise.all([
-    generate(buildCaptionSystem(account), `${context}\nキャプションを作成してください。`, {
-      model: 'claude-sonnet-4-6',
-      maxTokens: 1024,
-    }),
+  const [{ content: caption, review: captionReview }, reelsScript, imagePrompt] = await Promise.all([
+    generateWithReview(
+      (hint) => generate(buildCaptionSystem(account), `${context}\nキャプションを作成してください。${hint ? `\n\n改善指示:\n${hint}` : ''}`, { model: 'claude-sonnet-4-6', maxTokens: 1024 }),
+      'Instagram', 'instagram-ai'
+    ),
     generate(REELS_SYSTEM, context, { maxTokens: 512 }),
     generate(IMAGE_PROMPT_SYSTEM, context, { maxTokens: 300 }),
   ]);
+  logger.info(MODULE, `caption review score: ${captionReview.avgScore}`);
 
   const draft = {
     account,

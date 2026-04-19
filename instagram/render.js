@@ -17,7 +17,7 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
-import { execFile } from 'child_process';
+import { execFile, execFileSync } from 'child_process';
 import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 import { logger } from '../shared/logger.js';
@@ -28,6 +28,11 @@ const execFileAsync = promisify(execFile);
 const __dirname     = path.dirname(fileURLToPath(import.meta.url));
 const DRAFTS_DIR    = path.join(__dirname, 'drafts');
 const MODULE        = 'instagram:render';
+
+const GITHUB_OWNER  = 'rascal7-7-7';
+const GITHUB_REPO   = 'automation-X-note';
+const GITHUB_BRANCH = 'main';
+const REELS_PATH    = 'instagram-reels';
 
 // ── メイン ──────────────────────────────────────────────────────────
 
@@ -66,7 +71,7 @@ export async function runRender({ account = 1, date } = {}) {
       result = await renderWithDID(draft, outDir);
     } else {
       logger.info(MODULE, 'no avatar API configured — using ffmpeg slideshow fallback');
-      result = await renderWithFFmpeg(draft, outDir);
+      result = await renderWithFFmpeg(draft, outDir, { account, today });
     }
 
     const updated = { ...draft, ...result, reelsRenderedAt: new Date().toISOString() };
@@ -120,6 +125,43 @@ async function renderWithDID(draft, outDir) {
   return { reelsVideoPath: outPath, reelsVideoUrl: videoUrl };
 }
 
+// ── GitHub へアップロード ─────────────────────────────────────────────
+
+async function uploadToGitHub(videoBuffer, filename) {
+  const token = execFileSync('gh', ['auth', 'token'], {
+    encoding: 'utf8',
+    stdio:    ['pipe', 'pipe', 'pipe'],
+  }).trim();
+
+  const filePath = `${REELS_PATH}/${filename}`;
+  const apiUrl   = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}`;
+  const base64   = videoBuffer.toString('base64');
+
+  const body = {
+    message: `chore: add instagram reels ${filename}`,
+    content: base64,
+    branch:  GITHUB_BRANCH,
+  };
+
+  const res  = await fetch(apiUrl, {
+    method:  'PUT',
+    headers: {
+      Authorization:          `Bearer ${token}`,
+      'Content-Type':         'application/json',
+      Accept:                 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    },
+    body: JSON.stringify(body),
+  });
+
+  const data = await res.json();
+  if (res.status !== 201) {
+    throw new Error(`GitHub upload failed (${res.status}): ${JSON.stringify(data)}`);
+  }
+
+  return `https://raw.githubusercontent.com/${GITHUB_OWNER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${filePath}`;
+}
+
 // ── ffmpeg スライドショー（フォールバック） ───────────────────────────
 
 async function downloadImageToFile(url, destPath) {
@@ -136,7 +178,7 @@ async function downloadImageToFile(url, destPath) {
   });
 }
 
-async function renderWithFFmpeg(draft, outDir) {
+async function renderWithFFmpeg(draft, outDir, { account, today }) {
   let imagePath = draft.imagePath;
 
   // imagePath未設定またはファイルなし → imageUrlからダウンロード
@@ -151,7 +193,8 @@ async function renderWithFFmpeg(draft, outDir) {
     imagePath = tmpPath;
   }
 
-  const outPath  = path.join(outDir, 'reels_slideshow.mp4');
+  const filename = `reels_${today}_account${account}_${Date.now()}.mp4`;
+  const outPath  = path.join(outDir, filename);
   const fontSize = 48;
   const text     = draft.reelsScript.replace(/['"\\:]/g, ' ').slice(0, 200);
   const duration = 20;
@@ -169,7 +212,12 @@ async function renderWithFFmpeg(draft, outDir) {
     outPath,
   ]);
 
-  return { reelsVideoPath: outPath, reelsVideoUrl: null };
+  logger.info(MODULE, `uploading reels to GitHub → ${filename}`);
+  const videoBuffer   = fs.readFileSync(outPath);
+  const reelsVideoUrl = await uploadToGitHub(videoBuffer, filename);
+  logger.info(MODULE, `reels video public URL: ${reelsVideoUrl}`);
+
+  return { reelsVideoPath: outPath, reelsVideoUrl };
 }
 
 // ── CLI ──────────────────────────────────────────────────────────────

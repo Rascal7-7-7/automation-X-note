@@ -48,4 +48,20 @@ router.post('/post', async (req, res) => {
   }
 });
 
+router.post('/sync-affiliates', async (_req, res) => {
+  try {
+    const { syncA8Affiliates } = await import('../../shared/sync-a8-affiliates.js');
+    const { triggerAffiliateContent } = await import('../../shared/affiliate-content-trigger.js');
+    const syncResult = await syncA8Affiliates({ headless: true });
+    let contentResult = { note: 0, instagram: 0 };
+    if (syncResult.newCampaigns?.length) {
+      contentResult = await triggerAffiliateContent(syncResult.newCampaigns);
+    }
+    res.json({ ok: true, ...syncResult, content: contentResult });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

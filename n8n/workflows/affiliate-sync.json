@@ -1,0 +1,84 @@
+{
+  "name": "アフィリエイト同期（6時間毎）",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 0,6,12,18 * * *" }]
+        }
+      },
+      "id": "affiliate-sync-trigger",
+      "name": "6時間毎",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:3001/api/ghost/sync-affiliates",
+        "responseFormat": "json",
+        "options": {
+          "timeout": 60000,
+          "continueOnFail": true
+        }
+      },
+      "id": "affiliate-sync-request",
+      "name": "アフィリエイト同期API実行",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $node[\"アフィリエイト同期API実行\"].json.note }}",
+              "value2": 0,
+              "operation": ">"
+            },
+            {
+              "value1": "={{ $node[\"アフィリエイト同期API実行\"].json.instagram }}",
+              "value2": 0,
+              "operation": ">"
+            }
+          ],
+          "combinator": "or"
+        }
+      },
+      "id": "affiliate-sync-if",
+      "name": "コンテンツあるか確認",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1.1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  title: `アフィリエイト同期完了`,\n  text: `note: ${ $node[\"アフィリエイト同期API実行\"].json.note || 0 }件、Instagram: ${ $node[\"アフィリエイト同期API実行\"].json.instagram || 0 }件`\n};"
+      },
+      "id": "affiliate-sync-log",
+      "name": "ログ出力",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 1,
+      "position": [880, 300]
+    }
+  ],
+  "connections": {
+    "6時間毎": {
+      "main": [[{ "node": "アフィリエイト同期API実行", "type": "main", "index": 0 }]]
+    },
+    "アフィリエイト同期API実行": {
+      "main": [[{ "node": "コンテンツあるか確認", "type": "main", "index": 0 }]]
+    },
+    "コンテンツあるか確認": {
+      "main": [
+        [{ "node": "ログ出力", "type": "main", "index": 0 }],
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": { "executionOrder": "v1" },
+  "versionId": "1"
+}

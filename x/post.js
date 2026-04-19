@@ -10,6 +10,7 @@ import { TwitterApi } from 'twitter-api-v2';
 import OpenAI from 'openai';
 import https from 'https';
 import { generate } from '../shared/claude-client.js';
+import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { FileQueue } from '../shared/queue.js';
 import { logger } from '../shared/logger.js';
 import { appendFileSync } from 'fs';
@@ -159,12 +160,12 @@ AIツールを使っていますが、それは絶対に明かしません。
 const ideaQueue = new FileQueue(path.join(__dirname, 'queue/ideas.jsonl'));
 const postedLog = path.join(__dirname, 'queue/posted.jsonl');
 
-async function generateTweet(idea) {
+async function generateTweet(idea, hint = '') {
   const prompt = `以下のトレンド情報をもとに、副業・節約・時短に関心のある会社員向けのツイートを1件作成してください。
 AIツールの名前は出さず、「自分が実践して成果が出た方法」として書いてください。
 末尾にnote記事への誘導CTAを必ず入れてください。
 キーワード: ${idea.keyword}
-参考ツイート: ${idea.text ?? ''}`;
+参考ツイート: ${idea.text ?? ''}${hint ? `\n\n改善指示:\n${hint}` : ''}`;
   return generate(SYSTEM_PROMPT, prompt, { maxTokens: 300 });
 }
 
@@ -196,8 +197,10 @@ export async function runPost() {
   }
 
   try {
-    const tweetText = await generateTweet(idea);
-    logger.info(MODULE, 'generated tweet', { text: tweetText });
+    const { content: tweetText, review } = await generateWithReview(
+      (hint) => generateTweet(idea, hint), 'X', 'x-general'
+    );
+    logger.info(MODULE, 'generated tweet', { text: tweetText, score: review.avgScore });
 
     // 画像添付（X_IMAGE_ENABLED=true のときのみ。失敗してもテキスト投稿を継続）
     let imageBuffer = null;

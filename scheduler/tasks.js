@@ -9,11 +9,23 @@ export const TASKS = [
     cron: '0 7 * * 2,4',           // 火・木 07:00 — スレッド記事投稿
   },
 
-  // ── Instagram トークン期限監視（Routineなし・毎日朝） ────────────
+  // ── Instagram トークン期限監視（毎日朝） ──────────────────────────
   {
     name: 'instagram:check-expiry',
     cron: '0 9 * * *',             // 毎日 09:00 — トークン残日数チェック
   },
+
+  // ── Instagram account1 パイプライン（火・木・土 19時台） ──────────
+  { name: 'instagram:generate:1', account: 1, cron: '0 19 * * 2,4,6' },   // 19:00 生成
+  { name: 'instagram:image:1',    account: 1, cron: '10 19 * * 2,4,6' },  // 19:10 画像生成
+  { name: 'instagram:render:1',   account: 1, cron: '25 19 * * 2,4,6' },  // 19:25 Reels生成
+  { name: 'instagram:post:1',     account: 1, cron: '45 19 * * 2,4,6' },  // 19:45 投稿
+
+  // ── Instagram account2 パイプライン（火・木・土 20時台） ──────────
+  { name: 'instagram:generate:2', account: 2, cron: '0 20 * * 2,4,6' },   // 20:00 生成
+  { name: 'instagram:image:2',    account: 2, cron: '10 20 * * 2,4,6' },  // 20:10 画像生成
+  { name: 'instagram:render:2',   account: 2, cron: '25 20 * * 2,4,6' },  // 20:25 Reels生成
+  { name: 'instagram:post:2',     account: 2, cron: '45 20 * * 2,4,6' },  // 20:45 投稿
 
   // ── YouTube Reddit読み上げ（毎日） ───────────────────────────────────
   {
@@ -88,5 +100,9 @@ export const TASKS = [
   {
     name: 'ghost:post',
     cron: '0 13 * * *',            // 毎日 13:00 — Ghost公開
+  },
+  {
+    name: 'research:ai-tools',
+    cron: '0 6,18 * * *',          // 毎日 06:00・18:00 — 新MCP/Claude機能リサーチ（X は2日に1回）
   },
 ];

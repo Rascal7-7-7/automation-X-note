@@ -30,6 +30,7 @@ import { runPlan    as runYtPlan }             from '../youtube/plan.js';
 import { runFetch   as runRedditFetch }        from '../youtube/reddit-fetch.js';
 import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.js';
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
+import { runAIToolsResearch } from '../shared/ai-tools-researcher.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
 import { runResearch as runGhostResearch }     from '../ghost/research.js';
@@ -82,6 +83,7 @@ const HANDLERS = {
   'youtube:reddit-generate':          (task) => runRedditGenerate({ type: task.type }),
   'youtube:render:reddit-short':      (task) => runYtRender({ type: task.type }),
   'youtube:upload:reddit-short':      (task) => runYtUpload({ type: task.type }),
+  'research:ai-tools':               ()     => runAIToolsResearch(),
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────

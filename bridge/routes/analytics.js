@@ -26,4 +26,15 @@ router.post('/buzz', async (_req, res) => {
   }
 });
 
+router.post('/ai-tools', async (_req, res) => {
+  try {
+    const { runAIToolsResearch } = await import('../../shared/ai-tools-researcher.js');
+    const result = await runAIToolsResearch();
+    res.json({ ok: true, filename: result.filename });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;
