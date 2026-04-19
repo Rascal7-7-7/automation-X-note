@@ -4,6 +4,17 @@ import { logger } from '../../shared/logger.js';
 const router = Router();
 const MODULE = 'bridge:ghost';
 
+router.post('/research', async (_req, res) => {
+  try {
+    const { runResearch } = await import('../../ghost/research.js');
+    const posts = await runResearch();
+    res.json({ ok: true, count: posts.length });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 router.post('/generate', async (_req, res) => {
   try {
     const { runGenerate } = await import('../../ghost/generate.js');

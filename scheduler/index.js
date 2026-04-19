@@ -32,6 +32,7 @@ import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
+import { runResearch as runGhostResearch }     from '../ghost/research.js';
 import { runGenerate as runGhostGenerate }     from '../ghost/generate.js';
 import { runPost     as runGhostPost }         from '../ghost/post.js';
 
@@ -72,6 +73,7 @@ const HANDLERS = {
   'youtube:upload:long':              (task) => runYtUpload({ type: task.type }),
   'youtube:plan':                     ()     => runYtPlan(),
 
+  'ghost:research': () => runGhostResearch(),
   'ghost:generate': () => runGhostGenerate(),
   'ghost:post':     () => runGhostPost({ mode: MODE }),
 

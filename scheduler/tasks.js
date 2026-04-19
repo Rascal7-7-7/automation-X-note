@@ -78,8 +78,12 @@ export const TASKS = [
 
   // ── Ghost 英語ブログ（毎週火曜） ─────────────────────────────────
   {
+    name: 'ghost:research',
+    cron: '0 7 * * 2',             // 火曜 07:00 — Reddit/HNトレンド取得
+  },
+  {
     name: 'ghost:generate',
-    cron: '0 9 * * 2',             // 火曜 09:00 — 英語記事生成（note生成の翌日）
+    cron: '0 9 * * 2',             // 火曜 09:00 — 英語記事生成（research後）
   },
   {
     name: 'ghost:post',
