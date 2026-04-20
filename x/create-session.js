@@ -1,62 +1,81 @@
 /**
- * X セッション手動作成スクリプト
+ * X セッション作成 — CDP 接続方式
+ *
+ * launchPersistentContext は --use-mock-keychain を注入するため Brave/Chrome がクラッシュする。
+ * connectOverCDP はフラグを注入しないため Keychain にアクセスでき、既存ログインをそのまま利用できる。
  *
  * 使い方:
- *   node x/create-session.js
- *
- * ブラウザが開くので手動でログインしてください。
- * ログイン完了を確認後 Enter を押すとセッションが保存されます。
- * 保存後は x:like / x:reply が自動でセッションを再利用します（〜数ヶ月有効）。
+ *   node x/create-session.js            # Brave（デフォルト）
+ *   BROWSER=chrome node x/create-session.js
  */
 import 'dotenv/config';
 import { chromium } from 'playwright';
+import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createInterface } from 'readline';
 
-const __dirname    = path.dirname(fileURLToPath(import.meta.url));
+const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const SESSION_FILE = path.join(__dirname, '../.x-session.json');
+const CDP_URL      = 'http://localhost:9222';
 
-// システムのChromeを使用（ボット検知回避）
-const CHROME_PATH = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const BROWSERS = {
+  brave:  '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  chrome: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+};
+const BROWSER_PATH = BROWSERS[process.env.BROWSER ?? 'brave'] ?? BROWSERS.brave;
 
-const browser = await chromium.launch({
-  headless: false,
-  executablePath: CHROME_PATH,
-  args: [
-    '--start-maximized',
-    '--disable-blink-features=AutomationControlled',  // navigator.webdriver を隠す
-    '--disable-infobars',
-    '--no-sandbox',
-  ],
-});
-const context = await browser.newContext({
-  viewport: null,
-  locale: 'ja-JP',
-});
-const page = await context.newPage();
+const rl  = createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => new Promise(resolve => rl.question(q, resolve));
 
-// Playwright が埋め込む自動化フラグを完全に除去
-await page.addInitScript(() => {
-  Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-  delete navigator.__proto__.webdriver;
-});
+async function isCdpReady() {
+  try { return (await fetch(`${CDP_URL}/json/version`)).ok; } catch { return false; }
+}
 
-await page.goto('https://x.com/i/flow/login', { waitUntil: 'domcontentloaded' });
+// ── CDP が既に利用可能か確認 ───────────────────────────────────────
+let ready = await isCdpReady();
 
-console.log('');
-console.log('========================================');
-console.log('  ブラウザで X にログインしてください');
-console.log('  ログイン完了後、ここで Enter を押してください');
-console.log('========================================');
-console.log('');
+if (!ready) {
+  console.log('');
+  console.log('Brave/Chrome をデバッグポート付きで起動します。');
+  console.log('既にブラウザが起動中の場合は Cmd+Q で終了してください。');
+  await ask('終了後 Enter を押してください: ');
 
-const rl = createInterface({ input: process.stdin, output: process.stdout });
-await new Promise(resolve => rl.question('Enter を押してセッションを保存: ', resolve));
+  console.log('\n起動中...');
+  spawn(BROWSER_PATH, ['--remote-debugging-port=9222'], {
+    detached: true, stdio: 'ignore',
+  }).unref();
+
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    if (await isCdpReady()) { ready = true; break; }
+  }
+
+  if (!ready) {
+    console.error('✗ ブラウザ起動タイムアウト');
+    process.exit(1);
+  }
+}
+
+// ── CDP 接続 ────────────────────────────────────────────────────────
+console.log('\n✓ ブラウザに接続中...');
+const browser = await chromium.connectOverCDP(CDP_URL);
+
+const context = browser.contexts()[0] ?? await browser.newContext();
+const page    = context.pages()[0]    ?? await context.newPage();
+
+await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+const url       = page.url();
+const loggedIn  = !url.includes('/login') && !url.includes('/i/flow');
+console.log(loggedIn
+  ? '✓ X にログイン済みを確認'
+  : '⚠ ログインページです。手動でログインしてください。');
+
+await ask('\nEnter を押してセッションを保存: ');
 rl.close();
 
 await context.storageState({ path: SESSION_FILE });
-console.log(`✓ セッション保存完了: ${SESSION_FILE}`);
-console.log('  次回から x:like / x:reply が自動でこのセッションを使用します');
+console.log(`\n✓ セッション保存完了: ${SESSION_FILE}`);
 
 await browser.close();
