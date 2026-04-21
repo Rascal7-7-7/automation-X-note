@@ -12,7 +12,9 @@ import { runLike }                     from '../x/like.js';
 import { runReply }                    from '../x/reply.js';
 import { runQuoteRT }                  from '../x/quote-rt.js';
 import { runNotePromo }                from '../x/note-promo.js';
+import { runRepromo }                  from '../x/note-repromo.js';
 import { runArticle }                  from '../x/article.js';
+import { runXArticle }                 from '../x/x-articles.js';
 import { runResearch as runNoteResearch } from '../note/research.js';
 import { runGenerate }                 from '../note/generate.js';
 import { runImage as runNoteImage }    from '../note/image.js';
@@ -47,11 +49,13 @@ const HANDLERS = {
   'x:reply':        (task) => runReply(task?.keywords ?? ['AI活用', 'Claude Code']),
   'x:quote-rt':     (task) => runQuoteRT(task?.keywords ?? ['AI活用', 'Claude Code']),
   'x:note-promo':   ()     => runNotePromo({ mode: MODE }),
+  'note:repromo':   ()     => runRepromo({ mode: MODE }),
   'x:article':      ()     => runArticle(),
-  'note:research':  ()     => runNoteResearch(),
-  'note:generate':  ()     => runGenerate(),
-  'note:image':     ()     => runNoteImage(),
-  'note:post':      ()     => runNotePost(),
+  'x:x-article':   ()     => runXArticle(),
+  'note:research':  (task) => runNoteResearch(task.account ?? 1),
+  'note:generate':  (task) => runGenerate(undefined, task.account ?? 1),
+  'note:image':     (task) => runNoteImage(task.account ?? 1),
+  'note:post':      (task) => runNotePost(task.account ?? 1),
   'x:collect':               ()     => collectXMetrics(),
   'analytics:buzz':          ()     => runBuzzAnalysis(),
   'instagram:generate:1':    (task) => runInstaGenerate({ account: task.account }),

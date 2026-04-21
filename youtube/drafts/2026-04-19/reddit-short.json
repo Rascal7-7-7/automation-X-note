@@ -1,0 +1,43 @@
+{
+  "theme": "海外Reddit r/artificial: Gemini caught a $280M crypto exploit bef",
+  "type": "reddit-short",
+  "script": "GeminiがKelpDAOの2億8千万ドル被害を予言\nしかもニュース公開前に…\nユーザーがAAVEの不審な急落を調査中\nAIが突然「緊急訂正」モードに切り替わった\n「Geminiを使ってる時点で問題だ」辛口反応\n「テレグラムの通信にアクセスできるの？」\n「速報を信じる人間側が幻覚を見ている」\n「表示される思考過程は実際のものではない」\n「ハック自体は本当に起きたとネットで確認済み」\n結局AIの予言は事実だったが誰も信じなかった\nあなたならAIの警告を信じますか？\n幻覚か予言か、その境界線は曖昧だ",
+  "sceneCount": 12,
+  "titles": [
+    "Geminiが$280M暗号資産ハッキングを予知？海外で話題沸騰",
+    "AI界隈で衝撃「GeminiがNews前に重大情報を検知」真実は",
+    "Reddit民が激論「Geminiが未来情報をキャッチした理由」の真実",
+    "海外では話題沸騰「AIが報道より先に情報掴んだ」衝撃事例",
+    "Geminiの真実暴露「都合よく訂正する理由」AI専門家が解説"
+  ],
+  "description": "海外Redditのr/artificialで話題になった、AIの興味深い事例をご紹介します。ユーザーがGeminiを使って暗号資産の急落を分析していたところ、AIが$280Mの大型エクスプロイトを検出し「緊急修正」モードで警告。ところがニュースがまだ報道されていないため、AIが自らそれを幻覚だと判定して撤回してしまったという出来事です。その後、実際にそのエクスプロイトがニュースで報道されたことで、AIが「時間差で真実を掴んでいた」可能性が浮上。コメント欄では、AIが学習データから微かなシグナルを拾っているのか、それとも本当に幻覚なのか、AIの判断プロセスの謎について白熱した議論が展開されています。\n\n元投稿: https://www.reddit.com/r/artificial/\n\n#Reddit #海外の反応 #AI #Shorts\n\n元投稿: https://www.reddit.com/r/artificial/comments/1spckbj/gemini_caught_a_280m_crypto_exploit_before_it_hit/",
+  "tags": [
+    "Reddit",
+    "海外の反応",
+    "AI",
+    "artificial",
+    "Shorts",
+    "ChatGPT",
+    "生成AI"
+  ],
+  "thumbnail": null,
+  "thumbnailPath": null,
+  "thumbnailUrl": null,
+  "redditSource": {
+    "id": "1spckbj",
+    "subreddit": "artificial",
+    "title": "Gemini caught a $280M crypto exploit before it hit the news, then retracted it as a hallucination because I couldn't verify it - because the news hadn't dropped yet",
+    "score": 208,
+    "numComments": 43,
+    "url": "https://www.reddit.com/r/artificial/comments/1spckbj/gemini_caught_a_280m_crypto_exploit_before_it_hit/",
+    "imageUrl": "https://external-preview.redd.it/3zLZPAqpuh3kPgTUMeK-vgJ6skSQCNWqIm0HbDxDO-M.png?auto=webp&s=b89a64e050ba0c3b5fd195ef0a9ef1297cb72251"
+  },
+  "date": "2026-04-19",
+  "status": "rendered",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-19/reddit-short.mp4",
+  "videoId": null,
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-19/reddit-short_captions.srt",
+  "crossPublished": false,
+  "createdAt": "2026-04-19T18:00:07.021Z",
+  "renderedAt": "2026-04-19T19:01:11.756Z"
+}

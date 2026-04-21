@@ -1,0 +1,15 @@
+name: sns-automation
+version: 1.0.0
+description: SNS副業自動化基盤 — X/Instagram/note/YouTube の完全自動化
+
+dependencies:
+  apm:
+    # トークン削減（リサーチフェーズ専用）
+    - JuliusBrussee/caveman#84cc3c14fa1e10182adaced856e003406ccd250d
+
+# 以下は .claude/skills/ にローカル管理済み（apm管理外）
+# - nano-banana-pro
+# - nodejs-backend-patterns
+# - nodejs-best-practices
+# - nodejs-express-server
+# - playwright-best-practices

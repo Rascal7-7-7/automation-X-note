@@ -1,0 +1,43 @@
+{
+  "theme": "海外Reddit r/ChatGPT: GPT image 2 is insane",
+  "type": "reddit-short",
+  "script": "GPT画像生成が本物と区別不能\nこれ、全部AIが作った画像です\n教室の写真かと思ったら違った\n黒板の数式まで数学的に正確\n「全部AIだと気づかなかった」最多票\n「テキスト描写がとにかく上手い」\n「旧モデルはもう引退させてくれ」\n「数式の答えまで合ってるのが怖い」\n「10年後どうなってるか想像できない」\n本物と偽物の境界が消えつつある\nあなたはAI画像を見分けられますか？\nもう人間の目では無理かもしれない",
+  "sceneCount": 12,
+  "titles": [
+    "GPT-4o画像生成が衝撃「教室写真全てAI」海外で話題沸騰",
+    "海外の反応「数式まで完璧」GPT-4o画像2の能力に驚愕",
+    "AI界隈で話題「本物と区別不可」GPT最新画像生成の真実",
+    "Reddit民が衝撃「講義スライドまで正確」AI画像化が現実化",
+    "海外では既に話題「全てAIとは気づかず」GPT-4oの凄さ"
+  ],
+  "description": "海外Redditのr/ChatGPTで話題沸騰中！GPT-4の画像生成機能「GPT Image 2」の精度がとんでもないレベルに達しているという投稿が1000超のスコアを獲得しました。\n\n驚くべきことに、ユーザーたちが指摘しているのは、生成された画像がまるで本物の教室風景かと思えるほどのリアリティ。さらに衝撃的なのは、画像内の数学の講義スライドが完全に正確だということです。幾何級数（1/3 - 1/9 + 1/27... = 1/4）の解答まで正確に表示されており、AIが単なる見た目だけでなく、実際の学習コンテンツとしても機能していることが明らかに。テキスト認識精度の向上も顕著で、多くのユーザーが「これは狂っている」とコメント。\n\n前世代モデルからの急速な進化に、AIの可能性と課題について議論が白熱しています。\n\n#Reddit #海外の反応 #AI #Shorts\n\n元投稿: https://www.reddit.com/r/ChatGPT/comments/1so7ncd/gpt_image_2_is_insane/\n\n元投稿: https://www.reddit.com/r/ChatGPT/comments/1so8mjg/gpt_image_2_is_insane/",
+  "tags": [
+    "Reddit",
+    "海外の反応",
+    "AI",
+    "ChatGPT",
+    "Shorts",
+    "ChatGPT",
+    "生成AI"
+  ],
+  "thumbnail": null,
+  "thumbnailPath": null,
+  "thumbnailUrl": "https://preview.redd.it/b9gurt7aesvg1.png?width=140&amp;height=83&amp;auto=webp&amp;s=9b3176d451c86d28327cb0c70e34ce2a51d9f4fc",
+  "redditSource": {
+    "id": "1so8mjg",
+    "subreddit": "ChatGPT",
+    "title": "GPT image 2 is insane",
+    "score": 1153,
+    "numComments": 188,
+    "url": "https://www.reddit.com/r/ChatGPT/comments/1so8mjg/gpt_image_2_is_insane/",
+    "imageUrl": "https://i.redd.it/b9gurt7aesvg1.png"
+  },
+  "date": "2026-04-18",
+  "status": "rendered",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short.mp4",
+  "videoId": null,
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short_captions.srt",
+  "crossPublished": false,
+  "createdAt": "2026-04-18T18:00:05.974Z",
+  "renderedAt": "2026-04-18T19:00:19.353Z"
+}

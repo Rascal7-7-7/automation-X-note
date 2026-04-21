@@ -59,7 +59,17 @@ if (!ready) {
 
 // ── CDP 接続 ────────────────────────────────────────────────────────
 console.log('\n✓ ブラウザに接続中...');
-const browser = await chromium.connectOverCDP(CDP_URL);
+let browser;
+for (let attempt = 1; attempt <= 3; attempt++) {
+  try {
+    browser = await chromium.connectOverCDP(CDP_URL, { timeout: 60000 });
+    break;
+  } catch (e) {
+    if (attempt === 3) throw e;
+    console.log(`  接続リトライ ${attempt}/3... Brave の起動を待ってください`);
+    await new Promise(r => setTimeout(r, 3000));
+  }
+}
 
 const context = browser.contexts()[0] ?? await browser.newContext();
 const page    = context.pages()[0]    ?? await context.newPage();

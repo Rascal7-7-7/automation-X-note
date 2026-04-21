@@ -9,6 +9,12 @@ export const TASKS = [
     cron: '0 7 * * 2,4',           // 火・木 07:00 — スレッド記事投稿
   },
 
+  // ── X Articles 長文記事（月・金 週2回） ─────────────────────────
+  {
+    name: 'x:x-article',
+    cron: '0 9 * * 1,5',           // 月・金 09:00 — 画像+note CTA付き長文記事
+  },
+
   // ── Instagram トークン期限監視（毎日朝） ──────────────────────────
   {
     name: 'instagram:check-expiry',
@@ -89,6 +95,25 @@ export const TASKS = [
     name: 'youtube:plan',
     cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
   },
+
+  // ── note account1: AI副業・自動化（毎日 = 7本/週） ─────────────
+  { name: 'note:research', account: 1, cron: '30 5 * * 1,4' },     // 月・木 05:30 — リサーチ（週2回でキュー補充）
+  { name: 'note:generate', account: 1, cron: '0 6 * * *' },        // 毎日 06:00 — 生成
+  { name: 'note:post',     account: 1, cron: '0 7 * * *' },        // 毎日 07:00 — 投稿（朝ピーク）
+
+  // ── note account2: 投資・FX・株（月水金日 = 4本/週） ───────────
+  { name: 'note:research', account: 2, cron: '30 5 * * 1,3' },     // 月・水 05:30 — リサーチ
+  { name: 'note:generate', account: 2, cron: '0 9 * * 1,3,5,0' },  // 月水金日 09:00 — 生成
+  { name: 'note:post',     account: 2, cron: '0 18 * * 1,3,5,0' }, // 月水金日 18:00 — 投稿（夕方ピーク）
+
+  // ── note account3: A8.netアフィリエイト（火木土 = 3本/週） ──────
+  { name: 'note:research', account: 3, cron: '30 5 * * 0,2' },     // 日・火 05:30 — リサーチ
+  { name: 'note:generate', account: 3, cron: '0 10 * * 2,4,6' },   // 火木土 10:00 — 生成
+  { name: 'note:post',     account: 3, cron: '0 19 * * 2,4,6' },   // 火木土 19:00 — 投稿（夕方ピーク）
+
+  // 合計: 7+4+3 = 14本/週 ≈ 2本/日
+  // ── note X再告知（7日・30日後 角度変えて再プロモ） ──────────────
+  { name: 'note:repromo', cron: '0 20 * * 3' },                    // 水 20:00 — 7日/30日経過記事を再告知
 
   // ── Ghost 英語ブログ（毎日） ──────────────────────────────────────
   {

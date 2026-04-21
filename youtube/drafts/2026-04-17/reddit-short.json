@@ -1,0 +1,45 @@
+{
+  "theme": "海外Reddit r/LocalLLaMA: Qwen3.6-35B-A3B released!",
+  "type": "reddit-short",
+  "script": "Qwen3.6-35B-A3Bが登場\nこれがどれほど凄いのか？\n35Bパラメータで3Bだけ起動\n10倍サイズのモデルと互角\n「ローカルLLMの最高の数ヶ月だ」\n27Bを超えるコーディング性能\n「122Bも出してGoogleに圧力を」\n「ブログの最後まで読んだ？続きがある」\nClaude Sonnet 4に匹敵する視覚性能\nオープンソースでApache 2.0ライセンス\nあなたはもう試しましたか？\n次のリリースにも要注目です",
+  "sceneCount": 12,
+  "titles": [
+    "海外の反応「Qwen3.6-35B」オープンソース化に衝撃！性能が話題沸騰",
+    "Reddit民が興奮「35Bモデルが10倍のAIを圧倒」開発者必見の新展開",
+    "AI界隈で話題「Qwen3.6」マルチモーダル性能がClaude超え確定",
+    "衝撃の高性能化「活性3Bパラメータで大型AI並み」Qwen新モデル解禁",
+    "海外では既に話題「オープンソースAI戦争」新型Qwenが次々リリース予告"
+  ],
+  "description": "海外Redditの「r/LocalLLaMA」で話題沸騰！Alibaba傘下のAlibaba CloudがQwen3.6-35B-A3Bをオープンソース化しました。🚀スパースMoEモデルで総パラメータ35B、アクティブパラメータ3Bながら、10倍サイズのモデル並みのエージェンティックコーディング性能を発揮。マルチモーダル認識と推論能力も強力で、思考モード・非思考モードの両対応。Apache 2.0ライセンスで誰でも自由に利用可能。ローカルLLM界隈では「ここ数ヶ月で最高のニュース」と興奮が止まりません。HuggingFaceで今すぐ試せます！\n\n#Reddit #海外の反応 #AI #Shorts\n\n元投稿：https://www.reddit.com/r/LocalLLaMA/\n\n元投稿: https://www.reddit.com/r/LocalLLaMA/comments/1sn3izh/qwen3635ba3b_released/\n\n---\n\n🔔 チャンネル登録はこちら → https://www.youtube.com/@nucho0202\n🐦 X(Twitter): https://x.com/Rascal_AI_Dev\n📷 Instagram: https://www.instagram.com/ai_side_hack_/",
+  "tags": [
+    "Reddit",
+    "海外の反応",
+    "AI",
+    "LocalLLaMA",
+    "Shorts",
+    "ChatGPT",
+    "生成AI"
+  ],
+  "thumbnail": null,
+  "thumbnailPath": null,
+  "thumbnailUrl": "https://preview.redd.it/g6edjlxt0kvg1.jpeg?width=140&amp;height=75&amp;auto=webp&amp;s=c8530dddc0072fb82a2c7260624ea19aaa6ecc04",
+  "redditSource": {
+    "id": "1sn3izh",
+    "subreddit": "LocalLLaMA",
+    "title": "Qwen3.6-35B-A3B released!",
+    "score": 1998,
+    "numComments": 633,
+    "url": "https://www.reddit.com/r/LocalLLaMA/comments/1sn3izh/qwen3635ba3b_released/",
+    "imageUrl": "https://i.redd.it/g6edjlxt0kvg1.jpeg"
+  },
+  "date": "2026-04-17",
+  "status": "uploaded",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.mp4",
+  "videoId": "3h61ATNzH_c",
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_captions.srt",
+  "crossPublished": false,
+  "createdAt": "2026-04-17T10:22:22.832Z",
+  "renderedAt": "2026-04-17T10:24:33.727Z",
+  "url": "https://www.youtube.com/watch?v=3h61ATNzH_c",
+  "uploadedAt": "2026-04-17T11:00:03.981Z"
+}

@@ -4,22 +4,25 @@ import { logger } from '../../shared/logger.js';
 const router = Router();
 const MODULE = 'bridge:note';
 
-router.post('/research', async (_req, res) => {
+router.post('/research', async (req, res) => {
   try {
+    const accountId = Number(req.body?.accountId ?? 1);
     const { runResearch } = await import('../../note/research.js');
-    await runResearch();
-    res.json({ ok: true });
+    await runResearch(accountId);
+    res.json({ ok: true, accountId });
   } catch (err) {
     logger.error(MODULE, err.message);
     res.status(500).json({ ok: false, error: err.message });
   }
 });
 
-router.post('/generate', async (_req, res) => {
+router.post('/generate', async (req, res) => {
   try {
+    const accountId = Number(req.body?.accountId ?? 1);
+    const theme = req.body?.theme ?? undefined;
     const { runGenerate } = await import('../../note/generate.js');
-    await runGenerate();
-    res.json({ ok: true });
+    await runGenerate(theme, accountId);
+    res.json({ ok: true, accountId });
   } catch (err) {
     logger.error(MODULE, err.message);
     res.status(500).json({ ok: false, error: err.message });

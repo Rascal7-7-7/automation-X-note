@@ -1,0 +1,9 @@
+lockfile_version: '1'
+generated_at: '2026-04-18T15:02:52.047327+00:00'
+apm_version: 0.8.11
+dependencies:
+- repo_url: JuliusBrussee/caveman
+  host: github.com
+  resolved_commit: 84cc3c14fa1e10182adaced856e003406ccd250d
+  package_type: hook_package
+  content_hash: sha256:799e4e5b5e6b95c79f908b3b5d1bed5799df43e839d0927c7f36cd77ee88a520

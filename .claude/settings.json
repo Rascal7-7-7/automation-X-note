@@ -1,0 +1,10 @@
+{
+  "hooks": {},
+  "permissions": {
+    "allow": [
+      "Bash(node *)",
+      "Bash(cat *)",
+      "Bash(ls *)"
+    ]
+  }
+}

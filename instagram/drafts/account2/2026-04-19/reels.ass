@@ -1,0 +1,18 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+WrapStyle: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Noto Sans JP,54,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,19,0,2,54,54,288,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:05.00,Default,,0,0,0,,{\fad(200,200)}旅行代金が勝手に安くなる方法、知って\Nますか？
+Dialogue: 0,0:00:05.00,0:00:10.00,Default,,0,0,0,,{\fad(200,200)}楽天トラベルなら、宿泊費・航空券の予\N約で楽天ポイントがザクザク貯まるんで\Nす。楽天カードで決済すればポイント2\N倍。貯めたポイントで次の旅行も割引で\Nきちゃう。つまり、旅行するほど旅費が\N安くなるわけです。
+Dialogue: 0,0:00:10.00,0:00:15.00,Default,,0,0,0,,{\fad(200,200)}国内最大級の宿泊施設から選べるから、\Nきっと理想の宿が見つかる。直前割とか\N早割プランもめっちゃ豊富。プロフィー\Nルのリンクから詳細をチェックしてみて\Nください。
+Dialogue: 0,0:00:15.00,0:00:20.00,Default,,0,0,0,,{\fad(200,200)}GW、夏休み、年末年始…いつ予約する\Nかで旅費が全然違うって知ってた？
+Dialogue: 0,0:00:20.00,0:00:25.00,Default,,0,0,0,,{\fad(200,200)}楽天トラベルは早割と直前割がめっちゃ\N充実してるんです。2ヶ月前に予約すれ\Nばめちゃくちゃお得。逆に『あ、明日泊\Nまりたい』みたいな直前予約でも割引プ\Nランが豊富なんですよ。

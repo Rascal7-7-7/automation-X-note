@@ -138,3 +138,962 @@
 {"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
 {"ts":"2026-04-17T06:18:35.334Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
 {"ts":"2026-04-17T06:18:35.335Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T06:41:25.350Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T06:41:26.739Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/artificial] score:1362 \"Peter Thiel, Co-founder of Palantir, sh*ts himself when aske\""}
+{"ts":"2026-04-17T06:41:53.224Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T06:41:53.809Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-17T06:41:55.183Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/ChatGPT] score:1511 \"my OpenClaw texted my ex\""}
+{"ts":"2026-04-17T06:42:05.598Z","level":"INFO","module":"youtube:reddit-generate","message":"generating reddit-short from r/ChatGPT: \"my OpenClaw texted my ex\""}
+{"ts":"2026-04-17T06:42:12.309Z","level":"INFO","module":"youtube:reddit-generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.json"}
+{"ts":"2026-04-17T06:42:26.340Z","level":"INFO","module":"youtube:render","message":"rendering reddit-short for \"海外Reddit r/ChatGPT: my OpenClaw texted my ex\"..."}
+{"ts":"2026-04-17T06:42:26.341Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:42:26.342Z","level":"ERROR","module":"youtube:render","message":"render error: Cannot read properties of undefined (reading 'width')"}
+{"ts":"2026-04-17T06:43:11.506Z","level":"INFO","module":"youtube:render","message":"rendering reddit-short for \"海外Reddit r/ChatGPT: my OpenClaw texted my ex\"..."}
+{"ts":"2026-04-17T06:43:11.507Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:43:16.237Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/2 done"}
+{"ts":"2026-04-17T06:43:19.060Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/2 done"}
+{"ts":"2026-04-17T06:43:24.237Z","level":"INFO","module":"youtube:render","message":"SRT generated (Whisper, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_captions.srt"}
+{"ts":"2026-04-17T06:43:24.238Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_subs.ass"}
+{"ts":"2026-04-17T06:43:24.238Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:43:29.645Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.mp4"}
+{"ts":"2026-04-17T06:44:21.706Z","level":"INFO","module":"youtube:render","message":"rendering reddit-short for \"海外Reddit r/ChatGPT: my OpenClaw texted my ex\"..."}
+{"ts":"2026-04-17T06:44:21.706Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:44:23.256Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T06:44:24.381Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T06:44:25.855Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T06:44:27.654Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T06:44:28.946Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T06:44:33.567Z","level":"INFO","module":"youtube:render","message":"SRT generated (Whisper, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_captions.srt"}
+{"ts":"2026-04-17T06:44:33.569Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_subs.ass"}
+{"ts":"2026-04-17T06:44:33.569Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:44:39.675Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.mp4"}
+{"ts":"2026-04-17T06:44:50.125Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T06:44:50.125Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T06:44:50.126Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T06:44:50.127Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T06:44:50.127Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T06:44:50.127Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T06:44:50.127Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T06:44:50.128Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T06:44:50.128Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:44:50.128Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:44:50.128Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T06:44:50.128Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T06:44:50.129Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T06:44:50.130Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T06:44:50.130Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T06:44:50.130Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T06:44:50.130Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T06:44:50.130Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T06:46:54.076Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"Claude Code で月10万円稼ぐ副業の始め方\""}
+{"ts":"2026-04-17T06:47:10.571Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/thumbnail.png"}
+{"ts":"2026-04-17T06:47:10.572Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.json"}
+{"ts":"2026-04-17T06:47:26.377Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T06:47:26.378Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:47:33.999Z","level":"INFO","module":"youtube:render","message":"scene image 1/5 generated"}
+{"ts":"2026-04-17T06:47:41.180Z","level":"INFO","module":"youtube:render","message":"scene image 2/5 generated"}
+{"ts":"2026-04-17T06:47:49.013Z","level":"INFO","module":"youtube:render","message":"scene image 3/5 generated"}
+{"ts":"2026-04-17T06:47:54.761Z","level":"INFO","module":"youtube:render","message":"scene image 4/5 generated"}
+{"ts":"2026-04-17T06:48:03.130Z","level":"INFO","module":"youtube:render","message":"scene image 5/5 generated"}
+{"ts":"2026-04-17T06:48:05.570Z","level":"INFO","module":"youtube:render","message":"TTS generated → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T06:48:07.296Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T06:48:08.417Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T06:48:10.022Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T06:48:11.641Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T06:48:12.773Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T06:48:17.613Z","level":"INFO","module":"youtube:render","message":"SRT generated (Whisper, 20 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T06:48:17.614Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (20 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T06:48:17.615Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:48:23.783Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:52:36.182Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:short"}
+{"ts":"2026-04-17T06:52:36.183Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T06:52:36.183Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:52:37.810Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T06:52:38.929Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T06:52:40.546Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T06:52:42.050Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T06:52:43.177Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T06:52:43.621Z","level":"INFO","module":"youtube:render","message":"Falling back to scene-based SRT generation"}
+{"ts":"2026-04-17T06:52:43.622Z","level":"INFO","module":"youtube:render","message":"SRT generated (scene-based, 5 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T06:52:43.623Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (5 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T06:52:43.623Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:52:49.563Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:52:49.563Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:short"}
+{"ts":"2026-04-17T06:53:00.767Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T06:53:00.767Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T06:53:00.767Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T06:53:00.768Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:53:00.769Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T06:53:00.770Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T06:53:00.771Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T06:58:25.198Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:short"}
+{"ts":"2026-04-17T06:58:25.199Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T06:58:25.199Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T06:58:35.636Z","level":"INFO","module":"youtube:render","message":"scene image 1/5 generated"}
+{"ts":"2026-04-17T06:58:44.527Z","level":"INFO","module":"youtube:render","message":"scene image 2/5 generated"}
+{"ts":"2026-04-17T06:58:53.040Z","level":"INFO","module":"youtube:render","message":"scene image 3/5 generated"}
+{"ts":"2026-04-17T06:59:03.446Z","level":"INFO","module":"youtube:render","message":"scene image 4/5 generated"}
+{"ts":"2026-04-17T06:59:11.892Z","level":"INFO","module":"youtube:render","message":"scene image 5/5 generated"}
+{"ts":"2026-04-17T06:59:12.723Z","level":"INFO","module":"youtube:render","message":"TTS generated → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3 (+ VTT subtitles)"}
+{"ts":"2026-04-17T06:59:14.454Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T06:59:15.619Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T06:59:17.217Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T06:59:18.807Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T06:59:19.943Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T06:59:20.396Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 5 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T06:59:20.396Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (5 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T06:59:20.396Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T06:59:27.223Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T06:59:27.223Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:short"}
+{"ts":"2026-04-17T07:01:02.754Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:short"}
+{"ts":"2026-04-17T07:01:02.754Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T07:01:02.755Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T07:01:04.581Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T07:01:05.779Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T07:01:07.338Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T07:01:08.900Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T07:01:10.071Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T07:01:10.540Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 5 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T07:01:10.540Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (5 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T07:01:10.540Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T07:01:16.769Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T07:01:16.770Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:short"}
+{"ts":"2026-04-17T07:03:16.921Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:short"}
+{"ts":"2026-04-17T07:03:16.921Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T07:03:16.921Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T07:03:21.296Z","level":"INFO","module":"youtube:render","message":"TTS generated (5 scenes, 40s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T07:03:22.879Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T07:03:24.022Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T07:03:25.643Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T07:03:27.220Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T07:03:28.436Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T07:03:28.910Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 5 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T07:03:28.910Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (5 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T07:03:28.910Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T07:03:35.613Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T07:03:35.613Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:short"}
+{"ts":"2026-04-17T07:04:36.115Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:short"}
+{"ts":"2026-04-17T07:04:36.115Z","level":"INFO","module":"youtube:render","message":"rendering short for \"Claude Code で月10万円稼ぐ副業の始め方\"..."}
+{"ts":"2026-04-17T07:04:36.115Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T07:04:38.941Z","level":"INFO","module":"youtube:render","message":"TTS generated (5 scenes, 40s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T07:04:40.566Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/5 done"}
+{"ts":"2026-04-17T07:04:41.814Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/5 done"}
+{"ts":"2026-04-17T07:04:43.395Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/5 done"}
+{"ts":"2026-04-17T07:04:44.960Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/5 done"}
+{"ts":"2026-04-17T07:04:46.164Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/5 done"}
+{"ts":"2026-04-17T07:04:46.641Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 5 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_captions.srt"}
+{"ts":"2026-04-17T07:04:46.641Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (5 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short_subs.ass"}
+{"ts":"2026-04-17T07:04:46.641Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T07:04:52.877Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.mp4"}
+{"ts":"2026-04-17T07:04:52.878Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:short"}
+{"ts":"2026-04-17T07:05:11.885Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T07:05:11.886Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T07:05:11.886Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T07:05:11.886Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T07:05:11.886Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T07:05:11.886Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T07:05:11.887Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T07:05:11.887Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T07:05:11.887Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T07:05:11.887Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T07:05:11.887Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T07:05:11.888Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T07:05:11.888Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T07:05:11.888Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T07:05:11.888Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T07:05:11.888Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T07:05:11.889Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-17T07:05:11.889Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-17T07:05:11.889Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-17T07:05:11.889Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T07:05:11.889Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T07:05:11.890Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T09:00:00.008Z","level":"INFO","module":"scheduler","message":"START x:like"}
+{"ts":"2026-04-17T09:00:00.081Z","level":"INFO","module":"scheduler","message":"START youtube:upload:short"}
+{"ts":"2026-04-17T09:00:02.839Z","level":"INFO","module":"youtube:upload","message":"video uploaded: wJ1ggrtmn58"}
+{"ts":"2026-04-17T09:00:03.010Z","level":"WARN","module":"youtube:upload","message":"captions upload failed (non-fatal): captions session init failed: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Request had insufficient authentication scopes.\",\n    \"errors\": [\n      {\n        \"message\": \"Insufficient Permission\",\n        \"domain\": \"global\",\n        \"reason\": \"insufficientPermissions\"\n      }\n    ],\n    \"status\": \"PERMISSION_DENIED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"ACCESS_TOKEN_SCOPE_INSUFFICIENT\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"method\": \"youtube.api.v3.V3DataCaptionService.Insert\",\n          \"service\": \"youtube.googleapis.com\"\n        }\n      }\n    ]\n  }\n}\n"}
+{"ts":"2026-04-17T09:00:03.010Z","level":"INFO","module":"youtube:upload","message":"uploaded: https://www.youtube.com/watch?v=wJ1ggrtmn58"}
+{"ts":"2026-04-17T09:00:03.011Z","level":"INFO","module":"scheduler","message":"DONE  youtube:upload:short"}
+{"ts":"2026-04-17T09:00:05.137Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-17T09:00:12.419Z","level":"INFO","module":"x:browser","message":"step2 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T09:00:12.424Z","level":"INFO","module":"x:browser","message":"step3 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T09:00:27.429Z","level":"ERROR","module":"scheduler","message":"FAIL  x:like","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T10:00:00.156Z","level":"INFO","module":"scheduler","message":"START instagram:post:1"}
+{"ts":"2026-04-17T10:00:00.160Z","level":"WARN","module":"instagram:post","message":"no draft for account1 today: /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:00:00.161Z","level":"INFO","module":"scheduler","message":"DONE  instagram:post:1"}
+{"ts":"2026-04-17T10:00:00.162Z","level":"INFO","module":"scheduler","message":"START instagram:post:2"}
+{"ts":"2026-04-17T10:00:00.162Z","level":"WARN","module":"instagram:post","message":"no draft for account2 today: /Users/Rascal/work/automation/instagram/drafts/account2/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:00:00.162Z","level":"INFO","module":"scheduler","message":"DONE  instagram:post:2"}
+{"ts":"2026-04-17T10:14:44.718Z","level":"INFO","module":"scheduler","message":"dev run: instagram:generate:1"}
+{"ts":"2026-04-17T10:14:44.719Z","level":"INFO","module":"instagram:generate","message":"account1: theme=\"副業で月3万円稼ぐ時短術\" type=How-to型"}
+{"ts":"2026-04-17T10:14:50.507Z","level":"INFO","module":"instagram:generate","message":"account1 draft saved → /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:14:50.507Z","level":"INFO","module":"scheduler","message":"dev run done: instagram:generate:1"}
+{"ts":"2026-04-17T10:14:55.379Z","level":"INFO","module":"scheduler","message":"dev run: instagram:image:1"}
+{"ts":"2026-04-17T10:14:55.379Z","level":"INFO","module":"instagram:image","message":"generating image for account1"}
+{"ts":"2026-04-17T10:14:55.379Z","level":"INFO","module":"instagram:image","message":"calling DALL-E 3","data":{"prompt":"A clean, infographic-style step-by-step guide showing \"3 Steps to Earn 30,000 Yen Monthly Side Hustle.\" Display 3 numbered boxes (1, 2, 3) with icons representing quick methods: time-saving techniques, passive income streams, and efficiency tools. Use a white background with minimal gray accents, modern sans-serif typography, and arrow connectors between steps. Emphasis on speed and simplicity. High-contrast, professional layout suitable for mobile feed consumption."}}
+{"ts":"2026-04-17T10:15:09.819Z","level":"INFO","module":"instagram:image","message":"DALL-E 3 returned URL"}
+{"ts":"2026-04-17T10:15:11.356Z","level":"INFO","module":"instagram:image","message":"image downloaded: 1199712 bytes"}
+{"ts":"2026-04-17T10:15:13.180Z","level":"INFO","module":"instagram:image","message":"GitHub upload done: https://raw.githubusercontent.com/rascal7-7-7/automation-X-note/main/instagram-images/2026-04-17-account1-1776420911357.png"}
+{"ts":"2026-04-17T10:15:13.181Z","level":"INFO","module":"instagram:image","message":"draft updated with imageUrl → /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:15:13.181Z","level":"INFO","module":"scheduler","message":"dev run done: instagram:image:1"}
+{"ts":"2026-04-17T10:15:13.622Z","level":"INFO","module":"scheduler","message":"dev run: instagram:generate:2"}
+{"ts":"2026-04-17T10:15:13.630Z","level":"INFO","module":"instagram:affiliate","message":"selected: DMM 生成AI CAMP / 正直レビュー型"}
+{"ts":"2026-04-17T10:15:18.276Z","level":"INFO","module":"instagram:affiliate","message":"affiliate draft saved → /Users/Rascal/work/automation/instagram/drafts/account2/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:15:18.277Z","level":"INFO","module":"scheduler","message":"dev run done: instagram:generate:2"}
+{"ts":"2026-04-17T10:15:21.571Z","level":"INFO","module":"scheduler","message":"dev run: instagram:image:2"}
+{"ts":"2026-04-17T10:15:21.572Z","level":"INFO","module":"instagram:image","message":"generating image for account2"}
+{"ts":"2026-04-17T10:15:21.572Z","level":"INFO","module":"instagram:image","message":"calling DALL-E 3","data":{"prompt":"Create a clean, modern Instagram feed image (4:5 ratio) for \"DMM 生成AI CAMP\" an AI learning service. Design features a light gray background, featuring a minimalist infographic showing a progression arrow with 3 stages: \"Free Seminar\" → \"AI Learning\" → \"Certification\". Include icons representing students, AI technology, and growth. Use a professional color palette of deep blue (#1F4788), bright cyan (#00D9FF), and white. Add subtle geometric shapes and a badge icon indicating \"Ministry of Economy Certified Program\". Include text elements as graphic elements only: \"Up to 70% Reskilling Subsidy\", \"Start Free\". Modern, clean typography. High-quality, professional appearance."}}
+{"ts":"2026-04-17T10:15:45.694Z","level":"INFO","module":"instagram:image","message":"DALL-E 3 returned URL"}
+{"ts":"2026-04-17T10:15:47.518Z","level":"INFO","module":"instagram:image","message":"image downloaded: 1339205 bytes"}
+{"ts":"2026-04-17T10:15:49.781Z","level":"INFO","module":"instagram:image","message":"GitHub upload done: https://raw.githubusercontent.com/rascal7-7-7/automation-X-note/main/instagram-images/2026-04-17-account2-1776420947518.png"}
+{"ts":"2026-04-17T10:15:49.783Z","level":"INFO","module":"instagram:image","message":"draft updated with imageUrl → /Users/Rascal/work/automation/instagram/drafts/account2/2026-04-17/post.json"}
+{"ts":"2026-04-17T10:15:49.783Z","level":"INFO","module":"scheduler","message":"dev run done: instagram:image:2"}
+{"ts":"2026-04-17T10:15:53.883Z","level":"INFO","module":"scheduler","message":"prod single run: instagram:post:1"}
+{"ts":"2026-04-17T10:15:54.100Z","level":"ERROR","module":"instagram:post","message":"account1 Graph API error: container creation failed: {\"error\":{\"message\":\"Unsupported post request. Object with ID '26427042040297899' does not exist, cannot be loaded due to missing permissions, or does not support this operation\",\"type\":\"IGApiException\",\"code\":100,\"error_subcode\":33,\"fbtrace_id\":\"ApcS18N59HyM8JFk-5YESJ_\"}}"}
+{"ts":"2026-04-17T10:15:54.100Z","level":"INFO","module":"scheduler","message":"prod single run done: instagram:post:1"}
+{"ts":"2026-04-17T10:15:54.389Z","level":"INFO","module":"scheduler","message":"prod single run: instagram:post:2"}
+{"ts":"2026-04-17T10:16:03.368Z","level":"INFO","module":"instagram:post","message":"account2 posted: 18096871405852723"}
+{"ts":"2026-04-17T10:16:03.369Z","level":"INFO","module":"scheduler","message":"prod single run done: instagram:post:2"}
+{"ts":"2026-04-17T10:20:24.622Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:20:25.303Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T10:20:25.926Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-17T10:20:27.277Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/ChatGPT] score:391 \"\"Map of Europe.\" by Gemini's Pro model.\""}
+{"ts":"2026-04-17T10:20:27.277Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:20:30.896Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:20:30.897Z","level":"INFO","module":"youtube:reddit-generate","message":"draft already exists for reddit-short, skipping"}
+{"ts":"2026-04-17T10:20:30.897Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:20:35.857Z","level":"INFO","module":"scheduler","message":"dev run: x:article"}
+{"ts":"2026-04-17T10:20:35.857Z","level":"INFO","module":"x:article","message":"selected topic","data":{"topic":"副業で失敗する人がやりがちな3つのミス"}}
+{"ts":"2026-04-17T10:20:40.804Z","level":"INFO","module":"x:article","message":"generated 5 tweets for thread"}
+{"ts":"2026-04-17T10:20:41.079Z","level":"INFO","module":"x:article","message":"posted 1st tweet","data":{"tweetId":"2045085027076313531"}}
+{"ts":"2026-04-17T10:20:42.807Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:20:43.342Z","level":"INFO","module":"x:article","message":"posted tweet 2/5","data":{"tweetId":"2045085036584804554"}}
+{"ts":"2026-04-17T10:20:43.383Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T10:20:43.937Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-17T10:20:45.304Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/ChatGPT] score:390 \"How is this even legal??\""}
+{"ts":"2026-04-17T10:20:45.304Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:20:45.619Z","level":"INFO","module":"x:article","message":"posted tweet 3/5","data":{"tweetId":"2045085046084891005"}}
+{"ts":"2026-04-17T10:20:47.893Z","level":"INFO","module":"x:article","message":"posted tweet 4/5","data":{"tweetId":"2045085055639540000"}}
+{"ts":"2026-04-17T10:20:48.791Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:20:48.791Z","level":"INFO","module":"youtube:reddit-generate","message":"generating reddit-short from r/ChatGPT: \"How is this even legal??\""}
+{"ts":"2026-04-17T10:20:50.184Z","level":"INFO","module":"x:article","message":"posted tweet 5/5","data":{"tweetId":"2045085065269727630"}}
+{"ts":"2026-04-17T10:20:50.186Z","level":"INFO","module":"x:article","message":"thread posted","data":{"tweetIds":["2045085027076313531","2045085036584804554","2045085046084891005","2045085055639540000","2045085065269727630"]}}
+{"ts":"2026-04-17T10:20:50.188Z","level":"INFO","module":"scheduler","message":"dev run done: x:article"}
+{"ts":"2026-04-17T10:20:56.117Z","level":"INFO","module":"youtube:reddit-generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.json"}
+{"ts":"2026-04-17T10:20:56.118Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:21:58.254Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:21:58.917Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T10:21:59.489Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-17T10:22:00.077Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/LocalLLaMA: 15 posts fetched"}
+{"ts":"2026-04-17T10:22:01.475Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/LocalLLaMA] score:1998 \"Qwen3.6-35B-A3B released!\""}
+{"ts":"2026-04-17T10:22:01.476Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-fetch"}
+{"ts":"2026-04-17T10:22:17.820Z","level":"INFO","module":"scheduler","message":"dev run: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:22:17.820Z","level":"INFO","module":"youtube:reddit-generate","message":"generating reddit-short from r/LocalLLaMA: \"Qwen3.6-35B-A3B released!\""}
+{"ts":"2026-04-17T10:22:22.833Z","level":"INFO","module":"youtube:reddit-generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.json"}
+{"ts":"2026-04-17T10:22:22.834Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:reddit-generate"}
+{"ts":"2026-04-17T10:22:40.686Z","level":"INFO","module":"scheduler","message":"dev run: youtube:render:reddit-short"}
+{"ts":"2026-04-17T10:22:40.686Z","level":"INFO","module":"youtube:render","message":"rendering reddit-short for \"海外Reddit r/LocalLLaMA: Qwen3.6-35B-A3B released!\"..."}
+{"ts":"2026-04-17T10:22:40.686Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-17T10:22:50.587Z","level":"INFO","module":"youtube:render","message":"scene image 6/12 generated"}
+{"ts":"2026-04-17T10:22:59.524Z","level":"INFO","module":"youtube:render","message":"scene image 7/12 generated"}
+{"ts":"2026-04-17T10:23:09.095Z","level":"INFO","module":"youtube:render","message":"scene image 8/12 generated"}
+{"ts":"2026-04-17T10:23:18.846Z","level":"INFO","module":"youtube:render","message":"scene image 9/12 generated"}
+{"ts":"2026-04-17T10:23:27.559Z","level":"INFO","module":"youtube:render","message":"scene image 10/12 generated"}
+{"ts":"2026-04-17T10:23:34.861Z","level":"INFO","module":"youtube:render","message":"scene image 11/12 generated"}
+{"ts":"2026-04-17T10:23:43.165Z","level":"INFO","module":"youtube:render","message":"scene image 12/12 generated"}
+{"ts":"2026-04-17T10:23:53.859Z","level":"INFO","module":"youtube:render","message":"TTS generated (12 scenes, 96s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/tts.mp3"}
+{"ts":"2026-04-17T10:23:56.057Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/12 done"}
+{"ts":"2026-04-17T10:23:57.334Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/12 done"}
+{"ts":"2026-04-17T10:23:59.313Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/12 done"}
+{"ts":"2026-04-17T10:24:01.129Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/12 done"}
+{"ts":"2026-04-17T10:24:02.560Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/12 done"}
+{"ts":"2026-04-17T10:24:04.489Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/12 done"}
+{"ts":"2026-04-17T10:24:06.279Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/12 done"}
+{"ts":"2026-04-17T10:24:07.576Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/12 done"}
+{"ts":"2026-04-17T10:24:09.442Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/12 done"}
+{"ts":"2026-04-17T10:24:11.243Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/12 done"}
+{"ts":"2026-04-17T10:24:12.481Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/12 done"}
+{"ts":"2026-04-17T10:24:14.265Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/12 done"}
+{"ts":"2026-04-17T10:24:15.422Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 13 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_captions.srt"}
+{"ts":"2026-04-17T10:24:15.423Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (13 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short_subs.ass"}
+{"ts":"2026-04-17T10:24:15.423Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-17T10:24:33.727Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/reddit-short.mp4"}
+{"ts":"2026-04-17T10:24:33.727Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:render:reddit-short"}
+{"ts":"2026-04-17T10:25:38.279Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-17T10:25:38.280Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-17T10:25:38.280Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-17T10:25:38.280Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1]"}
+{"ts":"2026-04-17T10:25:38.280Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1]"}
+{"ts":"2026-04-17T10:25:38.281Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1]"}
+{"ts":"2026-04-17T10:25:38.281Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2]"}
+{"ts":"2026-04-17T10:25:38.281Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-17T10:25:38.281Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-17T10:25:38.281Z","level":"INFO","module":"scheduler","message":"registered: x:article [0 7 * * 2,4]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-17T10:25:38.282Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-17T10:25:38.283Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-17T10:25:38.284Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-17T10:39:48.151Z","level":"INFO","module":"scheduler","message":"prod single run: note:post"}
+{"ts":"2026-04-17T10:39:48.152Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T10:40:06.382Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T10:40:06.419Z","level":"ERROR","module":"scheduler","message":"prod single run failed: note:post","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T10:40:35.614Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T10:40:37.048Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.goto: net::ERR_ABORTED at https://note.com/\nCall log:\n\u001b[2m  - navigating to \"https://note.com/\", waiting until \"domcontentloaded\"\u001b[22m\n"}}
+{"ts":"2026-04-17T10:41:05.387Z","level":"INFO","module":"scheduler","message":"dev run: note:post"}
+{"ts":"2026-04-17T10:41:05.388Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T10:41:23.162Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T10:41:23.200Z","level":"ERROR","module":"scheduler","message":"dev run failed: note:post","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T10:46:49.297Z","level":"INFO","module":"scheduler","message":"dev run: note:research"}
+{"ts":"2026-04-17T10:46:49.298Z","level":"INFO","module":"note:research","message":"research start"}
+{"ts":"2026-04-17T10:46:49.739Z","level":"INFO","module":"note:research","message":"selected categories: note-income, productivity, ai-income, ai-beginner"}
+{"ts":"2026-04-17T10:46:49.740Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/note収益化"}
+{"ts":"2026-04-17T10:46:58.751Z","level":"INFO","module":"note:research","message":"10 articles (note収益化)"}
+{"ts":"2026-04-17T10:46:58.752Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/業務効率化"}
+{"ts":"2026-04-17T10:47:06.492Z","level":"INFO","module":"note:research","message":"10 articles (業務効率化)"}
+{"ts":"2026-04-17T10:47:06.493Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/AI副業"}
+{"ts":"2026-04-17T10:47:13.897Z","level":"INFO","module":"note:research","message":"10 articles (AI副業)"}
+{"ts":"2026-04-17T10:47:13.897Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/ChatGPT"}
+{"ts":"2026-04-17T10:47:21.030Z","level":"INFO","module":"note:research","message":"10 articles (ChatGPT)"}
+{"ts":"2026-04-17T10:47:25.412Z","level":"INFO","module":"note:research","message":"queued: AIツールで月5万円の自動化収入"}
+{"ts":"2026-04-17T10:47:25.413Z","level":"INFO","module":"note:research","message":"queued: noteで「ファン化」させる執筆テンプレ"}
+{"ts":"2026-04-17T10:47:25.415Z","level":"INFO","module":"note:research","message":"queued: AI生成物で権利問題を回避する方法"}
+{"ts":"2026-04-17T10:47:25.415Z","level":"INFO","module":"note:research","message":"research done. queued: 3"}
+{"ts":"2026-04-17T10:47:25.415Z","level":"INFO","module":"scheduler","message":"dev run done: note:research"}
+{"ts":"2026-04-17T10:47:29.774Z","level":"INFO","module":"scheduler","message":"dev run: note:generate"}
+{"ts":"2026-04-17T10:47:29.775Z","level":"INFO","module":"note:generate","message":"generating: AIツールで月5万円の自動化収入"}
+{"ts":"2026-04-17T10:47:40.174Z","level":"ERROR","module":"note:generate","message":"generate failed","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:47:40.175Z","level":"ERROR","module":"scheduler","message":"dev run failed: note:generate","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:48:25.307Z","level":"INFO","module":"scheduler","message":"dev run: note:generate"}
+{"ts":"2026-04-17T10:48:25.308Z","level":"INFO","module":"note:generate","message":"generating: noteで「ファン化」させる執筆テンプレ"}
+{"ts":"2026-04-17T10:48:41.921Z","level":"ERROR","module":"note:generate","message":"generate failed","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:48:41.922Z","level":"ERROR","module":"scheduler","message":"dev run failed: note:generate","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:49:48.172Z","level":"INFO","module":"scheduler","message":"dev run: note:generate"}
+{"ts":"2026-04-17T10:49:48.173Z","level":"INFO","module":"note:generate","message":"generating: AI生成物で権利問題を回避する方法"}
+{"ts":"2026-04-17T10:50:04.493Z","level":"ERROR","module":"note:generate","message":"generate failed","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:50:04.493Z","level":"ERROR","module":"scheduler","message":"dev run failed: note:generate","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:50:13.267Z","level":"INFO","module":"note:generate","message":"generating: AI生成物で権利問題を回避する方法"}
+{"ts":"2026-04-17T10:50:29.877Z","level":"ERROR","module":"note:generate","message":"generate failed","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:51:27.731Z","level":"INFO","module":"note:generate","message":"generating: AI生成物で権利問題を回避する方法"}
+{"ts":"2026-04-17T10:51:53.345Z","level":"ERROR","module":"note:generate","message":"generate failed","data":{"message":"outline JSON not found in response"}}
+{"ts":"2026-04-17T10:53:05.118Z","level":"INFO","module":"scheduler","message":"prod single run: instagram:post:1"}
+{"ts":"2026-04-17T10:53:10.913Z","level":"ERROR","module":"instagram:post","message":"account1 Graph API error: publish failed: {\"error\":{\"message\":\"Media ID is not available\",\"type\":\"OAuthException\",\"code\":9007,\"error_subcode\":2207027,\"is_transient\":false,\"error_user_title\":\"公開できません\",\"error_user_msg\":\"このメディアは公開する準備ができていません。しばらくお待ちください。\",\"fbtrace_id\":\"AP4Cp0_j_KvmvtGJarnj6gJ\"}}"}
+{"ts":"2026-04-17T10:53:10.914Z","level":"INFO","module":"scheduler","message":"prod single run done: instagram:post:1"}
+{"ts":"2026-04-17T10:53:22.302Z","level":"INFO","module":"note:generate","message":"generating: AIツールで月5万円の自動化収入"}
+{"ts":"2026-04-17T10:53:27.658Z","level":"INFO","module":"note:generate","message":"outline done","data":{"title":"AIツール3つだけで月5万円の自動化収入を作った完全版ロードマップ"}}
+{"ts":"2026-04-17T10:53:35.354Z","level":"INFO","module":"scheduler","message":"prod single run: instagram:post:1"}
+{"ts":"2026-04-17T10:53:46.077Z","level":"INFO","module":"instagram:post","message":"account1 posted: 18579664543010737"}
+{"ts":"2026-04-17T10:53:46.078Z","level":"INFO","module":"scheduler","message":"prod single run done: instagram:post:1"}
+{"ts":"2026-04-17T10:53:58.383Z","level":"INFO","module":"note:generate","message":"draft saved: /Users/Rascal/work/automation/note/drafts/1776423238381-AIツール3つだけで月5万円の自動化収入.json"}
+{"ts":"2026-04-17T11:00:00.857Z","level":"INFO","module":"scheduler","message":"START youtube:upload:reddit-short"}
+{"ts":"2026-04-17T11:00:03.803Z","level":"INFO","module":"youtube:upload","message":"video uploaded: 3h61ATNzH_c"}
+{"ts":"2026-04-17T11:00:03.980Z","level":"WARN","module":"youtube:upload","message":"captions upload failed (non-fatal): captions session init failed: {\n  \"error\": {\n    \"code\": 403,\n    \"message\": \"Request had insufficient authentication scopes.\",\n    \"errors\": [\n      {\n        \"message\": \"Insufficient Permission\",\n        \"domain\": \"global\",\n        \"reason\": \"insufficientPermissions\"\n      }\n    ],\n    \"status\": \"PERMISSION_DENIED\",\n    \"details\": [\n      {\n        \"@type\": \"type.googleapis.com/google.rpc.ErrorInfo\",\n        \"reason\": \"ACCESS_TOKEN_SCOPE_INSUFFICIENT\",\n        \"domain\": \"googleapis.com\",\n        \"metadata\": {\n          \"service\": \"youtube.googleapis.com\",\n          \"method\": \"youtube.api.v3.V3DataCaptionService.Insert\"\n        }\n      }\n    ]\n  }\n}\n"}
+{"ts":"2026-04-17T11:00:03.981Z","level":"INFO","module":"youtube:upload","message":"uploaded: https://www.youtube.com/watch?v=3h61ATNzH_c"}
+{"ts":"2026-04-17T11:00:03.982Z","level":"INFO","module":"scheduler","message":"DONE  youtube:upload:reddit-short"}
+{"ts":"2026-04-17T12:00:00.698Z","level":"INFO","module":"scheduler","message":"START x:reply"}
+{"ts":"2026-04-17T12:00:05.323Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-17T12:00:13.151Z","level":"INFO","module":"x:browser","message":"step2 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T12:00:13.156Z","level":"INFO","module":"x:browser","message":"step3 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T12:00:28.159Z","level":"ERROR","module":"scheduler","message":"FAIL  x:reply","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T13:00:00.487Z","level":"INFO","module":"scheduler","message":"START x:collect"}
+{"ts":"2026-04-17T13:00:00.491Z","level":"INFO","module":"analytics:collect-x","message":"fetching metrics for 3 tweets"}
+{"ts":"2026-04-17T13:00:00.674Z","level":"ERROR","module":"analytics:collect-x","message":"metrics collection failed","data":{"message":"Request failed with code 401"}}
+{"ts":"2026-04-17T13:00:00.675Z","level":"ERROR","module":"scheduler","message":"FAIL  x:collect","data":{"message":"Request failed with code 401"}}
+{"ts":"2026-04-17T13:44:57.728Z","level":"INFO","module":"scheduler","message":"prod single run: note:post"}
+{"ts":"2026-04-17T13:44:57.737Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:45:15.924Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T13:45:15.946Z","level":"ERROR","module":"scheduler","message":"prod single run failed: note:post","data":{"message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror, [contenteditable=\"true\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T13:46:47.353Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:46:54.822Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n7e667c009602/edit/"}
+{"ts":"2026-04-17T13:47:41.232Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:47:48.013Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n9e1c4a6c3dcd/edit/"}
+{"ts":"2026-04-17T13:47:56.065Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:47:58.224Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"draft save not confirmed (UI text not found)"}}
+{"ts":"2026-04-17T13:48:50.475Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:48:57.331Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n5ae046608d47/edit/"}
+{"ts":"2026-04-17T13:49:05.373Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:49:10.054Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:49:10.060Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"publish button not found"}}
+{"ts":"2026-04-17T13:49:33.253Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:49:40.078Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n3a923edda7d6/edit/"}
+{"ts":"2026-04-17T13:49:48.136Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:49:52.803Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:49:52.807Z","level":"INFO","module":"note:post","message":"buttons on page: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\"]"}
+{"ts":"2026-04-17T13:49:52.841Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開\")"}
+{"ts":"2026-04-17T13:50:27.871Z","level":"WARN","module":"note:post","message":"unexpected URL after publish: https://editor.note.com/notes/n3a923edda7d6/edit/"}
+{"ts":"2026-04-17T13:50:27.874Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n3a923edda7d6/edit/"}
+{"ts":"2026-04-17T13:50:56.368Z","level":"INFO","module":"note:post","message":"posting: AIツール3つだけで月5万円の自動化収入を作った完全版ロードマップ"}
+{"ts":"2026-04-17T13:51:03.197Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n1e9acaa7ca99/edit/"}
+{"ts":"2026-04-17T13:51:06.601Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T13:51:09.739Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:51:09.743Z","level":"INFO","module":"note:post","message":"buttons on page: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"画像をアップロード推奨サイズ：1280×670px\",\"記事にあう画像を選ぶ\",\"Adobe Expressで画像をつくるAdobeの無料会員登録が必要です\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\"]"}
+{"ts":"2026-04-17T13:51:09.771Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開\")"}
+{"ts":"2026-04-17T13:51:13.295Z","level":"INFO","module":"note:post","message":"modal buttons: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"画像をアップロード推奨サイズ：1280×670px\",\"記事にあう画像を選ぶ\",\"Adobe Expressで画像をつくるAdobeの無料会員登録が必要です\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\",\"閉じる\"]"}
+{"ts":"2026-04-17T13:51:18.310Z","level":"WARN","module":"note:post","message":"unexpected URL after publish: https://editor.note.com/notes/n1e9acaa7ca99/edit/"}
+{"ts":"2026-04-17T13:51:18.314Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n1e9acaa7ca99/edit/"}
+{"ts":"2026-04-17T13:51:56.680Z","level":"INFO","module":"note:post","message":"no drafts to post"}
+{"ts":"2026-04-17T13:52:32.254Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:52:39.142Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n4b13e490531b/edit/"}
+{"ts":"2026-04-17T13:52:47.192Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:52:51.846Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:52:51.851Z","level":"INFO","module":"note:post","message":"buttons on page: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\"]"}
+{"ts":"2026-04-17T13:52:51.884Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開\")"}
+{"ts":"2026-04-17T13:52:55.414Z","level":"INFO","module":"note:post","message":"modal/dialog buttons: [\"閉じる\",\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\",\"閉じる\"]"}
+{"ts":"2026-04-17T13:52:55.416Z","level":"INFO","module":"note:post","message":"page text lines: [\"記事の目的：[例：読者に○○を実践させる]\",\"上記の条件で、以下を作成してください。\",\"1. キャッチーなタイトル案3本\",\"2. H2見出し5本の構成（各見出しに執筆メモ2行付き）\",\"3. 読者の悩みに共感する冒頭文（200字）\",\"このテンプレ1枚で、記事の骨格が5分以内に揃います。\",\"次のステップ：今日やること3つだけ\",\"① 無料プランで今すぐ試す\",\"② このテンプレをNotionかメモアプリに保存する\",\"③ 明日書く記事のタイトルを、今日AIに10案出させる\",\"今日から始める1つのアクション\",\"この記事で紹介した内容を全部やろうとすると続きません。\",\"まず1つだけ試してみてください。\",\"小さく始めて、継続することが最短ルートです。\",\"現在の縮小状態：拡大\",\"現在の縮小状態：縮小\",\"下書きを保存しました\",\"記事編集 | note\",\"タイトル、本文を入力してください\",\"閉じる\"]"}
+{"ts":"2026-04-17T13:52:55.465Z","level":"INFO","module":"note:post","message":"screenshot: /tmp/note-publish-modal.png"}
+{"ts":"2026-04-17T13:53:00.473Z","level":"WARN","module":"note:post","message":"unexpected URL after publish: https://editor.note.com/notes/n4b13e490531b/edit/"}
+{"ts":"2026-04-17T13:53:00.478Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n4b13e490531b/edit/"}
+{"ts":"2026-04-17T13:54:35.923Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:54:42.731Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n131e6b2b9780/edit/"}
+{"ts":"2026-04-17T13:54:43.587Z","level":"INFO","module":"note:post","message":"AI assistant panel closed"}
+{"ts":"2026-04-17T13:54:43.928Z","level":"WARN","module":"note:post","message":"title filled via keyboard fallback"}
+{"ts":"2026-04-17T13:54:51.933Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:55:21.936Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('.ProseMirror').first()\u001b[22m\n"}}
+{"ts":"2026-04-17T13:55:58.043Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:56:05.164Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nee4e06504912/edit/"}
+{"ts":"2026-04-17T13:56:06.205Z","level":"INFO","module":"note:post","message":"AI assistant panel closed"}
+{"ts":"2026-04-17T13:56:06.548Z","level":"WARN","module":"note:post","message":"title filled via keyboard fallback"}
+{"ts":"2026-04-17T13:56:14.555Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:56:24.561Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[contenteditable=\"true\"], [role=\"textbox\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T13:57:00.453Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:57:07.225Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n4af83ae2cc17/edit/"}
+{"ts":"2026-04-17T13:57:07.275Z","level":"INFO","module":"note:post","message":"interactive elements: [{\"tag\":\"TEXTAREA\",\"class\":\"h-6 min-h-[28px] w-full resize-none bg-background-primary te\",\"placeholder\":\"AIにお願いしたいことをくわしく書いてください\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":58}},{\"tag\":\"TEXTAREA\",\"class\":\"sc-80832eb4-0 heevId\",\"placeholder\":\"記事タイトル\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":620,\"h\":50}},{\"tag\":\"DIV\",\"class\":\"ProseMirror note-common-styles__textnote-body ProseMirror-fo\",\"placeholder\":null,\"role\":\"textbox\",\"contenteditable\":\"true\",\"visible\":true,\"rect\":{\"w\":620,\"h\":72}},{\"tag\":\"TEXTAREA\",\"class\":\"\",\"placeholder\":null,\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":0}}]"}
+{"ts":"2026-04-17T13:57:08.277Z","level":"INFO","module":"note:post","message":"AI assistant panel closed"}
+{"ts":"2026-04-17T13:57:08.279Z","level":"INFO","module":"note:post","message":"elements after panel close: []"}
+{"ts":"2026-04-17T13:57:08.610Z","level":"WARN","module":"note:post","message":"title filled via keyboard fallback"}
+{"ts":"2026-04-17T13:57:16.614Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:57:26.620Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 10000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[contenteditable=\"true\"], [role=\"textbox\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T13:58:11.828Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:58:18.571Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n595bc2feaa8b/edit/"}
+{"ts":"2026-04-17T13:58:18.611Z","level":"INFO","module":"note:post","message":"interactive elements: [{\"tag\":\"TEXTAREA\",\"class\":\"h-6 min-h-[28px] w-full resize-none bg-background-primary te\",\"placeholder\":\"AIにお願いしたいことをくわしく書いてください\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":58}},{\"tag\":\"TEXTAREA\",\"class\":\"sc-80832eb4-0 heevId\",\"placeholder\":\"記事タイトル\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":620,\"h\":50}},{\"tag\":\"DIV\",\"class\":\"ProseMirror note-common-styles__textnote-body ProseMirror-fo\",\"placeholder\":null,\"role\":\"textbox\",\"contenteditable\":\"true\",\"visible\":true,\"rect\":{\"w\":620,\"h\":72}},{\"tag\":\"TEXTAREA\",\"class\":\"\",\"placeholder\":null,\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":0}}]"}
+{"ts":"2026-04-17T13:58:18.625Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T13:58:26.628Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:58:31.262Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:58:31.271Z","level":"INFO","module":"note:post","message":"buttons on page: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\"]"}
+{"ts":"2026-04-17T13:58:31.301Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開\")"}
+{"ts":"2026-04-17T13:58:34.837Z","level":"INFO","module":"note:post","message":"modal/dialog buttons: []"}
+{"ts":"2026-04-17T13:58:34.839Z","level":"INFO","module":"note:post","message":"page text lines: [\"記事の追加\",\"マガジン\",\"メンバーシップ\",\"あとで読む\",\"らすかるAIラボ\",\"追加\",\"クーポン\",\"使用しない\",\"公開中のクーポンはありません\",\"詳細設定\",\"クリエイターページに表示\",\"AI学習対価還元プログラムに参加する\",\"もっとくわしく\",\"コメントの受けつけ\",\"プレミアム\",\"予約投稿\",\"プレミアム\",\"日時の設定\",\"下書きを保存しました\",\"note\"]"}
+{"ts":"2026-04-17T13:58:34.887Z","level":"INFO","module":"note:post","message":"screenshot: /tmp/note-publish-modal.png"}
+{"ts":"2026-04-17T13:58:39.893Z","level":"WARN","module":"note:post","message":"unexpected URL after publish: https://editor.note.com/notes/n595bc2feaa8b/publish/"}
+{"ts":"2026-04-17T13:58:39.898Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n595bc2feaa8b/publish/"}
+{"ts":"2026-04-17T13:59:25.071Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T13:59:31.781Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n085d204ace74/edit/"}
+{"ts":"2026-04-17T13:59:31.825Z","level":"INFO","module":"note:post","message":"interactive elements: [{\"tag\":\"TEXTAREA\",\"class\":\"h-6 min-h-[28px] w-full resize-none bg-background-primary te\",\"placeholder\":\"AIにお願いしたいことをくわしく書いてください\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":58}},{\"tag\":\"TEXTAREA\",\"class\":\"sc-80832eb4-0 heevId\",\"placeholder\":\"記事タイトル\",\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":620,\"h\":50}},{\"tag\":\"DIV\",\"class\":\"ProseMirror note-common-styles__textnote-body ProseMirror-fo\",\"placeholder\":null,\"role\":\"textbox\",\"contenteditable\":\"true\",\"visible\":true,\"rect\":{\"w\":620,\"h\":72}},{\"tag\":\"TEXTAREA\",\"class\":\"\",\"placeholder\":null,\"role\":null,\"contenteditable\":null,\"visible\":true,\"rect\":{\"w\":302,\"h\":0}}]"}
+{"ts":"2026-04-17T13:59:31.838Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T13:59:39.841Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T13:59:44.487Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T13:59:44.497Z","level":"INFO","module":"note:post","message":"buttons on page: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\",\"画像\",\"音声\",\"埋め込み\",\"ファイル\",\"コミック\",\"目次\",\"大見出し\",\"小見出し\",\"箇条書きリスト\",\"番号付きリスト\",\"引用\",\"コード\",\"区切り線\",\"有料エリア指定\"]"}
+{"ts":"2026-04-17T13:59:44.529Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開\")"}
+{"ts":"2026-04-17T13:59:48.038Z","level":"INFO","module":"note:post","message":"publish page buttons: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#作業\",\"#構成\",\"#1本\",\"#ChatGPT\",\"18,966件7月8日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"3,569件5月1日まで\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"#社会人1年目のわたしへこれからラボ34件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T13:59:48.078Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T13:59:53.080Z","level":"WARN","module":"note:post","message":"unexpected URL after publish: https://editor.note.com/notes/n085d204ace74/publish/"}
+{"ts":"2026-04-17T13:59:53.088Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n085d204ace74/publish/"}
+{"ts":"2026-04-17T14:00:00.875Z","level":"INFO","module":"scheduler","message":"START analytics:buzz"}
+{"ts":"2026-04-17T14:00:00.878Z","level":"INFO","module":"analytics:buzz","message":"analysis start"}
+{"ts":"2026-04-17T14:00:00.885Z","level":"INFO","module":"analytics:buzz","message":"reports written","data":{"x":"note","note":"sampleSize, avgTitleLength, titlesWithNumbers, titlesWithoutNumbers, topThemes"}}
+{"ts":"2026-04-17T14:00:00.885Z","level":"INFO","module":"scheduler","message":"DONE  analytics:buzz"}
+{"ts":"2026-04-17T14:00:52.358Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:01:03.396Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n789acd9fc1e6/edit/"}
+{"ts":"2026-04-17T14:01:03.456Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:01:11.462Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T14:01:16.093Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:01:16.138Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:01:19.644Z","level":"INFO","module":"note:post","message":"publish page buttons: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#作業\",\"#構成\",\"#1本\",\"#ChatGPT\",\"18,966件7月8日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"3,569件5月1日まで\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"#社会人1年目のわたしへこれからラボ34件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:01:19.685Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:01:34.688Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n789acd9fc1e6/publish/"}
+{"ts":"2026-04-17T14:01:34.689Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n789acd9fc1e6/publish/"}
+{"ts":"2026-04-17T14:01:34.692Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n789acd9fc1e6/publish/"}
+{"ts":"2026-04-17T14:02:12.729Z","level":"INFO","module":"scheduler","message":"prod single run: note:post"}
+{"ts":"2026-04-17T14:02:12.730Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:02:18.757Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/new"}
+{"ts":"2026-04-17T14:02:48.762Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[contenteditable=\"true\"], [role=\"textbox\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T14:02:48.793Z","level":"ERROR","module":"scheduler","message":"prod single run failed: note:post","data":{"message":"page.waitForSelector: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[contenteditable=\"true\"], [role=\"textbox\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T14:03:35.993Z","level":"INFO","module":"scheduler","message":"prod single run: note:post"}
+{"ts":"2026-04-17T14:03:35.994Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:03:42.294Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n9852ac97cab8/edit/"}
+{"ts":"2026-04-17T14:03:42.353Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:03:50.357Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T14:03:50.942Z","level":"ERROR","module":"note:post","message":"post failed","data":{"message":"page.evaluate: NotAllowedError: Failed to execute 'writeText' on 'Clipboard': Write permission denied."}}
+{"ts":"2026-04-17T14:03:50.977Z","level":"ERROR","module":"scheduler","message":"prod single run failed: note:post","data":{"message":"page.evaluate: NotAllowedError: Failed to execute 'writeText' on 'Clipboard': Write permission denied."}}
+{"ts":"2026-04-17T14:04:17.283Z","level":"INFO","module":"scheduler","message":"prod single run: note:post"}
+{"ts":"2026-04-17T14:04:17.284Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:04:23.339Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/ndf3b3319b57a/edit/"}
+{"ts":"2026-04-17T14:04:23.390Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:04:31.395Z","level":"WARN","module":"note:post","message":"header image upload skipped (selector may have changed)"}
+{"ts":"2026-04-17T14:04:36.057Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:04:36.084Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:04:39.596Z","level":"INFO","module":"note:post","message":"publish page buttons: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#作業\",\"#構成\",\"#1本\",\"#ChatGPT\",\"18,966件7月8日まで\",\"14,517件4月18日まで\",\"3,569件5月1日まで\",\"1,358件5月15日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:04:39.637Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:04:54.640Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/ndf3b3319b57a/publish/"}
+{"ts":"2026-04-17T14:04:54.641Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/ndf3b3319b57a/publish/"}
+{"ts":"2026-04-17T14:04:54.644Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/ndf3b3319b57a/publish/"}
+{"ts":"2026-04-17T14:04:54.676Z","level":"INFO","module":"scheduler","message":"prod single run done: note:post"}
+{"ts":"2026-04-17T14:07:13.092Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:07:20.407Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/na54cc3309160/edit/"}
+{"ts":"2026-04-17T14:07:20.470Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:07:20.482Z","level":"WARN","module":"note:post","message":"header image upload skipped — button not found"}
+{"ts":"2026-04-17T14:07:25.136Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:07:25.169Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:07:28.684Z","level":"INFO","module":"note:post","message":"publish page buttons: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#作業\",\"#構成\",\"#1本\",\"#ChatGPT\",\"18,966件7月8日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"3,569件5月1日まで\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"#社会人1年目のわたしへこれからラボ34件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:07:28.724Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:07:43.726Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/na54cc3309160/publish/"}
+{"ts":"2026-04-17T14:07:43.726Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/na54cc3309160/publish/"}
+{"ts":"2026-04-17T14:07:43.729Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/na54cc3309160/publish/"}
+{"ts":"2026-04-17T14:08:31.749Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:08:38.971Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nf2e88b1ca523/edit/"}
+{"ts":"2026-04-17T14:08:40.024Z","level":"WARN","module":"note:post","message":"header image upload skipped — button not found"}
+{"ts":"2026-04-17T14:08:40.037Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:08:44.683Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:08:44.716Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:08:48.240Z","level":"INFO","module":"note:post","message":"publish page buttons: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#作業\",\"#構成\",\"#1本\",\"#ChatGPT\",\"18,966件7月8日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"3,569件5月1日まで\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"#社会人1年目のわたしへこれからラボ34件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:08:48.295Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:09:03.298Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nf2e88b1ca523/publish/"}
+{"ts":"2026-04-17T14:09:03.299Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nf2e88b1ca523/publish/"}
+{"ts":"2026-04-17T14:09:03.305Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nf2e88b1ca523/publish/"}
+{"ts":"2026-04-17T14:11:48.649Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:11:55.207Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n23cc583b4a7a/edit/"}
+{"ts":"2026-04-17T14:11:56.249Z","level":"WARN","module":"note:post","message":"header image button not found — skipping"}
+{"ts":"2026-04-17T14:11:56.273Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:12:00.931Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:12:00.964Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:12:05.594Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:12:06.140Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:12:21.145Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n23cc583b4a7a/publish/"}
+{"ts":"2026-04-17T14:12:21.145Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n23cc583b4a7a/publish/"}
+{"ts":"2026-04-17T14:12:21.153Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n23cc583b4a7a/publish/"}
+{"ts":"2026-04-17T14:13:10.034Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:13:16.984Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n303399edec4a/edit/"}
+{"ts":"2026-04-17T14:13:18.046Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:13:24.694Z","level":"WARN","module":"note:post","message":"header image button not found — skipping"}
+{"ts":"2026-04-17T14:13:27.705Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:13:27.731Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:13:32.383Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:13:32.936Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:13:47.940Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n303399edec4a/publish/"}
+{"ts":"2026-04-17T14:13:47.940Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n303399edec4a/publish/"}
+{"ts":"2026-04-17T14:13:47.946Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n303399edec4a/publish/"}
+{"ts":"2026-04-17T14:14:15.239Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:14:21.847Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n31fdd181e47e/edit/"}
+{"ts":"2026-04-17T14:14:22.905Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:14:25.406Z","level":"WARN","module":"note:post","message":"header image button not found — skipping"}
+{"ts":"2026-04-17T14:14:28.424Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:14:28.468Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:14:33.143Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:14:33.692Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:14:48.697Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n31fdd181e47e/publish/"}
+{"ts":"2026-04-17T14:14:48.698Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n31fdd181e47e/publish/"}
+{"ts":"2026-04-17T14:14:48.703Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n31fdd181e47e/publish/"}
+{"ts":"2026-04-17T14:15:11.759Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:15:18.872Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/ncdd76d8be5f6/edit/"}
+{"ts":"2026-04-17T14:15:19.933Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:15:22.436Z","level":"INFO","module":"note:post","message":"cover area buttons: [\"会話をやりなおす\",\"誤字、表記揺れを修正\",\"内容のレビューを聞く\",\"閉じる\",\"下書き保存\",\"公開に進む\",\"見出し\\n\\n\",\"AIアシスタント\"]"}
+{"ts":"2026-04-17T14:15:22.443Z","level":"WARN","module":"note:post","message":"header image button not found — skipping"}
+{"ts":"2026-04-17T14:15:25.457Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:15:25.484Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:15:30.140Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:15:30.695Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:15:45.698Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/ncdd76d8be5f6/publish/"}
+{"ts":"2026-04-17T14:15:45.699Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/ncdd76d8be5f6/publish/"}
+{"ts":"2026-04-17T14:15:45.700Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/ncdd76d8be5f6/publish/"}
+{"ts":"2026-04-17T14:16:27.743Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:16:34.359Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n34d7aa2a14f5/edit/"}
+{"ts":"2026-04-17T14:16:35.430Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:16:40.069Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:16:45.077Z","level":"WARN","module":"note:post","message":"header image upload failed: page.waitForSelector: Timeout 5000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('text=画像をアップロード') to be visible\u001b[22m\n"}
+{"ts":"2026-04-17T14:16:45.110Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:16:49.744Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:16:50.281Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:17:05.285Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n34d7aa2a14f5/publish/"}
+{"ts":"2026-04-17T14:17:05.287Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n34d7aa2a14f5/publish/"}
+{"ts":"2026-04-17T14:17:05.292Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n34d7aa2a14f5/publish/"}
+{"ts":"2026-04-17T14:17:57.182Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:18:04.403Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n1f0b2d4a444d/edit/"}
+{"ts":"2026-04-17T14:18:05.464Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:18:10.131Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:18:40.137Z","level":"WARN","module":"note:post","message":"header image upload failed: locator.setInputFiles: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"file\"]').first()\u001b[22m\n"}
+{"ts":"2026-04-17T14:18:40.179Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:18:44.852Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:18:45.394Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:19:00.398Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n1f0b2d4a444d/publish/"}
+{"ts":"2026-04-17T14:19:00.399Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n1f0b2d4a444d/publish/"}
+{"ts":"2026-04-17T14:19:00.402Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n1f0b2d4a444d/publish/"}
+{"ts":"2026-04-17T14:19:56.010Z","level":"INFO","module":"note:post","message":"posting: AI執筆ツールを使い始めて2週間で記事数が5倍になった話【月15本達成の全手順】"}
+{"ts":"2026-04-17T14:20:02.676Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/ne2de791e463e/edit/"}
+{"ts":"2026-04-17T14:20:03.742Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:20:08.394Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:20:08.396Z","level":"WARN","module":"note:post","message":"header image button not found in DOM — skipping"}
+{"ts":"2026-04-17T14:20:08.426Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:20:13.100Z","level":"INFO","module":"note:post","message":"hashtags set: AI副業, Claude活用, note収益化, 自動化, 副業"}
+{"ts":"2026-04-17T14:20:13.651Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"投稿する\"):not([disabled])"}
+{"ts":"2026-04-17T14:20:28.654Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/ne2de791e463e/publish/"}
+{"ts":"2026-04-17T14:20:28.654Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/ne2de791e463e/publish/"}
+{"ts":"2026-04-17T14:20:28.656Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/ne2de791e463e/publish/"}
+{"ts":"2026-04-17T14:43:30.733Z","level":"INFO","module":"note:post","message":"no drafts to post"}
+{"ts":"2026-04-17T14:43:42.555Z","level":"INFO","module":"note:generate","message":"generating: Claude AIで副業月3万円を達成した5つのステップ"}
+{"ts":"2026-04-17T14:43:48.026Z","level":"INFO","module":"note:generate","message":"outline done","data":{"title":"スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}}
+{"ts":"2026-04-17T14:44:21.970Z","level":"INFO","module":"note:generate","message":"draft saved: /Users/Rascal/work/automation/note/drafts/1776437061967-スキルゼロからClaude_AIで副業月.json"}
+{"ts":"2026-04-17T14:44:32.401Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:44:39.624Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nf96745b1c59d/edit/"}
+{"ts":"2026-04-17T14:44:40.680Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:44:43.503Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:44:46.647Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:44:46.697Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:44:51.356Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:44:51.893Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:44:51.895Z","level":"WARN","module":"note:post","message":"paid toggle clicked but price input not found"}
+{"ts":"2026-04-17T14:45:07.418Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nf96745b1c59d/publish/"}
+{"ts":"2026-04-17T14:45:07.421Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nf96745b1c59d/publish/"}
+{"ts":"2026-04-17T14:45:07.432Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nf96745b1c59d/publish/"}
+{"ts":"2026-04-17T14:45:44.765Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:45:51.714Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nf3530f2afce2/edit/"}
+{"ts":"2026-04-17T14:45:52.772Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:45:55.573Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:45:58.718Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:45:58.759Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:46:03.423Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:46:04.469Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:46:07.481Z","level":"WARN","module":"note:post","message":"paid toggle clicked but price input not found"}
+{"ts":"2026-04-17T14:46:23.004Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nf3530f2afce2/publish/"}
+{"ts":"2026-04-17T14:46:23.006Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nf3530f2afce2/publish/"}
+{"ts":"2026-04-17T14:46:23.007Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nf3530f2afce2/publish/"}
+{"ts":"2026-04-17T14:46:47.122Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:46:53.875Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nc1a74f27a544/edit/"}
+{"ts":"2026-04-17T14:46:54.937Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:46:57.727Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:47:00.876Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:47:00.912Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:47:05.550Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:47:06.594Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:47:06.815Z","level":"INFO","module":"note:post","message":"publish inputs: [\"text|ハッシュタグを追加する||sc-35e5f35-3 kFFesX\",\"radio||is_paid|sc-6a7afe37-0 gHYurQ\",\"radio||is_paid|sc-6a7afe37-0 gHYurQ\",\"text|300||sc-85966dc5-0 jphToq\",\"checkbox|||absolute left-0 top-0 z-10 m-0 h-full w-\",\"radio||sale_setting|sc-6a7afe37-0 gHYurQ\",\"radio||sale_setting|sc-6a7afe37-0 gHYurQ\",\"radio||sale_setting|sc-6a7afe37-0 gHYurQ\",\"radio||sale_setting|sc-6a7afe37-0 gHYurQ\",\"radio||pro-coupon-nc1a74f27a544|sc-6a7afe37-0 gHYurQ\",\"checkbox|||absolute left-0 top-0 z-10 m-0 h-full w-\",\"checkbox|||absolute left-0 top-0 z-10 m-0 h-full w-\",\"checkbox|||absolute left-0 top-0 z-10 m-0 h-full w-\"]"}
+{"ts":"2026-04-17T14:47:09.826Z","level":"WARN","module":"note:post","message":"paid toggle clicked but price input not found"}
+{"ts":"2026-04-17T14:47:25.345Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nc1a74f27a544/publish/"}
+{"ts":"2026-04-17T14:47:25.346Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nc1a74f27a544/publish/"}
+{"ts":"2026-04-17T14:47:25.348Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nc1a74f27a544/publish/"}
+{"ts":"2026-04-17T14:48:01.806Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:48:08.625Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nb5f6e2ecc892/edit/"}
+{"ts":"2026-04-17T14:48:09.693Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:48:12.517Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:48:15.676Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:48:15.706Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:48:20.393Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:48:21.442Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:48:21.779Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:48:22.798Z","level":"INFO","module":"note:post","message":"confirm buttons: [\"キャンセル\",\"有料エリア設定\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#Claude\\n\\n\",\"#AI副業\\n\\n\",\"#副業収益化\\n\\n\",\"#自動化\\n\\n\",\"#生産性向上\\n\\n\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"14,517件4月18日まで\",\"1,358件5月15日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:48:37.819Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nb5f6e2ecc892/publish/"}
+{"ts":"2026-04-17T14:48:37.820Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nb5f6e2ecc892/publish/"}
+{"ts":"2026-04-17T14:48:37.823Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nb5f6e2ecc892/publish/"}
+{"ts":"2026-04-17T14:49:04.560Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:49:11.060Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n9b318580b050/edit/"}
+{"ts":"2026-04-17T14:49:12.128Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:49:14.936Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:49:18.080Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:49:18.111Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:49:22.768Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:49:23.824Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:49:24.170Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:49:25.181Z","level":"INFO","module":"note:post","message":"publish element: {\"found\":false}"}
+{"ts":"2026-04-17T14:49:40.202Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n9b318580b050/publish/"}
+{"ts":"2026-04-17T14:49:40.202Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n9b318580b050/publish/"}
+{"ts":"2026-04-17T14:49:40.207Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n9b318580b050/publish/"}
+{"ts":"2026-04-17T14:49:54.289Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:50:00.803Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n181ddd5bd50e/edit/"}
+{"ts":"2026-04-17T14:50:01.871Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:50:04.706Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:50:07.855Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:50:07.896Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:50:12.555Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:50:13.595Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:50:13.944Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:50:14.952Z","level":"INFO","module":"note:post","message":"publish element: {\"found\":false}"}
+{"ts":"2026-04-17T14:50:15.022Z","level":"INFO","module":"note:post","message":"page texts: [\"キャンセル\",\"有料エリア設定\",\"公開設定\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#Claude\",\"#AI副業\",\"#副業収益化\",\"#自動化\",\"#生産性向上\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"お題/コンテストに参加\",\"18,966件\",\"7月8日\",\"まで\",\"3,569件\",\"5月1日\",\"14,517件\",\"4月18日\",\"1,358件\",\"5月15日\",\"社会人1年目のわたしへ\",\"これからラボ\",\"34件\",\"新しい仕事に向き合うとき\",\"with 日本経済新聞\",\"3,984件\",\"もっと見る\",\"無料\",\"有料\",\"価格\",\"記事購入のハードルを下げよう\",\"返金申請の受け付け\"]"}
+{"ts":"2026-04-17T14:50:30.037Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n181ddd5bd50e/publish/"}
+{"ts":"2026-04-17T14:50:30.037Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n181ddd5bd50e/publish/"}
+{"ts":"2026-04-17T14:50:30.039Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n181ddd5bd50e/publish/"}
+{"ts":"2026-04-17T14:50:59.646Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:51:07.013Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n712b733e47be/edit/"}
+{"ts":"2026-04-17T14:51:08.089Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:51:10.876Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:51:14.042Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:51:14.064Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:51:18.742Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:51:19.784Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:51:20.125Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:51:21.647Z","level":"WARN","module":"note:post","message":"publish confirm button not found — article may remain as draft"}
+{"ts":"2026-04-17T14:51:36.655Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n712b733e47be/publish/"}
+{"ts":"2026-04-17T14:51:36.656Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n712b733e47be/publish/"}
+{"ts":"2026-04-17T14:51:36.660Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n712b733e47be/publish/"}
+{"ts":"2026-04-17T14:52:03.852Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:52:10.472Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n8a0f48237329/edit/"}
+{"ts":"2026-04-17T14:52:11.513Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:52:14.297Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:52:17.439Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:52:17.476Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:52:22.121Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:52:23.164Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:52:23.518Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:52:25.401Z","level":"WARN","module":"note:post","message":"publish confirm button not found — article may remain as draft"}
+{"ts":"2026-04-17T14:52:40.405Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n8a0f48237329/publish/"}
+{"ts":"2026-04-17T14:52:40.406Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n8a0f48237329/publish/"}
+{"ts":"2026-04-17T14:52:40.411Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n8a0f48237329/publish/"}
+{"ts":"2026-04-17T14:53:22.671Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:53:29.247Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nb05b63379f6a/edit/"}
+{"ts":"2026-04-17T14:53:30.313Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:53:33.164Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:53:36.317Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:53:36.350Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:53:41.007Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:53:42.063Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:53:42.403Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:53:44.620Z","level":"WARN","module":"note:post","message":"publish confirm button not found — article may remain as draft"}
+{"ts":"2026-04-17T14:53:59.625Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nb05b63379f6a/publish/"}
+{"ts":"2026-04-17T14:53:59.627Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nb05b63379f6a/publish/"}
+{"ts":"2026-04-17T14:53:59.631Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nb05b63379f6a/publish/"}
+{"ts":"2026-04-17T14:54:29.500Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:54:36.812Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/ncae43297cedb/edit/"}
+{"ts":"2026-04-17T14:54:37.888Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:54:40.772Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:54:43.928Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:54:43.971Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:54:48.620Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:54:49.674Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:54:50.027Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:54:51.962Z","level":"WARN","module":"note:post","message":"publish confirm button not found — article may remain as draft"}
+{"ts":"2026-04-17T14:55:06.968Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/ncae43297cedb/publish/"}
+{"ts":"2026-04-17T14:55:06.971Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/ncae43297cedb/publish/"}
+{"ts":"2026-04-17T14:55:06.977Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/ncae43297cedb/publish/"}
+{"ts":"2026-04-17T14:55:57.245Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:56:04.082Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n99288a13249c/edit/"}
+{"ts":"2026-04-17T14:56:05.144Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:56:07.964Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:56:11.117Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:56:11.161Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:56:13.728Z","level":"INFO","module":"note:post","message":"all clickable: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"14,517件4月18日まで\",\"1,358件5月15日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:56:15.862Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:56:16.893Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:56:17.222Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:56:19.129Z","level":"WARN","module":"note:post","message":"publish confirm button not found — article may remain as draft"}
+{"ts":"2026-04-17T14:56:34.133Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n99288a13249c/publish/"}
+{"ts":"2026-04-17T14:56:34.133Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n99288a13249c/publish/"}
+{"ts":"2026-04-17T14:56:34.136Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n99288a13249c/publish/"}
+{"ts":"2026-04-17T14:57:01.074Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:57:08.028Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n51f95f3dd21b/edit/"}
+{"ts":"2026-04-17T14:57:09.077Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:57:11.899Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:57:15.029Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:57:15.055Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:57:17.610Z","level":"INFO","module":"note:post","message":"all clickable: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:57:19.775Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:57:20.811Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:57:21.145Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:57:23.075Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T14:57:38.079Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/n51f95f3dd21b/publish/"}
+{"ts":"2026-04-17T14:57:38.080Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n51f95f3dd21b/publish/"}
+{"ts":"2026-04-17T14:57:38.084Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n51f95f3dd21b/publish/"}
+{"ts":"2026-04-17T14:58:01.178Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:58:08.549Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/ne4eb3d33746d/edit/"}
+{"ts":"2026-04-17T14:58:09.624Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:58:12.437Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:58:15.578Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:58:15.607Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:58:18.184Z","level":"INFO","module":"note:post","message":"all clickable: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:58:20.335Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:58:21.398Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:58:21.724Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:58:23.673Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T14:58:25.234Z","level":"INFO","module":"note:post","message":"post-confirm buttons: [\"キャンセル\",\"投稿する\",\"このラインより先を有料にする\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\",\"ラインをこの場所に変更\"]"}
+{"ts":"2026-04-17T14:58:40.239Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/ne4eb3d33746d/publish/"}
+{"ts":"2026-04-17T14:58:40.241Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/ne4eb3d33746d/publish/"}
+{"ts":"2026-04-17T14:58:40.244Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/ne4eb3d33746d/publish/"}
+{"ts":"2026-04-17T14:59:14.507Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T14:59:21.526Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nc6f3c0d76197/edit/"}
+{"ts":"2026-04-17T14:59:22.580Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T14:59:25.380Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T14:59:28.529Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T14:59:28.576Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T14:59:31.166Z","level":"INFO","module":"note:post","message":"all clickable: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T14:59:33.322Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T14:59:34.372Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T14:59:34.721Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T14:59:36.653Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T14:59:38.204Z","level":"INFO","module":"note:post","message":"paid line boundary set"}
+{"ts":"2026-04-17T14:59:38.240Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T14:59:53.244Z","level":"WARN","module":"note:post","message":"URL did not transition to /n/ within 15s: https://editor.note.com/notes/nc6f3c0d76197/publish/"}
+{"ts":"2026-04-17T14:59:53.245Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nc6f3c0d76197/publish/"}
+{"ts":"2026-04-17T14:59:53.249Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nc6f3c0d76197/publish/"}
+{"ts":"2026-04-17T15:00:00.478Z","level":"INFO","module":"scheduler","message":"START youtube:generate:short"}
+{"ts":"2026-04-17T15:00:00.481Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AI初心者が最初にやること\""}
+{"ts":"2026-04-17T15:00:17.179Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T15:00:18.472Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/thumbnail.png"}
+{"ts":"2026-04-17T15:00:18.476Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-17/short.json"}
+{"ts":"2026-04-17T15:00:18.476Z","level":"INFO","module":"scheduler","message":"DONE  youtube:generate:short"}
+{"ts":"2026-04-17T15:00:23.817Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nccfbba389084/edit/"}
+{"ts":"2026-04-17T15:00:24.879Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T15:00:27.699Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T15:00:30.821Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T15:00:30.854Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T15:00:33.432Z","level":"INFO","module":"note:post","message":"all clickable: [\"キャンセル\",\"投稿する\",\"ハッシュタグ\",\"記事タイプ\",\"記事の追加\",\"クーポン\",\"詳細設定\",\"#記事\",\"#000円\",\"#ステップ\",\"#Instagram\",\"#500円\",\"18,966件7月8日まで\",\"3,569件5月1日まで\",\"1,358件5月15日まで\",\"14,517件4月18日まで\",\"#社会人1年目のわたしへこれからラボ34件\",\"#新しい仕事に向き合うときwith 日本経済新聞3,984件\",\"もっと見る\",\"マガジン\",\"メンバーシップ\",\"追加\",\"日時の設定\"]"}
+{"ts":"2026-04-17T15:00:35.579Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T15:00:36.633Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T15:00:36.974Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T15:00:38.899Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T15:00:40.442Z","level":"INFO","module":"note:post","message":"paid line boundary set"}
+{"ts":"2026-04-17T15:00:40.496Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T15:00:57.036Z","level":"INFO","module":"note:post","message":"final URL: https://note.com/rascal_ai_devops/n/nccfbba389084?app_launch=false"}
+{"ts":"2026-04-17T15:00:57.038Z","level":"INFO","module":"note:post","message":"published: https://note.com/rascal_ai_devops/n/nccfbba389084?app_launch=false"}
+{"ts":"2026-04-17T15:05:29.604Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T15:05:37.406Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n6805e6b78d53/edit/"}
+{"ts":"2026-04-17T15:05:38.473Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T15:05:41.288Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T15:05:44.406Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T15:05:44.450Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T15:05:49.123Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T15:05:50.178Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T15:05:50.527Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T15:05:52.382Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T15:05:53.384Z","level":"INFO","module":"note:post","message":"freeBody paragraphs: 12"}
+{"ts":"2026-04-17T15:05:53.921Z","level":"INFO","module":"note:post","message":"paid line set at paragraph 12 of 162"}
+{"ts":"2026-04-17T15:05:53.957Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T15:06:25.966Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n6805e6b78d53/publish/"}
+{"ts":"2026-04-17T15:06:25.974Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n6805e6b78d53/publish/"}
+{"ts":"2026-04-17T15:07:02.886Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T15:07:09.997Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/nf0792261b42e/edit/"}
+{"ts":"2026-04-17T15:07:11.063Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T15:07:13.871Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T15:07:17.003Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T15:07:17.048Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T15:07:21.699Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T15:07:22.748Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T15:07:23.090Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T15:07:24.943Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T15:07:25.945Z","level":"INFO","module":"note:post","message":"freeBody paragraphs: 12"}
+{"ts":"2026-04-17T15:07:26.796Z","level":"INFO","module":"note:post","message":"paid line set at paragraph 12 of 162"}
+{"ts":"2026-04-17T15:07:27.332Z","level":"INFO","module":"note:post","message":"paid line confirmed"}
+{"ts":"2026-04-17T15:07:27.368Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T15:07:59.376Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/nf0792261b42e/publish/"}
+{"ts":"2026-04-17T15:07:59.379Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/nf0792261b42e/publish/"}
+{"ts":"2026-04-17T15:08:34.764Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T15:08:41.723Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n63fae48117aa/edit/"}
+{"ts":"2026-04-17T15:08:42.790Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T15:08:45.629Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T15:08:48.779Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T15:08:48.837Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T15:08:53.494Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T15:08:54.544Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T15:08:54.898Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T15:08:56.749Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T15:08:57.752Z","level":"INFO","module":"note:post","message":"freeBody paragraphs: 12"}
+{"ts":"2026-04-17T15:08:58.581Z","level":"INFO","module":"note:post","message":"paid line set at paragraph 12 of 162"}
+{"ts":"2026-04-17T15:08:58.626Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T15:09:30.632Z","level":"INFO","module":"note:post","message":"final URL: https://editor.note.com/notes/n63fae48117aa/publish/"}
+{"ts":"2026-04-17T15:09:30.640Z","level":"INFO","module":"note:post","message":"published: https://editor.note.com/notes/n63fae48117aa/publish/"}
+{"ts":"2026-04-17T15:10:04.002Z","level":"INFO","module":"note:post","message":"posting: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-17T15:10:10.383Z","level":"INFO","module":"note:post","message":"editor URL: https://editor.note.com/notes/n049a7c9224a7/edit/"}
+{"ts":"2026-04-17T15:10:11.427Z","level":"INFO","module":"note:post","message":"title filled"}
+{"ts":"2026-04-17T15:10:14.246Z","level":"WARN","module":"note:post","message":"paid section divider not inserted — falling back to full body"}
+{"ts":"2026-04-17T15:10:17.398Z","level":"INFO","module":"note:post","message":"draft saved"}
+{"ts":"2026-04-17T15:10:17.448Z","level":"INFO","module":"note:post","message":"publish button clicked: button:has-text(\"公開に進む\")"}
+{"ts":"2026-04-17T15:10:22.118Z","level":"INFO","module":"note:post","message":"hashtags set: Claude, AI副業, 副業収益化, 自動化, 生産性向上"}
+{"ts":"2026-04-17T15:10:23.186Z","level":"INFO","module":"note:post","message":"paid toggle clicked: label:has-text(\"有料\")"}
+{"ts":"2026-04-17T15:10:23.540Z","level":"INFO","module":"note:post","message":"price set: 500円"}
+{"ts":"2026-04-17T15:10:25.414Z","level":"INFO","module":"note:post","message":"publish confirmed: button:has-text(\"有料エリア設定\")"}
+{"ts":"2026-04-17T15:10:26.417Z","level":"INFO","module":"note:post","message":"freeBody paragraphs: 12"}
+{"ts":"2026-04-17T15:10:27.292Z","level":"INFO","module":"note:post","message":"paid line set at paragraph 12 of 162"}
+{"ts":"2026-04-17T15:10:27.343Z","level":"INFO","module":"note:post","message":"paid article posted via 投稿する in boundary modal"}
+{"ts":"2026-04-17T15:10:44.039Z","level":"INFO","module":"note:post","message":"final URL: https://note.com/rascal_ai_devops/n/n049a7c9224a7?app_launch=false"}
+{"ts":"2026-04-17T15:10:44.042Z","level":"INFO","module":"note:post","message":"published: https://note.com/rascal_ai_devops/n/n049a7c9224a7?app_launch=false"}
+{"ts":"2026-04-17T15:22:48.226Z","level":"INFO","module":"youtube:upload","message":"video uploaded: GvkFT0hBONs"}
+{"ts":"2026-04-17T15:22:48.229Z","level":"INFO","module":"youtube:upload","message":"uploaded: https://www.youtube.com/watch?v=GvkFT0hBONs"}
+{"ts":"2026-04-17T15:36:27.613Z","level":"INFO","module":"scheduler","message":"dev run: x:like"}
+{"ts":"2026-04-17T15:36:32.935Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-17T15:36:52.508Z","level":"INFO","module":"x:browser","message":"step2 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T15:36:52.509Z","level":"INFO","module":"x:browser","message":"step3 url: https://x.com/i/flow/login"}
+{"ts":"2026-04-17T15:37:07.513Z","level":"ERROR","module":"scheduler","message":"dev run failed: x:like","data":{"message":"locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]') to be visible\u001b[22m\n"}}
+{"ts":"2026-04-17T15:53:39.338Z","level":"INFO","module":"scheduler","message":"dev run: x:like"}
+{"ts":"2026-04-17T15:53:43.426Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-17T15:53:47.485Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-17T15:53:47.486Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-17T15:53:51.491Z","level":"INFO","module":"x:like","message":"  → 10 tweets found"}
+{"ts":"2026-04-17T15:53:51.491Z","level":"INFO","module":"x:like","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-17T15:53:55.972Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-17T15:53:55.972Z","level":"INFO","module":"x:like","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-17T15:54:00.198Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-17T15:54:00.198Z","level":"INFO","module":"x:like","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-17T15:54:04.071Z","level":"INFO","module":"x:like","message":"  → 10 tweets found"}
+{"ts":"2026-04-17T15:54:04.071Z","level":"INFO","module":"x:like","message":"playwright search: \"投資\""}
+{"ts":"2026-04-17T15:54:07.980Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-17T15:54:08.033Z","level":"INFO","module":"x:like","message":"like run done. liked: 0"}
+{"ts":"2026-04-17T15:54:08.033Z","level":"INFO","module":"scheduler","message":"dev run done: x:like"}
+{"ts":"2026-04-17T16:00:00.376Z","level":"INFO","module":"scheduler","message":"START youtube:render:short"}
+{"ts":"2026-04-17T16:00:00.385Z","level":"INFO","module":"youtube:render","message":"already uploaded, skip render"}
+{"ts":"2026-04-17T16:00:00.387Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:short"}
+{"ts":"2026-04-17T16:04:54.786Z","level":"INFO","module":"scheduler","message":"dev run: youtube:plan"}
+{"ts":"2026-04-17T16:04:54.786Z","level":"INFO","module":"youtube:plan","message":"generating themes for 1 missing dates"}
+{"ts":"2026-04-17T16:04:56.422Z","level":"INFO","module":"youtube:plan","message":"plan updated: 1 themes added"}
+{"ts":"2026-04-17T16:04:56.422Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:plan"}
+{"ts":"2026-04-17T17:00:00.129Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-fetch"}
+{"ts":"2026-04-17T17:00:01.189Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-17T17:00:01.856Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-17T17:00:02.325Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/LocalLLaMA: 15 posts fetched"}
+{"ts":"2026-04-17T17:00:03.739Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/LocalLLaMA] score:405 \"Only LocalLLaMa can save us now.\""}
+{"ts":"2026-04-17T17:00:03.740Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-fetch"}
+{"ts":"2026-04-17T18:00:00.792Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-generate"}
+{"ts":"2026-04-17T18:00:00.798Z","level":"INFO","module":"youtube:reddit-generate","message":"draft already exists for reddit-short, skipping"}
+{"ts":"2026-04-17T18:00:00.799Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-generate"}
+{"ts":"2026-04-17T19:00:00.816Z","level":"INFO","module":"scheduler","message":"START youtube:render:reddit-short"}
+{"ts":"2026-04-17T19:00:00.833Z","level":"INFO","module":"youtube:render","message":"already uploaded, skip render"}
+{"ts":"2026-04-17T19:00:00.835Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:reddit-short"}

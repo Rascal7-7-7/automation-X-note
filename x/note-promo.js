@@ -32,42 +32,66 @@ import { logXPost } from '../analytics/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'x:note-promo';
-const DRAFTS_DIR = path.join(__dirname, '../note/drafts');
+const NOTE_ROOT = path.join(__dirname, '../note');
 
-const PROMO_SYSTEM = `あなたはAI活用・副業をテーマに発信するXアカウントです。
+// アカウント別設定
+const ACCOUNT_META = {
+  1: { label: null,       persona: 'AI活用・副業をテーマに発信するXアカウント',       financialWarning: false },
+  2: { label: '【投資×AI】', persona: '投資・FX・AI自動売買をテーマに発信するXアカウント', financialWarning: true  },
+  3: { label: '【アフィリ】', persona: 'アフィリエイト副業をテーマに発信するXアカウント', financialWarning: false },
+};
+
+function buildPromoSystem(accountId = 1) {
+  const meta = ACCOUNT_META[accountId] ?? ACCOUNT_META[1];
+  const labelRule = meta.label
+    ? `- ツイート冒頭に必ず「${meta.label}」を付ける`
+    : '';
+  const financialRule = meta.financialWarning
+    ? `- 「必ず儲かる」「高収益保証」「確実に稼げる」等の表現は絶対禁止（X金融コンテンツ規制）
+- リスクを示唆する表現を1つ含める（「リスク管理も解説」「失敗事例も公開」等）`
+    : '';
+
+  return `あなたは${meta.persona}です。
 note記事の情報からX告知ツイートを1件作成してください。
 
 【重要】URLは本文に含めない（URLはリプライで別途投稿する）
 
 ルール:
+${labelRule}
 - 120文字以内（日本語）
 - ティーザー形式：記事の価値・学べること・解決できる悩みを具体的に伝える
 - 読者が「続きが読みたい」と思わせる表現にする（「▼詳しくはリプライへ」で締める）
 - 宣伝くさい文体は禁止
-- ハッシュタグは1〜2個・末尾のみ
-- 末尾に改行なし
-
-良い例:
-「月5万円の副業を3ヶ月で達成した方法をnoteにまとめました。
-ツール選び・時間配分・SNS戦略の3点を具体的に解説しています。
-▼詳しくはリプライへ」`;
+- ハッシュタグは関連性があれば4個まで・末尾のみ
+${financialRule}`;
+}
 
 // ── ドラフト操作 ─────────────────────────────────────────────────────
 function findPromoTarget() {
-  if (!fs.existsSync(DRAFTS_DIR)) return null;
+  const subdirs = ['drafts', 'drafts/account2', 'drafts/account3'];
+  const all = [];
 
-  const files = fs.readdirSync(DRAFTS_DIR)
-    .filter(f => f.endsWith('.json'))
-    .map(f => ({ filePath: path.join(DRAFTS_DIR, f) }))
-    .map(f => ({ ...f, draft: JSON.parse(fs.readFileSync(f.filePath, 'utf8')) }))
-    .filter(f =>
-      f.draft.status === 'posted' &&
-      f.draft.noteUrl?.includes('/n/') &&
-      f.draft.promoPosted !== true
-    )
-    .sort((a, b) => (a.draft.postedAt ?? '').localeCompare(b.draft.postedAt ?? ''));
+  for (const sub of subdirs) {
+    const dir = path.join(NOTE_ROOT, sub);
+    if (!fs.existsSync(dir)) continue;
+    fs.readdirSync(dir)
+      .filter(f => f.endsWith('.json'))
+      .forEach(f => {
+        try {
+          const filePath = path.join(dir, f);
+          const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+          if (
+            draft.status === 'posted' &&
+            draft.noteUrl?.includes('/n/') &&
+            draft.promoPosted !== true
+          ) all.push({ filePath, draft });
+        } catch { /* skip */ }
+      });
+  }
 
-  return files[0] ?? null;
+  return all.sort((a, b) =>
+    (a.draft.postedAt ?? '').localeCompare(b.draft.postedAt ?? '')
+  )[0] ?? null;
 }
 
 function markPromoPosted(filePath) {
@@ -80,11 +104,13 @@ function markPromoPosted(filePath) {
 
 // ── ツイート生成 ─────────────────────────────────────────────────────
 async function generatePromoTweet(draft) {
+  const accountId = draft.account ?? 1;
+  const system = buildPromoSystem(accountId);
   const prompt = `記事タイトル: ${draft.title}
 概要: ${draft.summary}
 テーマ: ${draft.theme}`;
 
-  return generate(PROMO_SYSTEM, prompt, { maxTokens: 300, model: 'claude-sonnet-4-6' });
+  return generate(system, prompt, { maxTokens: 300, model: 'claude-sonnet-4-6' });
 }
 
 // ── メイン ───────────────────────────────────────────────────────────

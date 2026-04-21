@@ -1,0 +1,35 @@
+{
+  "theme": "ChatGPTとClaudeの使い分け",
+  "type": "short",
+  "series": null,
+  "episode": null,
+  "aiTool": null,
+  "hookText": "見逃すと損します",
+  "buzzTemplate": 2,
+  "script": "ChatGPTで作った文章です\nなんか違和感ありますよね\nClaudeで比較できます\nもう判別できないレベル\n実は全部入れ替えてました\n全部気づいた？もう一回見てみて\n何個気づいた？",
+  "titles": [
+    "ChatGPT vs Claude｜プロが選ぶ使い分け3つのコツ",
+    "知らないと損する｜ChatGPTとClaudeの決定的な違い",
+    "月5万稼ぐ人が実践｜AIの正しい使い分け術",
+    "30秒で判断｜ChatGPTとClaudeどっち選ぶ？",
+    "驚愕の結果｜同じ質問をAIに投げた比較実験"
+  ],
+  "description": "ChatGPTとClaudeの使い分けを60秒で解説。AI副業・自動化で成果を出すなら、ツール選びが収益を左右します。\n\nこの動画では、用途別に最適なAIを即判断できる基準を紹介。開発・ライティング・SNS自動化など、シーン別の選び方がわかります。\n\n---\n\n**【ChatGPT vs Claude 使い分け早見表】**\n\n✅ **ChatGPT（GPT-4o）が向いている用途**\n・コード生成・デバッグ（プログラミング補助）\n・画像生成（DALL-E連携）\n・プラグイン・API連携を使った自動化\n・幅広いタスクへの汎用対応\n\n✅ **Claudeが向いている用途**\n・長文ライティング・ブログ記事の一括生成\n・ニュアンスを重視した自然な日本語表現\n・大量テキストの要約・分析（200Kトークン対応）\n・SNS投稿文・メルマガなど文章系の副業\n\n**結論：コード・自動化 → ChatGPT／文章・ライティング → Claude**\n\n月5万円以上の副業収益を狙うなら、この使い分けだけで作業効率が2〜3倍変わります。AIツールを正しく選んで、収益化を加速させましょう。\n\n#Shorts #ChatGPT #Claude #AI副業 #AI活用\n\n---\n\n🔔 チャンネル登録はこちら → https://www.youtube.com/@nucho0202\n🐦 X(Twitter): https://x.com/Rascal_AI_Dev\n📷 Instagram: https://www.instagram.com/ai_side_hack_/",
+  "tags": [
+    "Shorts",
+    "ChatGPT",
+    "Claude",
+    "AI副業",
+    "AI活用"
+  ],
+  "thumbnail": "COPY: \nGPTとClaudeどう違う?\nプロが教えるAI選別術\nAI使い分けで生産性2倍\n\nPROMPT:\nA vibrant YouTube short thumbnail with a bright electric blue background split with neon purple on the right side. Two large AI robot heads facing each other in the center, one glowing golden (ChatGPT), one glowing silver (Claude), with lightning bolts between them. Bold white text reading \"GPT vs CLAUDE\" in uppercase at the top in 48pt font with a yellow shadow effect. A shocked and amazed Asian male creator's face in the bottom right corner with wide eyes and pointing hand gesture. Modern flat design style with glossy 3D elements, high contrast, professional YouTube aesthetic. 16:9 aspect ratio.",
+  "thumbnailPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/thumbnail.png",
+  "date": "2026-04-21",
+  "status": "rendered",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/short.mp4",
+  "videoId": null,
+  "crossPublished": false,
+  "createdAt": "2026-04-21T15:00:42.890Z",
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/short_captions.srt",
+  "renderedAt": "2026-04-21T16:01:12.158Z"
+}

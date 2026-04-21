@@ -1,0 +1,49 @@
+{
+  "_comment": "Ghost英語記事用アフィリ案件。affiliateUrl取得後に追加。keywords = 記事内でリンクを挿入するトリガーワード",
+  "campaigns": [
+    {
+      "id": "hostinger",
+      "productName": "Hostinger",
+      "category": "Web Hosting",
+      "reward": "60% commission",
+      "affiliateUrl": "",
+      "active": false,
+      "keywords": ["web hosting", "blog setup", "WordPress", "domain", "server"],
+      "ctaText": "Start your blog with Hostinger (cheapest hosting for beginners)",
+      "description": "Affordable web hosting — great for readers setting up their first automation/blog site"
+    },
+    {
+      "id": "n8n_cloud",
+      "productName": "n8n Cloud",
+      "category": "Automation",
+      "reward": "20% recurring",
+      "affiliateUrl": "",
+      "active": false,
+      "keywords": ["n8n", "automation workflow", "no-code", "self-hosted"],
+      "ctaText": "Try n8n Cloud free for 14 days",
+      "description": "Cloud version of n8n — relevant for all automation workflow articles"
+    },
+    {
+      "id": "skillshare",
+      "productName": "Skillshare",
+      "category": "Online Learning",
+      "reward": "$7 per new member",
+      "affiliateUrl": "",
+      "active": false,
+      "keywords": ["learn", "course", "tutorial", "beginner", "skill"],
+      "ctaText": "Learn AI automation on Skillshare (free trial)",
+      "description": "Online learning platform — fits side income and skill-building articles"
+    },
+    {
+      "id": "notion",
+      "productName": "Notion",
+      "category": "Productivity",
+      "reward": "20% for 12 months",
+      "affiliateUrl": "",
+      "active": false,
+      "keywords": ["productivity", "workflow", "note-taking", "project management", "organize"],
+      "ctaText": "Organize your AI side hustle with Notion",
+      "description": "Productivity tool — relevant for workflow and side income articles"
+    }
+  ]
+}

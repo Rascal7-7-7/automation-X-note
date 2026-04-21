@@ -1,0 +1,35 @@
+{
+  "theme": "ChatGPTとClaudeの使い分け",
+  "type": "long",
+  "series": null,
+  "episode": null,
+  "aiTool": null,
+  "hookText": null,
+  "buzzTemplate": null,
+  "script": "# 【YouTube長尺台本】ChatGPTとClaudeの使い分け\n\n---\n\n## [HOOK 0:00〜0:05]\n\n「この動画、台本も編集も全部AIが作ってます。最後まで見ると、あなたもうChatGPTだけには戻れなくなります。」\n\n「しかも、使い分け間違えると、毎月1万円以上ドブに捨ててます。マジです。」\n\n---\n\n## [PHASE 1 0:05〜0:30]「最初は普通だった」\n\n「最初は普通にChatGPTだけ使ってたんですよ。月20ドル払って、記事書かせて、コード書かせて。それで満足してた。」\n\n「でもある日、友達に言われたんです。『お前、まだChatGPTだけ使ってんの？』って。」\n\n「……この一言で、僕の副業収入、3倍になりました。」\n\n「今日はその話、全部します。」\n\n---\n\n## [PHASE 2 0:30〜1:00] AI価値提供\n\n「結論から言います。ChatGPTとClaude、役割が全然違います。」\n\n- **ChatGPT（GPT-4o）** → 検索・画像生成・リサーチ・雑談\n- **Claude（Sonnet 4.5）** → 長文執筆・コード生成・論理的思考\n\n「これ、スマホのアプリで両方入れとくだけで、作業時間が半分になります。月3000円の投資で、月5万以上返ってきます。マジで誰でもできます。」\n\n「なぜかって？ 次のシーンで実演します。」\n\n---\n\n## [PHASE 3 1:00〜3:00] 制作過程を一瞬見せる\n\n「このYouTube台本、実はClaudeで3分で作ってます。」\n\n「プロンプトはこれ（画面に2秒だけ表示）。『YouTube長尺、6フェーズ構成、フック強めで』これだけ。」\n\n「でもサムネの画像？ これはChatGPTの画像生成。Claudeは画像作れないから。」\n\n「リサーチ？ ChatGPT。最新情報取りに行かせる。」\n\n「で、記事にまとめる？ Claude。文章力、圧倒的にClaudeが上。」\n\n「……ここ、大事なんで覚えといてください。あとで全部繋がります。」\n\n「コードは？ Claudeです。理由は後で話します。」\n\n---\n\n## [PHASE 4 3:00〜5:00] 事件\n\n「ここで事件が起きました。」\n\n「僕、ある日ChatGPTに1万行のコード、デバッグさせたんですよ。副業で請けた案件。納期明日。」\n\n「ChatGPT、途中で止まった。『続けて』って打っても、違うコード出してくる。記憶飛んでる。」\n\n「焦って、Claudeに同じもの投げました。」\n\n「……Claude、1発で全部読んだ。エラー3箇所、指摘してきた。修正案まで出してきた。**15分で終わった。**」\n\n「その瞬間、理解したんです。**長文・コード・論理 = Claude一択。** これを知らないだけで、徹夜してる人、世の中に何万人もいる。」\n\n「この案件、12万円でした。Claudeがなかったら、落としてました。」\n\n---\n\n## [PHASE 5 5:00〜8:00] 伏線回収\n\n「最初のシーン、思い出してください。」\n\n「『ChatGPTだけに戻れなくなる』って言いました。意味、分かりましたよね。」\n\n「整理します。使い分けルール3つ。」\n\n**① 情報を『取りに行く』ならChatGPT**\n→ Web検索、最新ニュース、画像生成、音声会話。これは全部ChatGPTが強い。\n\n**② 情報を『捌く』ならClaude**\n→ 長文読解、コード、論理的な文章、契約書チェック。Claudeが圧倒的。\n\n**③ 両方使う『ハイブリッド』が最強**\n→ ChatGPTでリサーチ → Claudeで執筆。これ、プロがやってる型です。\n\n「さっき『月3000円で月5万返ってくる』って言いましたよね。」\n\n「ChatGPT Plus 20ドル + Claude Pro 20ドル = 約6000円。」\n\n「僕はこれで、副業のライティング月8万 + コード案件月15万、安定して取れるようになりました。」\n\n「道具を使い分けるだけ。才能じゃないです。」\n\n---\n\n## [OUTRO 8:00〜10:00]\n\n「で、この動画。台本Claude、サムネChatGPT、編集AI、ナレーションもAI。」\n\n「これ、全部AIです。」\n\n「あなた、何個気づきました？ コメントで教えてください。」\n\n「最初から見返すと、僕がどこでChatGPT使って、どこでClaude使ったか、全部分かるようになってます。」\n\n「使い分けできる人から、時代に置いていかれなくなります。」\n\n「……じゃあ、また次の動画で。」\n\n「これ、全部AIです。」",
+  "titles": [
+    "ChatGPTとClaude、月5万稼ぐなら使い分けが必須だった",
+    "知らないと損する｜ChatGPT vs Claude完全比較表",
+    "5分でわかる｜プロが選ぶChatGPTとClaude最強の使い分け法",
+    "ChatGPT vs Claude｜年収1000万超えが隠していた裏技",
+    "え、こんなに違う？ChatGPTとClaude正しい選び方3選"
+  ],
+  "description": "ChatGPTとClaudeの使い分け完全ガイド。2つのAIを月額40ドルで併用する筆者が、開発・文章生成・リサーチ・副業での最適な選び方を実例で解説します。\n\n「どっちを契約すべき？」「両方使う意味ある？」と悩む方必見の内容です。\n月20時間の作業短縮を実現した具体的な使い分けルールを公開します。\nAI副業・開発効率化に活用したい方におすすめの動画です。\n\n【動画の内容】\n00:00 ChatGPTとClaudeの基本スペック比較\n02:30 文章生成の品質検証（ブログ5000文字で比較）\n05:00 コーディング精度テスト（Python・React実装）\n07:30 長文読解とリサーチ業務での使い分け\n10:00 画像生成・データ分析はどちらが優秀？\n12:00 月額20ドル×2契約する価値がある人／ない人\n13:30 筆者の実践ワークフロー公開\n\n【結論（先出し）】\n・コーディング、長文要約、丁寧な文章 → Claude 3.5 Sonnet\n・ブレスト、画像生成、GPTs活用、最新情報 → ChatGPT-4o\n・副業ライティングで月5万円以上狙うなら併用推奨\n\n実際にX運用自動化ツールを開発した際、設計はClaude、アイデア出しはChatGPTという分担で開発時間を60%削減できました。AI副業で収益化を目指す方、開発効率を上げたいエンジニアの方に役立つ内容です。\n\nコメント欄で「あなたの使い分け」もぜひ教えてください。\n\n#ChatGPT #Claude #AI活用 #AI副業 #生成AI\n\n---\n\n🔔 チャンネル登録はこちら → https://www.youtube.com/@nucho0202\n🐦 X(Twitter): https://x.com/Rascal_AI_Dev\n📷 Instagram: https://www.instagram.com/ai_side_hack_/",
+  "tags": [
+    "ChatGPT",
+    "Claude",
+    "AI活用",
+    "AI副業",
+    "生成AI"
+  ],
+  "thumbnail": "# ChatGPTとClaudeの使い分け YouTube用サムネイル案\n\nCOPY:\nGPT vs Claude 完全比較！\nどのAIを選ぶべき？\nAI選びで失敗しない秘訣\n\nPROMPT:\nA vibrant YouTube thumbnail with a bold split-screen design: left side shows the ChatGPT logo in bright blue with a smiling face showing enthusiasm and energy, right side displays the Claude logo in orange with a contemplative, wise expression. Center features large, white sans-serif text reading \"GPT vs CLAUDE\" with a red lightning bolt between them. Bright yellow background with subtle geometric shapes. High contrast, eye-catching style with 16:9 aspect ratio, professional thumbnail design that stands out in search results.",
+  "thumbnailPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/thumbnail.png",
+  "date": "2026-04-21",
+  "status": "rendered",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/long.mp4",
+  "videoId": null,
+  "crossPublished": false,
+  "createdAt": "2026-04-21T15:00:53.183Z",
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-21/long_captions.srt",
+  "renderedAt": "2026-04-21T17:02:57.846Z"
+}

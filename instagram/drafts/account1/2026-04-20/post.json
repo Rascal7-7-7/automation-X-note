@@ -1,0 +1,12 @@
+{
+  "account": 1,
+  "theme": "会社員が副業で稼ぐリアルな実態",
+  "buzzType": "B",
+  "buzzTypeName": "衝撃事実型",
+  "caption": "# 改善版キャプション\n\n---\n\n副業収入、9割が\"ある壁\"で止まる😮\n\n・月3万未満が72%※AIなし層に多い傾向\n・壁の正体は「作業時間の不足」がほぼ全員\n・ChatGPTで副業文書作成→所要時間が1/3に\n・例）ブログ1記事：4時間→構成作成を依頼で90分\n・AI活用層は単価交渉・営業文も自動化し収益UP\n\n後で読み返せるように保存👆\n\n副業に興味ある人にシェアしてください\n\n---\n\n#AI活用 #ChatGPT #生成AI #スキルアップ #フリーランス\n\n---\n\n## 改善ポイント解説\n\n| 指摘 | 対応箇所 |\n|---|---|\n| ChatGPT活用が抽象的 | 「ブログ1記事4時間→90分」と具体的工程を例示 |\n| 統計の一般化が危険 | 「※AIなし層に多い傾向」と限定表現に修正 |\n| AI活用の因果関係が不明確 | 「作業時間不足→ChatGPTで解決→収益UP」と因果を明示 |\n| 実行手順が不足 | 「構成作成を依頼」と最初の一手を具体化 |\n| CTAの誘導先 | シェアCTAで新規流入→プロフ遷移を自然に促す構造に |",
+  "reelsScript": "# Instagram Reels 台本「会社員の副業リアル」\n\n---\n\n## 【冒頭3秒 - フック】\n「会社員が副業で月100万稼いでるって聞くけど、実はほぼ嘘です」\n\n---\n\n## 【本編 - 本当のリアル】\n\n**実際のデータ↓**\n- 副業してる会社員：全体の15%程度\n- その中で月5万以上稼げてる人：さらに15%だけ\n- つまり、会社員の99%は副業で稼げてない\n\n**稼いでる人の特徴**\n- 開始から稼げるまで「平均6ヶ月以上」\n- 毎日3時間以上は確実に作業\n- SNS運用か専門スキル売却のどちらか\n\n**よくある失敗パターン**\n- 情報商材に20万使う ← やめとけ\n- 副業選びを甘く見る ← これが8割の理由\n- すぐ諦める ← 3ヶ月で40%脱落\n\n**現実的な目標設定**\n- 初年度：月3万程度が妥当\n- 2年目：月10～20万の可能性\n- それ以上は「運+スキル+環境」の掛け算\n\n---\n\n## 【CTA】\n\n「ちなみに、今から副業始めるなら『再現性高い方法』3つだけ抑えとけば、成功率ガチで変わります。\n\nプロフのリンクで無料ガイド配ってるんで、ぜひチェックしてみてください」\n\n---\n\n**🎬 想定カット**\n- 統計データ画面表示\n- 実際の失敗例スクショ",
+  "imagePrompt": "Feed: Create a clean infographic comparing common misconceptions vs reality about salaried employees earning side income. Use a split-screen design with \"Expected vs Actual\" layout. Show 3-4 key facts with simple icons (clock, money, difficulty level). Minimalist style with white background, subtle gray accents, sans-serif typography. No text overlays. Aspect ratio 4:5.\n\nReels: Design a vertical infographic revealing shocking truths about side hustle income for office workers. Use progressive reveal format with arrows connecting 3-4 statistics/reality checks. Include simple line illustrations (time investment, earnings reality, common pitfalls). Clean white/light gray background, bold visual hierarchy with icons and charts. No Japanese text. Vertical format 9:16.",
+  "date": "2026-04-20",
+  "status": "ready",
+  "createdAt": "2026-04-20T10:09:50.577Z"
+}

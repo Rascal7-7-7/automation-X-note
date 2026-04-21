@@ -1,0 +1,19 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+WrapStyle: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Noto Sans JP,54,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,19,0,2,54,54,288,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:04.17,Default,,0,0,0,,{\fad(200,200)}AIスキルって、今や必須ですよね。で\Nも高額だし…って思ってませんか？
+Dialogue: 0,0:00:04.17,0:00:08.33,Default,,0,0,0,,{\fad(200,200)}DMM 生成AI CAMPなら、無料\Nセミナーで気軽にスタート。しかも最大\N70万円近くの補助金が使えちゃいます\N。経産省認定だから信頼性も◎
+Dialogue: 0,0:00:08.33,0:00:12.50,Default,,0,0,0,,{\fad(200,200)}マーケティング・営業・人事など、自分\Nの職種に合わせたコース選べて、専属メ\Nンターがサポート。AI時代に取り残さ\Nれたくない人は、プロフィールのリンク\Nから無料セミナーをチェック！
+Dialogue: 0,0:00:12.50,0:00:16.67,Default,,0,0,0,,{\fad(200,200)}生成AIのスキル、欲しいけど『お金が\Nかかりそう…』と諦めてませんか？
+Dialogue: 0,0:00:16.67,0:00:20.83,Default,,0,0,0,,{\fad(200,200)}DMMが運営する『生成AI CAMP\N』は、無料セミナーからスタートできま\Nす。経済産業省認定だから安心。しかも\N、最大220万5000円のリスキリン\Nグ補助金が使えるんです。
+Dialogue: 0,0:00:20.83,0:00:25.00,Default,,0,0,0,,{\fad(200,200)}マーケティングや営業、人事など、職種\N別のコースがあるから、自分の仕事に直\N結するスキルが身につく。何より、専属\Nメンターが手厚くサポートしてくれるの\Nで、初心者でも安心。

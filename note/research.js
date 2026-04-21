@@ -12,13 +12,13 @@ import { chromium } from 'playwright';
 import { generate } from '../shared/claude-client.js';
 import { FileQueue } from '../shared/queue.js';
 import { logger } from '../shared/logger.js';
+import { getAccount } from './accounts.js';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'note:research';
-
-const ideaQueue = new FileQueue(path.join(__dirname, 'queue/ideas.jsonl'));
 
 // 5カテゴリ × 複数タグのプール。毎回ランダムに4件選択してバランスよくリサーチ
 const TAG_POOL = [
@@ -41,13 +41,13 @@ const TAG_POOL = [
 ];
 
 /** カテゴリごとに1件ずつ（重複なし）ランダム選択して4件返す */
-function selectScrapeTargets() {
-  const categories = ['ai-income', 'productivity', 'ai-beginner', 'sns', 'note-income'];
-  // 5カテゴリから4つをランダムに選び、各カテゴリから1タグをピック
+function selectScrapeTargets(tagPool) {
+  const pool = tagPool ?? TAG_POOL;
+  const categories = [...new Set(pool.map(t => t.category))];
   const shuffled = [...categories].sort(() => Math.random() - 0.5).slice(0, 4);
   return shuffled.map(cat => {
-    const pool = TAG_POOL.filter(t => t.category === cat);
-    return pool[Math.floor(Math.random() * pool.length)];
+    const subset = pool.filter(t => t.category === cat);
+    return subset[Math.floor(Math.random() * subset.length)];
   });
 }
 
@@ -120,7 +120,7 @@ async function scrapePage(page, tag) {
   return articles;
 }
 
-async function scrapeNoteArticles() {
+async function scrapeNoteArticles(tagPool) {
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext({
     userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36',
@@ -129,8 +129,7 @@ async function scrapeNoteArticles() {
   const page = await context.newPage();
   const allArticles = [];
 
-  // 実行ごとにカテゴリをランダム選択（週3回の投稿でテーマが偏らないよう）
-  const targets = selectScrapeTargets();
+  const targets = selectScrapeTargets(tagPool);
   logger.info(MODULE, `selected categories: ${targets.map(t => t.category).join(', ')}`);
 
   try {
@@ -208,11 +207,16 @@ async function synthesizeThemes(articles) {
 }
 
 // ── メイン ────────────────────────────────────────────────────────
-export async function runResearch() {
-  try {
-    logger.info(MODULE, 'research start');
+export async function runResearch(accountId = 1) {
+  const account = getAccount(accountId);
+  const queueDir = path.join(__dirname, account.queueDir);
+  if (!fs.existsSync(queueDir)) fs.mkdirSync(queueDir, { recursive: true });
+  const ideaQueue = new FileQueue(path.join(queueDir, 'ideas.jsonl'));
 
-    const articles = await scrapeNoteArticles();
+  try {
+    logger.info(MODULE, `[account:${accountId}] research start (${account.label})`);
+
+    const articles = await scrapeNoteArticles(account.tagPool);
     if (articles.length === 0) {
       logger.warn(MODULE, 'no articles scraped');
       return;
@@ -229,7 +233,6 @@ export async function runResearch() {
       .slice(0, 5)
       .map(a => a.url);
 
-    // 上位3件のみキューに積む
     for (const t of themes.slice(0, 3)) {
       await ideaQueue.push({ ...t, sourceUrls });
       logger.info(MODULE, `queued: ${t.theme}`);
@@ -243,5 +246,5 @@ export async function runResearch() {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runResearch();
+  runResearch(process.argv[2] ? Number(process.argv[2]) : 1);
 }

@@ -1,0 +1,8 @@
+{"ts":"2026-04-17T09:00:27.429Z","level":"ERROR","title":"タスク失敗: x:like","message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]') to be visible\u001b[22m\n"}
+{"ts":"2026-04-17T12:00:28.159Z","level":"ERROR","title":"タスク失敗: x:reply","message":"page.waitForSelector: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[type=\"password\"]') to be visible\u001b[22m\n"}
+{"ts":"2026-04-17T13:00:00.675Z","level":"ERROR","title":"タスク失敗: x:collect","message":"Request failed with code 401"}
+{"ts":"2026-04-17T17:40:20.118Z","level":"INFO","title":"自動化システム起動確認","message":"Discord通知が正常に動作しています ✅\nエラー発生時はこのチャンネルに通知されます"}
+{"ts":"2026-04-17T17:40:20.477Z","level":"WARN","title":"テスト警告","message":"これは警告通知のテストです（実際のエラーではありません）"}
+{"ts":"2026-04-20T15:02:30.188Z","level":"ERROR","title":"タスク失敗: youtube:generate:short","message":"Connection error."}
+{"ts":"2026-04-20T22:01:32.042Z","level":"ERROR","title":"タスク失敗: x:article","message":"Connection error."}
+{"ts":"2026-04-20T23:01:31.772Z","level":"ERROR","title":"タスク失敗: ghost:generate","message":"Connection error."}

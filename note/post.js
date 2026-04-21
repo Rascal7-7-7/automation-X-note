@@ -19,16 +19,26 @@ import { execFile } from 'child_process';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'note:post';
-const DRAFTS_DIR  = path.join(__dirname, 'drafts');
-const SESSION_FILE = path.join(__dirname, '../.note-session.json');
+
+const ACCOUNT_USERNAMES = { 1: 'rascal_ai_devops', 2: 'rascal_invest', 3: 'rascal_affiliate' };
+
+function getAccountPaths(accountId = 1) {
+  const subdirs = { 1: 'drafts', 2: 'drafts/account2', 3: 'drafts/account3' };
+  const sessions = { 1: '.note-session.json', 2: '.note-session-2.json', 3: '.note-session-3.json' };
+  return {
+    draftsDir:   path.join(__dirname, subdirs[accountId] ?? 'drafts'),
+    sessionFile: path.join(__dirname, '..', sessions[accountId] ?? '.note-session.json'),
+    username:    ACCOUNT_USERNAMES[accountId] ?? 'rascal_ai_devops',
+  };
+}
 const IS_MAC = process.platform === 'darwin';
 
-function findOldestDraft() {
-  if (!fs.existsSync(DRAFTS_DIR)) return null;
+function findOldestDraft(draftsDir) {
+  if (!fs.existsSync(draftsDir)) return null;
 
-  const files = fs.readdirSync(DRAFTS_DIR)
+  const files = fs.readdirSync(draftsDir)
     .filter(f => f.endsWith('.json'))
-    .map(f => ({ filePath: path.join(DRAFTS_DIR, f) }))
+    .map(f => ({ filePath: path.join(draftsDir, f) }))
     .map(f => ({ ...f, draft: JSON.parse(fs.readFileSync(f.filePath, 'utf8')) }))
     .filter(f => f.draft.status === 'draft')
     .sort((a, b) => (a.draft.createdAt ?? '').localeCompare(b.draft.createdAt ?? ''));
@@ -132,7 +142,7 @@ async function uploadCoverImage(page, imagePath) {
 }
 
 // ── 公開処理 ────────────────────────────────────────────────────────
-async function publishNote(page, draft) {
+async function publishNote(page, draft, username = 'rascal_ai_devops') {
   // Step 1: 「公開に進む」ボタンをクリック → /publish/ ページへ遷移
   const publishBtnSelectors = [
     'button:has-text("公開に進む")',
@@ -202,6 +212,14 @@ async function publishNote(page, draft) {
           if (await el.count() > 0) {
             await el.click();
             await page.waitForTimeout(1_000);  // 価格入力フィールドが出現するのを待つ
+            // 身元確認モーダルが出たら dismiss して有料設定をスキップ
+            const idModal = page.locator('[class*="IdentificationModal"], [class*="ReactModal__Overlay"]').first();
+            if (await idModal.count() > 0) {
+              logger.warn(MODULE, '⚠ 身元確認モーダル検出 — 有料設定スキップ（手動で設定してください）');
+              await page.keyboard.press('Escape');
+              await page.waitForTimeout(800);
+              break;
+            }
             paidEnabled = true;
             logger.info(MODULE, `paid toggle clicked: ${sel}`);
             break;
@@ -341,7 +359,7 @@ async function publishNote(page, draft) {
     const editorUrl = page.url();
     const noteIdMatch = editorUrl.match(/\/notes\/(n[a-z0-9]+)\//);
     if (noteIdMatch) {
-      finalUrl = `https://note.com/n/${noteIdMatch[1]}`;
+      finalUrl = `https://note.com/${username}/n/${noteIdMatch[1]}`;
       logger.info(MODULE, `constructed note URL from editor: ${finalUrl}`);
     }
   }
@@ -349,9 +367,12 @@ async function publishNote(page, draft) {
   return finalUrl;
 }
 
-export async function runPost(opts = {}) {
-  const headless = opts.headless ?? true;
-  const file = findOldestDraft();
+export async function runPost(accountIdOrOpts = {}) {
+  const accountId = typeof accountIdOrOpts === 'number' ? accountIdOrOpts : (accountIdOrOpts.accountId ?? 1);
+  const headless  = typeof accountIdOrOpts === 'object' ? (accountIdOrOpts.headless ?? true) : true;
+  const { draftsDir, sessionFile, username } = getAccountPaths(accountId);
+
+  const file = findOldestDraft(draftsDir);
 
   if (!file) {
     logger.info(MODULE, 'no drafts to post');
@@ -363,7 +384,7 @@ export async function runPost(opts = {}) {
 
   const browser = await chromium.launch({ headless });
   const context = await browser.newContext({
-    storageState: fs.existsSync(SESSION_FILE) ? SESSION_FILE : undefined,
+    storageState: fs.existsSync(sessionFile) ? sessionFile : undefined,
     viewport: { width: 1280, height: 900 },
     userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
     permissions: ['clipboard-read', 'clipboard-write'],
@@ -393,7 +414,7 @@ export async function runPost(opts = {}) {
       await page.waitForTimeout(1_000);
       await page.getByRole('button', { name: 'ログイン' }).click();
       await page.waitForTimeout(4_000);
-      await context.storageState({ path: SESSION_FILE });
+      await context.storageState({ path: sessionFile });
     }
 
     // ── 新規記事作成 ──────────────────────────────────────────────
@@ -415,9 +436,9 @@ export async function runPost(opts = {}) {
     logger.info(MODULE, 'title filled');
 
     // ── ヘッダー画像（本文入力前に行う — 本文入力後はボタンが消える）─
-    if (draft.imagePath && fs.existsSync(draft.imagePath)) {
+    if ((draft.headerImage || draft.imagePath) && fs.existsSync(draft.headerImage ?? draft.imagePath)) {
       try {
-        await uploadCoverImage(page, draft.imagePath);
+        await uploadCoverImage(page, draft.headerImage ?? draft.imagePath);
       } catch (err) {
         logger.warn(MODULE, `header image upload failed: ${err.message}`);
       }
@@ -460,7 +481,7 @@ export async function runPost(opts = {}) {
     }
 
     // ── 公開（prod のみ） ─────────────────────────────────────────
-    const isDev = (opts.mode ?? process.env.MODE ?? 'dev') === 'dev';
+    const isDev = ((typeof accountIdOrOpts === 'object' ? accountIdOrOpts.mode : undefined) ?? process.env.MODE ?? 'dev') === 'dev';
     if (isDev) {
       const noteUrl = page.url();
       markPosted(file.filePath, noteUrl);
@@ -468,7 +489,7 @@ export async function runPost(opts = {}) {
       logger.info(MODULE, `DEV: saved as draft only — ${noteUrl}`);
       notifyPublishReady(draft.title, noteUrl);
     } else {
-      const noteUrl = await publishNote(page, draft);
+      const noteUrl = await publishNote(page, draft, username);
       markPosted(file.filePath, noteUrl);
       logNotePosted(file.filePath, noteUrl);
       logger.info(MODULE, `published: ${noteUrl}`);

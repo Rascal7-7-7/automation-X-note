@@ -1,0 +1,21 @@
+[Script Info]
+ScriptType: v4.00+
+PlayResX: 1080
+PlayResY: 1920
+ScaledBorderAndShadow: yes
+WrapStyle: 1
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Noto Sans JP,54,&H00FFFFFF,&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,19,0,2,54,54,288,1
+
+[Events]
+Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:00:00.00,0:00:03.13,Default,,0,0,0,,{\fad(200,200)}昨日の日曜日、3時間で月5万円の道筋\Nができました。やり方教えます\Nまずスキルを棚卸し。得意なことを10\N個書き出してください。
+Dialogue: 0,0:00:03.13,0:00:06.25,Default,,0,0,0,,{\fad(200,200)}デザイン、ライティング、データ入力…\Nなんでもいい\N次にクラウドソーシング3つ登録。
+Dialogue: 0,0:00:06.25,0:00:09.38,Default,,0,0,0,,{\fad(200,200)}Coconala、CrowdWork\Ns、Bizseekに同時登録。\N朝30分で終わります
+Dialogue: 0,0:00:09.38,0:00:12.50,Default,,0,0,0,,{\fad(200,200)}単価低い案件から始めるのが鍵。\N実績と評価を3-4個貯めたら、
+Dialogue: 0,0:00:12.50,0:00:15.63,Default,,0,0,0,,{\fad(200,200)}単価2倍以上の案件に応募できます\N僕は3ヶ月で単価3倍になった。
+Dialogue: 0,0:00:15.63,0:00:18.75,Default,,0,0,0,,{\fad(200,200)}毎週日曜3時間で月5万。\Nこれ、本当です
+Dialogue: 0,0:00:18.75,0:00:21.88,Default,,0,0,0,,{\fad(200,200)}副業の始め方について、プロフィールの\Nリンクから\NLINEに登録した人に『最初の3案件\Nテンプレ』無料配布中です。
+Dialogue: 0,0:00:21.88,0:00:25.00,Default,,0,0,0,,{\fad(200,200)}やらない理由、ないですよ

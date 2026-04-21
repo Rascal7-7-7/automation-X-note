@@ -1,0 +1,299 @@
+{"ts":"2026-04-20T00:37:01.498Z","level":"INFO","module":"scheduler","message":"dev run: x:like"}
+{"ts":"2026-04-20T00:37:05.321Z","level":"ERROR","module":"scheduler","message":"dev run failed: x:like","data":{"message":"keywords is not iterable"}}
+{"ts":"2026-04-20T00:38:02.590Z","level":"INFO","module":"scheduler","message":"dev run: x:like"}
+{"ts":"2026-04-20T00:38:06.533Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-20T00:38:10.351Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-20T00:38:10.351Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude Code\""}
+{"ts":"2026-04-20T00:38:14.075Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-20T00:38:14.110Z","level":"INFO","module":"x:like","message":"like run done. liked: 0"}
+{"ts":"2026-04-20T00:38:14.110Z","level":"INFO","module":"scheduler","message":"dev run done: x:like"}
+{"ts":"2026-04-20T00:38:39.915Z","level":"INFO","module":"scheduler","message":"dev run: x:reply"}
+{"ts":"2026-04-20T00:38:43.813Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"AI活用\""}
+{"ts":"2026-04-20T00:38:43.813Z","level":"INFO","module":"x:reply","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-20T00:38:47.693Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-20T00:38:47.693Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"Claude Code\""}
+{"ts":"2026-04-20T00:38:47.693Z","level":"INFO","module":"x:reply","message":"playwright search: \"Claude Code\""}
+{"ts":"2026-04-20T00:38:51.490Z","level":"INFO","module":"x:reply","message":"  → 7 tweets found"}
+{"ts":"2026-04-20T00:38:51.523Z","level":"INFO","module":"x:reply","message":"reply run done. replied: 0"}
+{"ts":"2026-04-20T00:38:51.523Z","level":"INFO","module":"scheduler","message":"dev run done: x:reply"}
+{"ts":"2026-04-20T00:41:10.078Z","level":"INFO","module":"scheduler","message":"dev run: x:enqueue"}
+{"ts":"2026-04-20T00:41:14.057Z","level":"INFO","module":"x:research","message":"searching: \"Claude\" (ai)"}
+{"ts":"2026-04-20T00:41:18.051Z","level":"INFO","module":"x:research","message":"  → 7 tweets (ai)"}
+{"ts":"2026-04-20T00:41:19.553Z","level":"INFO","module":"x:research","message":"searching: \"ChatGPT\" (ai)"}
+{"ts":"2026-04-20T00:41:23.392Z","level":"INFO","module":"x:research","message":"  → 5 tweets (ai)"}
+{"ts":"2026-04-20T00:41:24.894Z","level":"INFO","module":"x:research","message":"searching: \"生成AI\" (ai)"}
+{"ts":"2026-04-20T00:41:29.057Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-20T00:41:30.558Z","level":"INFO","module":"x:research","message":"searching: \"LLM\" (ai)"}
+{"ts":"2026-04-20T00:41:34.916Z","level":"INFO","module":"x:research","message":"  → 8 tweets (ai)"}
+{"ts":"2026-04-20T00:41:36.418Z","level":"INFO","module":"x:research","message":"searching: \"AI活用\" (ai)"}
+{"ts":"2026-04-20T00:41:40.180Z","level":"INFO","module":"x:research","message":"  → 7 tweets (ai)"}
+{"ts":"2026-04-20T00:41:41.682Z","level":"INFO","module":"x:research","message":"searching: \"プロンプト\" (ai)"}
+{"ts":"2026-04-20T00:41:46.016Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-20T00:41:47.518Z","level":"INFO","module":"x:research","message":"searching: \"個人開発\" (dev)"}
+{"ts":"2026-04-20T00:41:51.462Z","level":"INFO","module":"x:research","message":"  → 7 tweets (dev)"}
+{"ts":"2026-04-20T00:41:52.965Z","level":"INFO","module":"x:research","message":"searching: \"副業エンジニア\" (dev)"}
+{"ts":"2026-04-20T00:41:56.731Z","level":"INFO","module":"x:research","message":"  → 8 tweets (dev)"}
+{"ts":"2026-04-20T00:41:58.233Z","level":"INFO","module":"x:research","message":"searching: \"SaaS\" (dev)"}
+{"ts":"2026-04-20T00:42:02.008Z","level":"INFO","module":"x:research","message":"  → 8 tweets (dev)"}
+{"ts":"2026-04-20T00:42:03.511Z","level":"INFO","module":"x:research","message":"searching: \"インディーハッカー\" (dev)"}
+{"ts":"2026-04-20T00:42:07.448Z","level":"INFO","module":"x:research","message":"  → 4 tweets (dev)"}
+{"ts":"2026-04-20T00:42:08.950Z","level":"INFO","module":"x:research","message":"searching: \"プロダクト開発\" (dev)"}
+{"ts":"2026-04-20T00:42:12.724Z","level":"INFO","module":"x:research","message":"  → 8 tweets (dev)"}
+{"ts":"2026-04-20T00:42:14.227Z","level":"INFO","module":"x:research","message":"searching: \"NISA\" (finance)"}
+{"ts":"2026-04-20T00:42:18.186Z","level":"INFO","module":"x:research","message":"  → 8 tweets (finance)"}
+{"ts":"2026-04-20T00:42:19.689Z","level":"INFO","module":"x:research","message":"searching: \"投資\" (finance)"}
+{"ts":"2026-04-20T00:42:24.223Z","level":"INFO","module":"x:research","message":"  → 7 tweets (finance)"}
+{"ts":"2026-04-20T00:42:25.729Z","level":"INFO","module":"x:research","message":"searching: \"資産運用\" (finance)"}
+{"ts":"2026-04-20T00:42:30.013Z","level":"INFO","module":"x:research","message":"  → 5 tweets (finance)"}
+{"ts":"2026-04-20T00:42:31.515Z","level":"INFO","module":"x:research","message":"searching: \"インデックス投資\" (finance)"}
+{"ts":"2026-04-20T00:42:35.314Z","level":"INFO","module":"x:research","message":"  → 6 tweets (finance)"}
+{"ts":"2026-04-20T00:42:36.814Z","level":"INFO","module":"x:research","message":"searching: \"米国株\" (finance)"}
+{"ts":"2026-04-20T00:42:40.565Z","level":"INFO","module":"x:research","message":"  → 4 tweets (finance)"}
+{"ts":"2026-04-20T00:42:42.121Z","level":"INFO","module":"x:research","message":"queued [ai] \"AI活用\" score:1"}
+{"ts":"2026-04-20T00:42:42.121Z","level":"INFO","module":"x:research","message":"queued [ai] \"AI活用\" score:1"}
+{"ts":"2026-04-20T00:42:42.121Z","level":"INFO","module":"x:research","message":"queued [dev] \"プロダクト開発\" score:13"}
+{"ts":"2026-04-20T00:42:42.121Z","level":"INFO","module":"x:research","message":"queued [dev] \"インディーハッカー\" score:11"}
+{"ts":"2026-04-20T00:42:42.122Z","level":"INFO","module":"x:research","message":"queued [finance] \"インデックス投資\" score:3"}
+{"ts":"2026-04-20T00:42:42.122Z","level":"INFO","module":"x:research","message":"queued [finance] \"NISA\" score:1"}
+{"ts":"2026-04-20T00:42:42.122Z","level":"INFO","module":"x:research","message":"research done. total queued: 6"}
+{"ts":"2026-04-20T00:42:42.122Z","level":"INFO","module":"x:pipeline","message":"enqueue done. queue size: 7"}
+{"ts":"2026-04-20T00:42:42.122Z","level":"INFO","module":"scheduler","message":"dev run done: x:enqueue"}
+{"ts":"2026-04-20T00:42:47.666Z","level":"INFO","module":"scheduler","message":"dev run: x:process"}
+{"ts":"2026-04-20T00:42:51.689Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (300 chars)"}
+{"ts":"2026-04-20T00:42:53.247Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 6.6 → REVISE","data":{"scores":"ai_beginner:8 side_hustle:6 housewife:8 marketer:6 creator:5"}}
+{"ts":"2026-04-20T00:42:53.249Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 1/2 — hint: 以下の視点からの改善が必要です:\n・副業志望のサラリーマン（本業の傍ら収益化したい）（6点）: 副業志望には『具体的な稼ぎ方』がなく物足りない\n・SNSマーケタ"}
+{"ts":"2026-04-20T00:42:57.254Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (251 chars)"}
+{"ts":"2026-04-20T00:42:59.838Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.2 → REVISE","data":{"scores":"ai_beginner:6 side_hustle:6 housewife:3 marketer:6 creator:5"}}
+{"ts":"2026-04-20T00:42:59.839Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 2/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（6点）: 過去実績と将来保証を混同させ、リスク説明が不足している\n・"}
+{"ts":"2026-04-20T00:43:03.737Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (219 chars)"}
+{"ts":"2026-04-20T00:43:05.678Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 6.4 → REVISE","data":{"scores":"ai_beginner:8 side_hustle:7 housewife:6 marketer:6 creator:5"}}
+{"ts":"2026-04-20T00:43:05.679Z","level":"WARN","module":"reviewer:multi-persona","message":"max retries reached, posting anyway (score: 6.4)"}
+{"ts":"2026-04-20T00:43:09.603Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"新NISAで米国株を始めたい\n人へ\n\n① テスラは23.7倍\n② メタは45.5倍\n③ ブロードコムは26.1倍\n\n過去10年のリターンを見ると\n夢がある。\n\nでも、ここからが大事。\n\n多くの人は「高リターン狙い」で\n失敗する。\n\n新NISAで成果を出す人の共通点は\n5つある。\n\n① 時間を味方にしている\n（20年以上保有が基本）\n\n② 分散投資を徹底している\n（1銘柄集中は避ける）\n\n③ 感情で売らない\n（下落時が買い増しのチャンス）\n\n④ 毎月コツコツ積立てる\n（一括投資より安定）\n\n⑤ 税制優遇を最大活用する\n（年360万の枠を全て使う）\n\n夢のリターンを手に入れるには\n地味な継続が必須。\n\n長期・積立・分散の王道を\n貫","keyword":"NISA","attempts":0}}
+{"ts":"2026-04-20T00:43:09.604Z","level":"WARN","module":"x:pipeline","message":"validate NG: too long","data":{"text":"新NISAで米国株を始めたい\n人へ\n\n① テスラは23.7倍\n② メタは45.5倍\n③ ブロードコムは26.1倍\n\n過去10年のリターンを見ると\n夢がある。\n\nでも、ここからが大事。\n\n多くの人は「高リターン狙い」で\n失敗する。\n\n新NISAで成果を出す人の共通点は\n5つある。\n\n① 時間を味方にしている\n（20年以上保有が基本）\n\n② 分散投資を徹底している\n（1銘柄集中は避ける）\n\n③ 感情で売らない\n（下落時が買い増しのチャンス）\n\n④ 毎月コツコツ積立てる\n（一括投資より安定）\n\n⑤ 税制優遇を最大活用する\n（年360万の枠を全て使う）\n\n夢のリターンを手に入れるには\n地味な継続が必須。\n\n長期・積立・分散の王道を\n貫"}}
+{"ts":"2026-04-20T00:43:09.605Z","level":"WARN","module":"x:pipeline","message":"processing failed: validate NG: too long","data":{"attempts":1}}
+{"ts":"2026-04-20T00:43:09.605Z","level":"INFO","module":"scheduler","message":"dev run done: x:process"}
+{"ts":"2026-04-20T00:44:11.160Z","level":"INFO","module":"scheduler","message":"dev run: x:process"}
+{"ts":"2026-04-20T00:44:13.941Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (218 chars)"}
+{"ts":"2026-04-20T00:44:16.264Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.6 → REVISE","data":{"scores":"ai_beginner:6 side_hustle:6 housewife:5 marketer:6 creator:5"}}
+{"ts":"2026-04-20T00:44:16.265Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 1/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（6点）: タイトルと内容の数字がズレている（3つ→5つ）\n・副業志望"}
+{"ts":"2026-04-20T00:44:19.723Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (219 chars)"}
+{"ts":"2026-04-20T00:44:21.319Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 6.0 → REVISE","data":{"scores":"ai_beginner:7 side_hustle:5 housewife:6 marketer:7 creator:5"}}
+{"ts":"2026-04-20T00:44:21.320Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 2/2 — hint: 以下の視点からの改善が必要です:\n・副業志望のサラリーマン（本業の傍ら収益化したい）（5点）: 月3万円で月3万配当は非現実的で信頼性を損なう\n・主婦（スマホは"}
+{"ts":"2026-04-20T00:44:24.308Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (242 chars)"}
+{"ts":"2026-04-20T00:44:27.038Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.4 → REVISE","data":{"scores":"ai_beginner:7 side_hustle:5 housewife:6 marketer:6 creator:3"}}
+{"ts":"2026-04-20T00:44:27.040Z","level":"WARN","module":"reviewer:multi-persona","message":"max retries reached, posting anyway (score: 5.4)"}
+{"ts":"2026-04-20T00:44:29.911Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"新NISAで米国株投資を始める前に知るべき5つのこと\n\n① 過去10年のTOP10銘柄は\n平均10倍以上のリターン\n\n② でも全員が選べるわけじゃない\n90%は銘柄選びで失敗する\n\n③ インデックス投信なら\n銘柄選びの悩みゼロ\n\n④ 月3万円の積立で\n20年後は1,000万円超も可能\n\n⑤ 新NISA枠は年360万円\n使い切ってる人は5%未満\n\n夢を見るのは大事。\nでも現実的な運用が大切です📌\n\n#NISA #米国株","keyword":"NISA","attempts":1}}
+{"ts":"2026-04-20T00:44:29.915Z","level":"INFO","module":"scheduler","message":"dev run done: x:process"}
+{"ts":"2026-04-20T00:47:26.635Z","level":"INFO","module":"scheduler","message":"dev run: x:quote-rt"}
+{"ts":"2026-04-20T00:47:30.539Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"AI活用\""}
+{"ts":"2026-04-20T00:47:30.539Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-20T00:47:34.795Z","level":"INFO","module":"x:quote-rt","message":"  → 7 tweets found"}
+{"ts":"2026-04-20T00:47:34.795Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"Claude Code\""}
+{"ts":"2026-04-20T00:47:34.795Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"Claude Code\""}
+{"ts":"2026-04-20T00:47:38.679Z","level":"INFO","module":"x:quote-rt","message":"  → 6 tweets found"}
+{"ts":"2026-04-20T00:47:38.712Z","level":"INFO","module":"x:quote-rt","message":"quote-RT run done. quoted: 0"}
+{"ts":"2026-04-20T00:47:38.712Z","level":"INFO","module":"scheduler","message":"dev run done: x:quote-rt"}
+{"ts":"2026-04-20T00:50:54.966Z","level":"INFO","module":"scheduler","message":"dev run: ghost:research"}
+{"ts":"2026-04-20T00:50:54.966Z","level":"INFO","module":"ghost:research","message":"fetching Reddit + HN trends"}
+{"ts":"2026-04-20T00:50:55.852Z","level":"INFO","module":"ghost:research","message":"found 10 trending posts"}
+{"ts":"2026-04-20T00:50:55.853Z","level":"INFO","module":"ghost:research","message":"queued: These videos are hilarious, but why does this work?"}
+{"ts":"2026-04-20T00:50:55.853Z","level":"INFO","module":"ghost:research","message":"queued: Submitted the viral ai photo to chat, told it to make it mor"}
+{"ts":"2026-04-20T00:50:55.853Z","level":"INFO","module":"ghost:research","message":"queued: 50m26s, the human half-marathon record (57m20s) was borken b"}
+{"ts":"2026-04-20T00:50:55.854Z","level":"INFO","module":"scheduler","message":"dev run done: ghost:research"}
+{"ts":"2026-04-20T00:51:00.791Z","level":"INFO","module":"scheduler","message":"dev run: youtube:plan"}
+{"ts":"2026-04-20T00:51:00.791Z","level":"INFO","module":"scheduler","message":"dev run: note:research"}
+{"ts":"2026-04-20T00:51:00.791Z","level":"INFO","module":"note:research","message":"research start"}
+{"ts":"2026-04-20T00:51:00.792Z","level":"INFO","module":"youtube:plan","message":"all dates covered for next 14 days — skipping"}
+{"ts":"2026-04-20T00:51:00.792Z","level":"INFO","module":"scheduler","message":"dev run done: youtube:plan"}
+{"ts":"2026-04-20T00:51:00.920Z","level":"INFO","module":"note:research","message":"selected categories: ai-beginner, note-income, productivity, sns"}
+{"ts":"2026-04-20T00:51:00.920Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/AI入門"}
+{"ts":"2026-04-20T00:51:10.054Z","level":"INFO","module":"note:research","message":"10 articles (AI入門)"}
+{"ts":"2026-04-20T00:51:10.054Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/note収益化"}
+{"ts":"2026-04-20T00:51:18.588Z","level":"INFO","module":"note:research","message":"10 articles (note収益化)"}
+{"ts":"2026-04-20T00:51:18.589Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/生産性"}
+{"ts":"2026-04-20T00:51:56.908Z","level":"INFO","module":"note:research","message":"10 articles (生産性)"}
+{"ts":"2026-04-20T00:51:56.910Z","level":"INFO","module":"note:research","message":"scraping: https://note.com/hashtag/SNS運用"}
+{"ts":"2026-04-20T00:52:04.980Z","level":"INFO","module":"note:research","message":"10 articles (SNS運用)"}
+{"ts":"2026-04-20T00:52:08.926Z","level":"INFO","module":"note:research","message":"queued: AIライティングツール実践比較"}
+{"ts":"2026-04-20T00:52:08.926Z","level":"INFO","module":"note:research","message":"queued: 読まれる記事の構成テンプレート"}
+{"ts":"2026-04-20T00:52:08.927Z","level":"INFO","module":"note:research","message":"queued: 副業の初期投資をAIで削減"}
+{"ts":"2026-04-20T00:52:08.927Z","level":"INFO","module":"note:research","message":"research done. queued: 3"}
+{"ts":"2026-04-20T00:52:08.927Z","level":"INFO","module":"scheduler","message":"dev run done: note:research"}
+{"ts":"2026-04-20T00:55:08.865Z","level":"INFO","module":"scheduler","message":"dev run: x:collect"}
+{"ts":"2026-04-20T00:55:08.866Z","level":"INFO","module":"analytics:collect-x","message":"fetching metrics for 7 tweets"}
+{"ts":"2026-04-20T00:55:09.179Z","level":"INFO","module":"analytics:collect-x","message":"collected metrics for 6 tweets"}
+{"ts":"2026-04-20T00:55:09.179Z","level":"INFO","module":"scheduler","message":"dev run done: x:collect"}
+{"ts":"2026-04-20T01:00:36.866Z","level":"INFO","module":"bridge","message":"Bridge server listening on http://localhost:3001"}
+{"ts":"2026-04-20T01:00:37.326Z","level":"INFO","module":"scheduler","message":"registered: x:article [0 7 * * 2,4]"}
+{"ts":"2026-04-20T01:00:37.327Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-20T01:00:37.328Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 19 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.328Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [10 19 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.328Z","level":"INFO","module":"scheduler","message":"registered: instagram:render:1 [25 19 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.329Z","level":"INFO","module":"scheduler","message":"registered: instagram:post-image:1 [45 19 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.329Z","level":"INFO","module":"scheduler","message":"registered: instagram:post-reels:1 [50 19 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.329Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 20 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.329Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [10 20 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.329Z","level":"INFO","module":"scheduler","message":"registered: instagram:render:2 [25 20 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: instagram:post-image:2 [45 20 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: instagram:post-reels:2 [50 20 * * 2,4,6]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-20T01:00:37.330Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-20T01:00:37.331Z","level":"INFO","module":"scheduler","message":"registered: youtube:plan [0 23 * * 0]"}
+{"ts":"2026-04-20T01:00:37.332Z","level":"INFO","module":"scheduler","message":"registered: ghost:research [0 6 * * *]"}
+{"ts":"2026-04-20T01:00:37.332Z","level":"INFO","module":"scheduler","message":"registered: ghost:generate [0 8 * * *]"}
+{"ts":"2026-04-20T01:00:37.332Z","level":"INFO","module":"scheduler","message":"registered: ghost:post [0 13 * * *]"}
+{"ts":"2026-04-20T01:00:37.332Z","level":"INFO","module":"scheduler","message":"registered: research:ai-tools [0 6,18 * * *]"}
+{"ts":"2026-04-20T02:00:00.174Z","level":"INFO","module":"x:github-intro","message":"GitHub search: \"topic:mcp stars:>200 pushed:>2026-01-01\""}
+{"ts":"2026-04-20T02:00:01.173Z","level":"INFO","module":"x:github-intro","message":"10 repos found"}
+{"ts":"2026-04-20T02:00:01.174Z","level":"INFO","module":"x:github-intro","message":"selected: n8n-io/n8n (184749 stars)"}
+{"ts":"2026-04-20T02:00:04.428Z","level":"INFO","module":"x:github-intro","message":"tweet: 複雑な業務フローを、コード知識がなくても自動化できるツール「n8n」。ドラッグ&ドロップで繋ぐだけで、メール送信やデータ処理を自動実行。400以上のアプリと連携でき、Notionからチャットワークまで幅広く対応。毎日の定型業務を削減したい人の強い味方です。#AI活用\nhttps://github.com/n8n-io/n8n"}
+{"ts":"2026-04-20T02:00:05.156Z","level":"INFO","module":"x:github-intro","message":"posted tweet:2046046210570772705 for n8n-io/n8n"}
+{"ts":"2026-04-20T03:00:00.319Z","level":"INFO","module":"a8:sync","message":"launching browser"}
+{"ts":"2026-04-20T03:00:00.829Z","level":"INFO","module":"a8:sync","message":"logging in to A8.net"}
+{"ts":"2026-04-20T03:00:04.639Z","level":"INFO","module":"x:follow-quote-rt","message":"navigating to home timeline"}
+{"ts":"2026-04-20T03:00:32.260Z","level":"ERROR","module":"bridge:ghost","message":"locator.fill: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('input[name=\"login_id\"], input[type=\"email\"]').first()\u001b[22m\n"}
+{"ts":"2026-04-20T03:01:47.617Z","level":"INFO","module":"x:follow-quote-rt","message":"scraped 2 tweets from following timeline"}
+{"ts":"2026-04-20T03:01:47.617Z","level":"INFO","module":"x:follow-quote-rt","message":"1 quote-RT candidates (threshold:30)"}
+{"ts":"2026-04-20T03:01:50.315Z","level":"INFO","module":"x:follow-quote-rt","message":"commentary: 申し訳ございませんが、このツイートはPR表記のみで具体的な内容がないため、読者に価値を提供する独自の視点や洞察を加えるのが難しい状況です。\n\nコメント作成には、元のツイートに以下のような情報があると助かります：\n- イヤホンの具体的なあるあるネタ（例：絡まる、片方失くす、バッテリー問題など）\n- 製品の特徴や利点\n- 著者の体験や主張\n\nより具体的なツイート内容をいただければ、読者に価値を感じてもらえるコメントを作成いたします。"}
+{"ts":"2026-04-20T03:01:50.511Z","level":"WARN","module":"x:follow-quote-rt","message":"failed for 2042174069488144494: Request failed with code 403"}
+{"ts":"2026-04-20T03:01:50.568Z","level":"INFO","module":"x:follow-quote-rt","message":"done. quoted: 0"}
+{"ts":"2026-04-20T04:00:00.770Z","level":"INFO","module":"scheduler","message":"START ghost:post"}
+{"ts":"2026-04-20T04:00:00.793Z","level":"INFO","module":"ghost:post","message":"posting: Why AI Fails Simple Trick Questions: The Hilarious Truth Behind AI Reasoning Limits"}
+{"ts":"2026-04-20T04:00:01.737Z","level":"INFO","module":"ghost:post","message":"published: https://rascal.ghost.io/why-ai-fails-simple-trick-questions-the-hilarious-truth-behind-ai-reasoning-limits/"}
+{"ts":"2026-04-20T04:00:04.383Z","level":"INFO","module":"ghost:post","message":"x promo posted: 2046076406518764026"}
+{"ts":"2026-04-20T04:00:04.385Z","level":"INFO","module":"scheduler","message":"DONE  ghost:post"}
+{"ts":"2026-04-20T05:00:04.922Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-20T05:00:08.871Z","level":"INFO","module":"x:like","message":"  → 9 tweets found"}
+{"ts":"2026-04-20T05:00:08.871Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-20T05:00:12.943Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-20T05:00:12.943Z","level":"INFO","module":"x:like","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-20T05:00:17.013Z","level":"INFO","module":"x:like","message":"  → 9 tweets found"}
+{"ts":"2026-04-20T05:00:18.100Z","level":"INFO","module":"x:like","message":"liked tweet 2046086203750183130 (score:7)"}
+{"ts":"2026-04-20T05:00:19.605Z","level":"INFO","module":"x:like","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-20T05:00:23.418Z","level":"INFO","module":"x:like","message":"  → 8 tweets found"}
+{"ts":"2026-04-20T05:00:23.420Z","level":"INFO","module":"x:like","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-20T05:00:27.191Z","level":"INFO","module":"x:like","message":"  → 8 tweets found"}
+{"ts":"2026-04-20T05:00:27.191Z","level":"INFO","module":"x:like","message":"playwright search: \"投資\""}
+{"ts":"2026-04-20T05:00:31.220Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-20T05:00:31.273Z","level":"INFO","module":"x:like","message":"like run done. liked: 1"}
+{"ts":"2026-04-20T05:00:35.207Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"AI活用\""}
+{"ts":"2026-04-20T05:00:35.208Z","level":"INFO","module":"x:reply","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-20T05:00:39.328Z","level":"INFO","module":"x:reply","message":"  → 7 tweets found"}
+{"ts":"2026-04-20T05:00:39.328Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"Claude\""}
+{"ts":"2026-04-20T05:00:39.329Z","level":"INFO","module":"x:reply","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-20T05:00:43.322Z","level":"INFO","module":"x:reply","message":"  → 8 tweets found"}
+{"ts":"2026-04-20T05:00:43.322Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"個人開発\""}
+{"ts":"2026-04-20T05:00:43.322Z","level":"INFO","module":"x:reply","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-20T05:00:47.746Z","level":"INFO","module":"x:reply","message":"  → 9 tweets found"}
+{"ts":"2026-04-20T05:00:47.747Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"副業エンジニア\""}
+{"ts":"2026-04-20T05:00:47.747Z","level":"INFO","module":"x:reply","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-20T05:00:52.224Z","level":"INFO","module":"x:reply","message":"  → 8 tweets found"}
+{"ts":"2026-04-20T05:00:52.225Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"NISA\""}
+{"ts":"2026-04-20T05:00:52.225Z","level":"INFO","module":"x:reply","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-20T05:00:56.000Z","level":"INFO","module":"x:reply","message":"  → 9 tweets found"}
+{"ts":"2026-04-20T05:00:56.000Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"投資\""}
+{"ts":"2026-04-20T05:00:56.000Z","level":"INFO","module":"x:reply","message":"playwright search: \"投資\""}
+{"ts":"2026-04-20T05:01:00.058Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-20T05:01:00.105Z","level":"INFO","module":"x:reply","message":"reply run done. replied: 0"}
+{"ts":"2026-04-20T09:03:23.171Z","level":"INFO","module":"a8:sync","message":"launching browser"}
+{"ts":"2026-04-20T09:03:23.585Z","level":"INFO","module":"a8:sync","message":"logging in to A8.net"}
+{"ts":"2026-04-20T09:03:23.699Z","level":"ERROR","module":"bridge:ghost","message":"page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.a8.net/a8v2/login.html\nCall log:\n\u001b[2m  - navigating to \"https://www.a8.net/a8v2/login.html\", waiting until \"domcontentloaded\"\u001b[22m\n"}
+{"ts":"2026-04-20T10:09:09.852Z","level":"INFO","module":"instagram:generate","message":"account1: theme=\"会社員が副業で稼ぐリアルな実態\" type=衝撃事実型"}
+{"ts":"2026-04-20T10:09:16.785Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for Instagram[instagram-ai] (275 chars)"}
+{"ts":"2026-04-20T10:09:18.884Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.8 → REVISE","data":{"scores":"ai_beginner:6 sns_operator:6 side_hustle:6 marketer:7 creator:4"}}
+{"ts":"2026-04-20T10:09:18.889Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 1/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（6点）: 根拠となる調査データがなく信頼性が不十分\n・SNS担当者（"}
+{"ts":"2026-04-20T10:09:36.847Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for Instagram[instagram-ai] (532 chars)"}
+{"ts":"2026-04-20T10:09:39.190Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.4 → REVISE","data":{"scores":"ai_beginner:6 sns_operator:6 side_hustle:4 marketer:6 creator:5"}}
+{"ts":"2026-04-20T10:09:39.193Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 2/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（6点）: ChatGPT活用方法が抽象的で実践イメージが湧きにくい\n"}
+{"ts":"2026-04-20T10:09:48.955Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for Instagram[instagram-ai] (489 chars)"}
+{"ts":"2026-04-20T10:09:50.572Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 7.0 → APPROVED","data":{"scores":"ai_beginner:8 sns_operator:7 side_hustle:6 marketer:8 creator:6"}}
+{"ts":"2026-04-20T10:09:50.576Z","level":"INFO","module":"reviewer:multi-persona","message":"approved on attempt 3"}
+{"ts":"2026-04-20T10:09:50.577Z","level":"INFO","module":"instagram:generate","message":"caption review score: 7"}
+{"ts":"2026-04-20T10:09:50.578Z","level":"INFO","module":"instagram:generate","message":"account1 draft saved → /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-20/post.json"}
+{"ts":"2026-04-20T10:09:50.705Z","level":"INFO","module":"instagram:image","message":"generating image for account1"}
+{"ts":"2026-04-20T10:09:50.705Z","level":"INFO","module":"instagram:image","message":"calling DALL-E 3","data":{"prompt":"Create a clean infographic comparing common misconceptions vs reality about salaried employees earning side income. Use a split-screen design with \"Expected vs Actual\" layout. Show 3-4 key facts with simple icons (clock, money, difficulty level). Minimalist style with white background, subtle gray accents, sans-serif typography. No text overlays. Aspect ratio 4:5."}}
+{"ts":"2026-04-20T10:09:51.994Z","level":"ERROR","module":"instagram:image","message":"image generation/upload failed","data":{"message":"Connection error."}}
+{"ts":"2026-04-20T10:09:51.996Z","level":"ERROR","module":"bridge:instagram","message":"Connection error."}
+{"ts":"2026-04-20T11:00:00.047Z","level":"INFO","module":"x:note-promo","message":"generating promo for: スキルゼロからClaude AIで副業月3万円を達成した完全版5ステップ"}
+{"ts":"2026-04-20T11:00:00.575Z","level":"INFO","module":"scheduler","message":"START youtube:upload:reddit-short"}
+{"ts":"2026-04-20T11:00:00.578Z","level":"WARN","module":"youtube:upload","message":"no draft for today (reddit-short): /Users/Rascal/work/automation/youtube/drafts/2026-04-20/reddit-short.json"}
+{"ts":"2026-04-20T11:00:00.579Z","level":"INFO","module":"scheduler","message":"DONE  youtube:upload:reddit-short"}
+{"ts":"2026-04-20T11:01:31.501Z","level":"ERROR","module":"x:note-promo","message":"promo failed","data":{"message":"Connection error."}}
+{"ts":"2026-04-20T11:01:31.503Z","level":"ERROR","module":"bridge:x","message":"Connection error."}
+{"ts":"2026-04-20T12:00:39.574Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (177 chars)"}
+{"ts":"2026-04-20T12:00:41.819Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 5.2 → REVISE","data":{"scores":"ai_beginner:6 side_hustle:6 housewife:3 marketer:6 creator:5"}}
+{"ts":"2026-04-20T12:00:41.822Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 1/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（6点）: 初心者には「プロンプト設計」や「著作権対策」が抽象的すぎる"}
+{"ts":"2026-04-20T12:00:46.036Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (30 chars)"}
+{"ts":"2026-04-20T12:00:47.680Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 4.0 → REVISE","data":{"scores":"ai_beginner:4 side_hustle:3 housewife:5 marketer:4 creator:4"}}
+{"ts":"2026-04-20T12:00:47.684Z","level":"INFO","module":"reviewer:multi-persona","message":"retry 2/2 — hint: 以下の視点からの改善が必要です:\n・AI初心者（ChatGPTを使い始めたばかりの会社員）（4点）: 具体的な内容がなく評価できない\n・副業志望のサラリーマン（"}
+{"ts":"2026-04-20T12:00:51.686Z","level":"INFO","module":"reviewer:multi-persona","message":"reviewing for X[x-general] (175 chars)"}
+{"ts":"2026-04-20T12:00:53.260Z","level":"INFO","module":"reviewer:multi-persona","message":"avg: 6.4 → REVISE","data":{"scores":"ai_beginner:8 side_hustle:6 housewife:6 marketer:7 creator:5"}}
+{"ts":"2026-04-20T12:00:53.265Z","level":"WARN","module":"reviewer:multi-persona","message":"max retries reached, posting anyway (score: 6.4)"}
+{"ts":"2026-04-20T12:00:56.893Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"AI活用で成果を出す人と出ない人の差は何か\n\n① 「使いこなす」と思ってる\n② ツール選びで時間浪費\n③ プロンプトが適当\n④ 出力を検証しない\n⑤ 継続しない\n\nこの5つ、実は全部解決可能です。\n\n大事なのは「AIは手段」という当たり前の視点。\n使い方次第で月5万も月50万も変わります。\n\n同じ悩みの人に届いてほしい🙏\n\n#AI活用 #副業","keyword":"AI活用","attempts":0}}
+{"ts":"2026-04-20T12:00:58.044Z","level":"INFO","module":"x:pipeline","message":"xurl not available, using twitter-api-v2"}
+{"ts":"2026-04-20T12:00:58.211Z","level":"WARN","module":"x:pipeline","message":"processing failed: Request failed.","data":{"attempts":1}}
+{"ts":"2026-04-20T13:04:28.401Z","level":"INFO","module":"analytics:collect-x","message":"fetching metrics for 7 tweets"}
+{"ts":"2026-04-20T13:04:28.464Z","level":"ERROR","module":"analytics:collect-x","message":"metrics collection failed","data":{"message":"Request failed."}}
+{"ts":"2026-04-20T13:04:28.466Z","level":"ERROR","module":"bridge:analytics","message":"Request failed."}
+{"ts":"2026-04-20T14:31:12.809Z","level":"ERROR","module":"youtube:collect","message":"collect error: fetch failed"}
+{"ts":"2026-04-20T15:00:00.060Z","level":"INFO","module":"a8:sync","message":"launching browser"}
+{"ts":"2026-04-20T15:00:00.154Z","level":"INFO","module":"scheduler","message":"START youtube:generate:short"}
+{"ts":"2026-04-20T15:00:00.155Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"生成AIで作業を10倍速にする\""}
+{"ts":"2026-04-20T15:00:00.391Z","level":"INFO","module":"a8:sync","message":"logging in to A8.net"}
+{"ts":"2026-04-20T15:00:30.435Z","level":"ERROR","module":"bridge:ghost","message":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.a8.net/a8v2/login.html\", waiting until \"domcontentloaded\"\u001b[22m\n"}
+{"ts":"2026-04-20T15:02:30.184Z","level":"ERROR","module":"scheduler","message":"FAIL  youtube:generate:short","data":{"message":"Connection error."}}
+{"ts":"2026-04-20T16:00:00.498Z","level":"INFO","module":"scheduler","message":"START youtube:render:short"}
+{"ts":"2026-04-20T16:00:00.501Z","level":"WARN","module":"youtube:render","message":"draft not found: /Users/Rascal/work/automation/youtube/drafts/2026-04-20/short.json"}
+{"ts":"2026-04-20T16:00:00.502Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:short"}
+{"ts":"2026-04-20T17:00:00.164Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-fetch"}
+{"ts":"2026-04-20T17:00:10.691Z","level":"WARN","module":"youtube:reddit-fetch","message":"r/artificial fetch failed: fetch failed"}
+{"ts":"2026-04-20T17:00:21.216Z","level":"WARN","module":"youtube:reddit-fetch","message":"r/ChatGPT fetch failed: fetch failed"}
+{"ts":"2026-04-20T17:00:31.738Z","level":"WARN","module":"youtube:reddit-fetch","message":"r/LocalLLaMA fetch failed: fetch failed"}
+{"ts":"2026-04-20T17:00:42.260Z","level":"WARN","module":"youtube:reddit-fetch","message":"r/singularity fetch failed: fetch failed"}
+{"ts":"2026-04-20T17:00:52.781Z","level":"WARN","module":"youtube:reddit-fetch","message":"r/OpenAI fetch failed: fetch failed"}
+{"ts":"2026-04-20T17:00:52.782Z","level":"WARN","module":"youtube:reddit-fetch","message":"no suitable posts found across all subreddits"}
+{"ts":"2026-04-20T17:00:52.782Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-fetch"}
+{"ts":"2026-04-20T18:00:00.880Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-generate"}
+{"ts":"2026-04-20T18:00:00.883Z","level":"WARN","module":"youtube:reddit-generate","message":"reddit_queue.json not found — run reddit-fetch first"}
+{"ts":"2026-04-20T18:00:00.884Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-generate"}
+{"ts":"2026-04-20T19:00:00.530Z","level":"INFO","module":"scheduler","message":"START youtube:render:reddit-short"}
+{"ts":"2026-04-20T19:00:00.532Z","level":"WARN","module":"youtube:render","message":"draft not found: /Users/Rascal/work/automation/youtube/drafts/2026-04-20/reddit-short.json"}
+{"ts":"2026-04-20T19:00:00.533Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:reddit-short"}
+{"ts":"2026-04-20T21:00:00.046Z","level":"INFO","module":"a8:sync","message":"launching browser"}
+{"ts":"2026-04-20T21:00:00.153Z","level":"INFO","module":"a8:sync","message":"logging in to A8.net"}
+{"ts":"2026-04-20T21:00:00.813Z","level":"INFO","module":"scheduler","message":"START ghost:research"}
+{"ts":"2026-04-20T21:00:00.815Z","level":"INFO","module":"ghost:research","message":"fetching Reddit + HN trends"}
+{"ts":"2026-04-20T21:00:00.824Z","level":"INFO","module":"scheduler","message":"START research:ai-tools"}
+{"ts":"2026-04-20T21:00:00.824Z","level":"INFO","module":"research:ai-tools","message":"starting research"}
+{"ts":"2026-04-20T21:00:00.825Z","level":"INFO","module":"research:ai-tools","message":"sources: github+npm+reddit+bluesky+X"}
+{"ts":"2026-04-20T21:00:11.345Z","level":"WARN","module":"ghost:research","message":"HN fetch failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.347Z","level":"WARN","module":"ghost:research","message":"reddit/artificial failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.349Z","level":"WARN","module":"ghost:research","message":"reddit/singularity failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.349Z","level":"WARN","module":"ghost:research","message":"reddit/MachineLearning failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.349Z","level":"WARN","module":"ghost:research","message":"reddit/LocalLLaMA failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.350Z","level":"WARN","module":"ghost:research","message":"reddit/ChatGPT failed: fetch failed"}
+{"ts":"2026-04-20T21:00:11.350Z","level":"INFO","module":"ghost:research","message":"found 0 trending posts"}
+{"ts":"2026-04-20T21:00:11.350Z","level":"INFO","module":"scheduler","message":"DONE  ghost:research"}
+{"ts":"2026-04-20T21:00:16.257Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-20T21:00:30.195Z","level":"ERROR","module":"bridge:ghost","message":"page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.a8.net/a8v2/login.html\", waiting until \"domcontentloaded\"\u001b[22m\n"}
+{"ts":"2026-04-20T21:00:46.266Z","level":"WARN","module":"x:browser","message":"stale session deleted — retrying fresh login"}
+{"ts":"2026-04-20T21:00:46.334Z","level":"INFO","module":"x:browser","message":"logging in to x.com"}
+{"ts":"2026-04-20T21:01:16.337Z","level":"INFO","module":"research:ai-tools","message":"collected: github=0 npm=0 reddit=0 bluesky=0 x=0"}
+{"ts":"2026-04-20T21:01:16.339Z","level":"WARN","module":"research:ai-tools","message":"no data collected, skipping report"}
+{"ts":"2026-04-20T21:01:16.339Z","level":"INFO","module":"scheduler","message":"DONE  research:ai-tools"}
+{"ts":"2026-04-20T22:00:00.044Z","level":"INFO","module":"reviewer:multi-persona","message":"loading persistent feedback for [x-general]"}
+{"ts":"2026-04-20T22:00:00.665Z","level":"INFO","module":"scheduler","message":"START x:article"}
+{"ts":"2026-04-20T22:00:00.668Z","level":"INFO","module":"x:article","message":"selected topic","data":{"topic":"undefinedについて副業・AI活用の観点でまとめたスレッド"}}
+{"ts":"2026-04-20T22:01:31.329Z","level":"WARN","module":"x:pipeline","message":"processing failed: Connection error.","data":{"attempts":2}}
+{"ts":"2026-04-20T22:01:32.040Z","level":"ERROR","module":"scheduler","message":"FAIL  x:article","data":{"message":"Connection error."}}
+{"ts":"2026-04-20T23:00:00.400Z","level":"INFO","module":"scheduler","message":"START ghost:generate"}
+{"ts":"2026-04-20T23:00:00.409Z","level":"INFO","module":"ghost:generate","message":"generating: Submitted the viral ai photo to chat, told it to make it more ridiculo"}
+{"ts":"2026-04-20T23:01:31.770Z","level":"ERROR","module":"scheduler","message":"FAIL  ghost:generate","data":{"message":"Connection error."}}

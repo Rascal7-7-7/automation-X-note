@@ -1,0 +1,32 @@
+{
+  "theme": "Claude Codeの使い方完全ガイド",
+  "type": "short",
+  "series": null,
+  "episode": null,
+  "aiTool": null,
+  "hookText": "これ見逃すと損します",
+  "buzzTemplate": 4,
+  "script": "去年のAI開発見てみて\nコード書くの30分かかった\nClaude Codeで3分完成\n今年は90%コード削減\nもうエンジニア震えてる\n全部気づいた？もう一回見てみて\n何個気づいた？",
+  "titles": [
+    "Claude Codeで月5万稼ぐ裏ワザ｜30秒解説",
+    "知らないと損するClaude Code機能5選",
+    "Claude Code初心者が最初にやることTOP3",
+    "3分でマスター｜Claude Codeの神機能",
+    "Claude Codeの使い方｜衝撃の自動化方法"
+  ],
+  "description": "Claude CodeでAI駆動の開発を自動化！初心者でも60秒で使い方がわかる完全ガイドです。\n\nエンジニア・副業開発者・AI活用を始めたい方に向けて、Claude Codeの基本操作から実践的な使い方までを凝縮してお届けします。ターミナル上でAIがコードを自律的に書き・修正・実行する衝撃の体験を、この1本で体感してください。\n\nClaude Codeは、Anthropicが提供するCLIベースのAIコーディングエージェントです。コマンド一つで既存プロジェクトの解析、バグ修正、新機能の実装まで自動で行えます。GitHub Copilotやカーソル（Cursor）と異なり、ファイル操作・コマンド実行・テストまで一気通貫で対応できるのが最大の強みです。月額$20のClaude Proプラン、または従量課金のAPI経由で利用可能。`npm install -g @anthropic-ai/claude-code`のコマンド一つで即セットアップ完了です。副業・フリーランスの開発効率を劇的に上げたい方は今すぐ試してみてください。\n\n#ClaudeCode #AI開発 #副業 #Shorts\n\n---\n\n🔔 チャンネル登録はこちら → https://www.youtube.com/@nucho0202\n🐦 X(Twitter): https://x.com/Rascal_AI_Dev\n📷 Instagram: https://www.instagram.com/ai_side_hack_/",
+  "tags": [
+    "ClaudeCode",
+    "AI開発",
+    "副業",
+    "Shorts"
+  ],
+  "thumbnail": "COPY: \nClaude Codeで開発が100倍速くなる\nプロが教えるClaude Code活用術\nAIコーダーで月100万稼ぐ裏技\n\nPROMPT:\nA vibrant 16:9 YouTube thumbnail featuring a shocked and excited developer with wide eyes and open mouth expression, wearing modern casual tech clothing. Bold white text reading \"CLAUDE CODE\" in all caps takes up the upper half. Bright electric blue and neon purple gradient background with tech-inspired visual elements like glowing code brackets and lightning bolts. A glowing green checkmark or rocket ship icon in the corner. High contrast, dynamic composition with strong visual hierarchy, professional yet eye-catching design that screams \"you won't believe this AI feature.\"",
+  "thumbnailPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-19/thumbnail.png",
+  "date": "2026-04-19",
+  "status": "ready",
+  "videoPath": null,
+  "videoId": null,
+  "crossPublished": false,
+  "createdAt": "2026-04-19T20:28:47.911Z"
+}

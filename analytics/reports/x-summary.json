@@ -1,0 +1,26 @@
+{
+  "sampleSize": 9,
+  "topKeywords": [
+    "副業エンジニア",
+    "プロダクト開発",
+    "AI活用",
+    "インデックス投資",
+    "インディーハッカー"
+  ],
+  "bestPostHours": [
+    3,
+    7,
+    8
+  ],
+  "promoVsNormal": {
+    "promoAvg": 1,
+    "normalAvg": 1.5
+  },
+  "effectivePatterns": [
+    "数字を含む投稿が反応を取りやすい",
+    "ハッシュタグ2個以下が好まれる傾向"
+  ],
+  "weakPatterns": [
+    "数字を含む投稿が反応を取りやすい"
+  ]
+}

@@ -23,9 +23,9 @@ const mainQ = new FileQueue(path.join(__dirname, 'queue/main.jsonl'));
 
 // ── ドメイン別キーワード ─────────────────────────────────────────
 export const DOMAIN_KEYWORDS = {
-  ai:   ['Claude', 'ChatGPT', '生成AI', 'LLM', 'AI活用', 'プロンプト'],
-  dev:  ['個人開発', '副業エンジニア', 'SaaS', 'インディーハッカー', 'プロダクト開発'],
-  finance: ['NISA', '投資', '資産運用', 'インデックス投資', '米国株'],
+  ai:      ['Claude Code 副業', 'ChatGPT 稼ぐ', 'AI副業', '生成AI 収入', 'AI活用 実績'],
+  dev:     ['副業エンジニア', 'note 収益化', 'AI自動化 収入', '個人開発 稼ぐ', 'フリーランス AI'],
+  content: ['AI 記事生成', 'note AI', 'AIライティング 副業', 'Claude 副業', 'ChatGPT note'],
 };
 
 // ── セレクタ ─────────────────────────────────────────────────────
@@ -86,7 +86,7 @@ export async function runResearch(keywords) {
     : [
         ...DOMAIN_KEYWORDS.ai.map(kw      => ({ kw, domain: 'ai' })),
         ...DOMAIN_KEYWORDS.dev.map(kw     => ({ kw, domain: 'dev' })),
-        ...DOMAIN_KEYWORDS.finance.map(kw => ({ kw, domain: 'finance' })),
+        ...DOMAIN_KEYWORDS.content.map(kw => ({ kw, domain: 'content' })),
       ];
 
   const { browser, page } = await getXBrowser({ headless: true });

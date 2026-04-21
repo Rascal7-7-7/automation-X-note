@@ -5,7 +5,19 @@
   "theme": "AI執筆ツールで月3本→月15本へ",
   "angle": "noteクリエイターの執筆速度を5倍にする具体的なプロンプト集",
   "createdAt": "2026-04-01T18:11:29.124Z",
-  "status": "draft",
-  "imagePath": "/home/rascal/work/automation/note/drafts/images/1775067704646.png",
-  "imagePrompt": "A minimalist flat illustration of a productivity graph ascending upward with digital pen strokes and AI neural network nodes in soft blue and teal tones against a clean white background."
+  "status": "posted",
+  "imagePath": "/Users/Rascal/work/automation/note/drafts/images/1775067704646.png",
+  "imagePrompt": "A minimalist flat illustration of a productivity graph ascending upward with digital pen strokes and AI neural network nodes in soft blue and teal tones against a clean white background.",
+  "promoPosted": false,
+  "tags": [
+    "AI副業",
+    "Claude活用",
+    "note収益化",
+    "自動化",
+    "副業"
+  ],
+  "price": 500,
+  "postedAt": "2026-04-21T15:50:14.340Z",
+  "noteUrl": "https://note.com/rascal_ai_devops/n/nd15b3ad263b3",
+  "noteKey": null
 }

@@ -6,8 +6,8 @@
  * - 1日最大1件
  */
 import 'dotenv/config';
-import { execFileSync } from 'child_process';
 import { generate } from '../shared/claude-client.js';
+import { postTweet } from './pipeline.js';
 import { logger } from '../shared/logger.js';
 import fs from 'fs';
 import path from 'path';
@@ -29,14 +29,25 @@ const GITHUB_QUERIES = [
 ];
 
 const SYSTEM = `あなたはAI活用・副業・生産性をテーマに発信するXアカウントの中の人です。
-GitHubのリポジトリを紹介するツイートを1件作成してください：
-- 200〜240文字（日本語）
-- 「何ができるのか」「なぜ使えるのか」「どんな人に役立つか」を簡潔に伝える
-- 難しい技術用語は避け、AIツール初心者でも理解できる言葉を使う
-- 最後にリポジトリURLを含める
-- ハッシュタグ: #AI活用 #個人開発 のどちらか1つのみ
-- 宣伝・自己PRは含めない
-- 末尾に改行なし`;
+GitHubのリポジトリを紹介するツイートを1件作成してください。
+
+【フォーマット（必須）】
+1行目: 「🔧 [ツール名] — [一言キャッチ]」（絵文字で始める）
+空行
+「何ができるか」を箇条書き（✅ ×3行、各行15字以内）
+空行
+「どんな人に使える？」1行
+空行
+リポジトリURL（末尾）
+空行
+ハッシュタグ関連性があれば4個まで（#AI活用 #個人開発 #Claude #GitHub 等）
+
+【ルール】
+- 合計200〜250文字
+- 改行を7〜9回使う（スクロール停止・可読性最大化）
+- 技術用語は避け、初心者でも分かる言葉
+- 「スター数○○件」は書かない
+- 宣伝・自己PRは含めない`;
 
 // ── 投稿済み管理 ──────────────────────────────────────────────────
 
@@ -92,30 +103,6 @@ function todayQuery() {
   return GITHUB_QUERIES[dayIndex];
 }
 
-// ── xurl / twitter-api-v2 ─────────────────────────────────────────
-
-let _xurlAvailable = null;
-function isXurlAvailable() {
-  if (_xurlAvailable === null) {
-    try { execFileSync('xurl', ['--version'], { stdio: 'pipe' }); _xurlAvailable = true; }
-    catch { _xurlAvailable = false; }
-  }
-  return _xurlAvailable;
-}
-
-async function postTweet(text) {
-  if (isXurlAvailable()) {
-    const raw = execFileSync('xurl', ['post', text], { encoding: 'utf8' });
-    return JSON.parse(raw);
-  }
-  const { TwitterApi } = await import('twitter-api-v2');
-  const client = new TwitterApi({
-    appKey: process.env.X_API_KEY, appSecret: process.env.X_API_SECRET,
-    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
-  });
-  return client.v2.tweet(text);
-}
-
 // ── メイン ────────────────────────────────────────────────────────
 
 export async function runGithubIntro(opts = {}) {
@@ -154,8 +141,7 @@ URL: ${repo.url}`;
   const tweetText = await generate(SYSTEM, prompt, { maxTokens: 350 });
   logger.info(MODULE, `tweet: ${tweetText}`);
 
-  const result  = await postTweet(tweetText);
-  const tweetId = result?.data?.id ?? result?.id;
+  const tweetId = await postTweet(tweetText);
   recordPosted(repo, tweetId);
 
   logger.info(MODULE, `posted tweet:${tweetId} for ${repo.fullName}`);

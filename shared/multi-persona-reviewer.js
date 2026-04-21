@@ -95,6 +95,22 @@ export const PERSONA_SETS = {
     ALL_PERSONAS.marketer,
     ALL_PERSONAS.creator,
   ],
+  // note: 投資・FX・株
+  'note-finance': [
+    ALL_PERSONAS.cost_conscious,
+    ALL_PERSONAS.side_hustle,
+    ALL_PERSONAS.ai_beginner,
+    ALL_PERSONAS.housewife,
+    ALL_PERSONAS.marketer,
+  ],
+  // YouTubeショート（AI副業・自動化チャンネル）
+  'youtube-short': [
+    ALL_PERSONAS.ai_beginner,
+    ALL_PERSONAS.side_hustle,
+    ALL_PERSONAS.sns_operator,
+    ALL_PERSONAS.marketer,
+    ALL_PERSONAS.creator,
+  ],
   // Ghost英語記事
   'ghost': [
     ALL_PERSONAS.engineer,

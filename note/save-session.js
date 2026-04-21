@@ -14,11 +14,13 @@ import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
 import readline from 'readline';
 
-const __dirname     = path.dirname(fileURLToPath(import.meta.url));
-const SESSION_FILE  = path.join(__dirname, '../.note-session.json');
+const __dirname  = path.dirname(fileURLToPath(import.meta.url));
+const ACCOUNT_ID = Number(process.env.NOTE_ACCOUNT ?? process.argv[2] ?? 1);
+const SESSION_FILES = { 1: '.note-session.json', 2: '.note-session-2.json', 3: '.note-session-3.json' };
+const SESSION_FILE  = path.join(__dirname, '..', SESSION_FILES[ACCOUNT_ID] ?? '.note-session.json');
 
 async function main() {
-  console.log('ブラウザを起動します...');
+  console.log(`ブラウザを起動します... (アカウント ${ACCOUNT_ID})`);
   const browser = await chromium.launch({ headless: false });
   const context = await browser.newContext();
   const page    = await context.newPage();
@@ -38,6 +40,11 @@ async function main() {
     await browser.close();
     process.exit(1);
   }
+
+  // editor.note.com サブドメインのセッションを初期化してから保存
+  console.log('エディタを初期化中...');
+  await page.goto('https://editor.note.com/new', { waitUntil: 'networkidle', timeout: 30_000 });
+  await page.waitForTimeout(5000);
 
   await context.storageState({ path: SESSION_FILE });
   console.log(`\nセッションを保存しました: ${SESSION_FILE}`);

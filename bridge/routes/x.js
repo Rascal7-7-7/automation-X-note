@@ -99,4 +99,16 @@ router.post('/github-intro', async (req, res) => {
   }
 });
 
+// POST /api/x/x-article — X Articles長文記事自動投稿（画像+note CTA）
+router.post('/x-article', async (_req, res) => {
+  try {
+    const { runXArticle } = await import('../../x/x-articles.js');
+    const result = await runXArticle();
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

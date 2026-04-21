@@ -1,0 +1,37 @@
+{
+  "theme": "AIツールで副業収益を上げる方法",
+  "type": "long",
+  "series": null,
+  "episode": null,
+  "aiTool": null,
+  "hookText": null,
+  "buzzTemplate": null,
+  "script": "# AIツールで副業収益を上げる方法｜台本構成\n\n---\n\n## 【HOOK】0:00〜0:05\n\n「この動画、全部AIが作ってます。そして最後まで見た人だけ、もう普通の働き方に戻れなくなります。先に謝っておきます」\n\n*(画面：語り手の顔アップ→一瞬ノイズ→背景の観葉植物が微妙に歪む)*\n\n---\n\n## 【PHASE 1】0:05〜0:30 ｜ 最初は普通だった\n\n「最初は普通だったんですよ、俺も。会社員やりながら、副業で月3万稼げたら嬉しいな〜くらいの。\n\n朝起きて、満員電車乗って、上司に怒られて、帰ってきて寝る。そんな毎日。\n\nでも去年の冬、ある1本の動画を見ちゃって……そこから全部おかしくなったんです」\n\n*(※背景の時計、一瞬だけ逆回転している。気づいた人だけ気づく違和感)*\n\n---\n\n## 【PHASE 2】0:30〜1:00 ｜ AI価値提供\n\n「使ったのはこの3つだけ。\n\n- **ChatGPT**（台本・構成）\n- **Runway Gen-3**（動画生成）\n- **ElevenLabs**（ナレーション）\n\nこれ全部、**スマホ1台でも作れます**。パソコンいらない。\n\nなぜヤバいかっていうと、今まで外注で10万かかってた動画が、月20ドルのサブスクで無限に作れるようになった。つまり、コストがほぼゼロで\"コンテンツを量産できる側\"に回れる。ここが副業の勝ち筋なんですよ」\n\n---\n\n## 【PHASE 3】1:00〜3:00 ｜ 制作過程を一瞬見せる\n\n「例えば今見てるこの背景、実は**Midjourneyで生成した画像をRunwayで動かしてます**。\n\n俺の声も、実は……**半分はAIクローン**です。どれが本物かわかりました？\n\n台本の骨組みはChatGPTに『バズる構成で書いて』って投げるだけ。ここから収益化までのフロー、全部は言えないんですけど——\n\n具体的なプロンプトと月50万稼いでるテンプレは、**固定コメントとフォロワー限定**で配ってます。\n\nで、ここからが本題なんですけど……」\n\n*(※ここでBGMが一瞬止まる。画面の端に一瞬\"録画中\"の赤い点が映る)*\n\n---\n\n## 【PHASE 4】3:00〜5:00 ｜ 事件（山場）\n\n「副業始めて3ヶ月目。俺、気づいちゃったんです。\n\n**AIが作った動画に、AIがコメントして、AIが再生してた**ことに。\n\n収益画面開いたら、月収87万円。でも、俺、今月1本も動画アップしてないんですよ。\n\n……え？じゃあ誰が？\n\n自動化で組んだワークフロー（n8n + ChatGPT API）が、**勝手に市場調査して、勝手に台本書いて、勝手に動画作って、勝手にアップしてた**。俺が寝てる間に。\n\n鏡見たら、俺の顔、ちょっとだけAI生成された顔に似てきてたんです」\n\n*(※ここが視聴維持率の山。強い効果音＋画面グリッチ)*\n\n---\n\n## 【PHASE 5】5:00〜8:00 ｜ 伏線回収\n\n「ここで、最初のシーンを思い出してください。\n\n冒頭の俺の部屋、**時計が逆回転**してました。背景の植物、ちょっと歪んでた。\n\nあれ、全部AI生成だからなんです。俺、本当は部屋で撮ってない。\n\nPHASE3で『声の半分はAI』って言ったけど——正直に言います。**全部AIです**。声も、顔も、この部屋も、今喋ってる\"俺\"も。\n\nじゃあ、この動画を作ってる本人は誰か？\n\n**あなたと同じ、最初は月3万稼ぎたかっただけの普通の人**です。その人が、AIに全部任せたら、自分がいらなくなった。でも収益だけは毎月入ってくる。\n\nこれが、2025年のAI副業の本当のルールです。**\"自分が働く\"から\"自分の代わりを作る\"に、ゲームが変わった**」\n\n---\n\n## 【OUTRO】8:00〜10:00 ｜ 意味ある終わり\n\n「使ったツールまとめておきます。\n\nChatGPT、Runway、ElevenLabs、Midjourney、n8n。この5つで、ゼロから自動収益システムが組めます。\n\nコメント欄で聞きたいんですけど——**この動画の中で、AIだって気づいたシーン、何個ありました？**\n\n5個以上気づいた人、センスあります。フォローしてくれたら、自動化ワークフローの設計図、固定投稿で配ります。\n\n最初から見返すと、**違和感が全部伏線だった**ってわかるので、もう一回見てみてください。\n\n……で、最後にもう一度だけ言わせてください。\n\n**これ、全部AIです。**\n\n……じゃあ、これ見てる\"あなた\"は、本物ですか？」\n\n*(※画面暗転→最初のシーンに戻ってループ)*\n\n---\n\n**【仕込んだ違和感リスト（視聴者が気づく用）】**\n- 時計の逆回転（PHASE1）\n- 植物の歪み（PHASE1）\n- BGMの不自然な停止（PHASE3）\n- \"録画中\"の赤点（PHASE3）\n- 語り手の顔の微変化（PHASE4）",
+  "titles": [
+    "AIツール副業で月5万稼ぐ全手順｜知らないと損する3つの秘訣",
+    "副業初心者が選ぶべきAIツール5選｜月収を3倍にした方法",
+    "AIで稼ぐ人と失敗する人の決定的な違い｜衝撃の実例",
+    "2024年最新｜AIツール副業の完全ロードマップ【実績公開】",
+    "月10万円の壁を超えるAIツール活用法｜プロが教える裏技"
+  ],
+  "description": "AIツールで副業収益を月10万円アップさせる実践的な方法を、初心者にもわかりやすく解説します。ChatGPT・Claude・画像生成AIを活用した最新の副業戦略を公開。\n\n「副業を始めたいけどスキルがない」「AIを使って効率よく稼ぎたい」という方に最適な内容です。\n実際の収益事例と具体的な手順を5つのステップで紹介します。\n今日から誰でも実践できるノウハウを凝縮しました。\n\n━━━━━━━━━━━━━━━━━━\n▼ この動画で学べること\n━━━━━━━━━━━━━━━━━━\n✅ AIツールを使った副業ジャンル5選\n✅ 初心者でも即金性が高い案件の見つけ方\n✅ ChatGPTで記事作成を10倍速にする方法\n✅ 画像生成AIを使った販売ビジネスの始め方\n✅ 月10万円を達成するための具体的ロードマップ\n\n━━━━━━━━━━━━━━━━━━\n▼ タイムスタンプ\n━━━━━━━━━━━━━━━━━━\n00:00 オープニング\n01:30 AI副業が今チャンスな理由\n03:45 おすすめAIツール5選\n06:20 具体的な収益化の流れ\n09:10 実際の成功事例\n12:00 始める際の注意点\n14:00 まとめ\n\n副業初心者の方から、すでに副業をしているけど成果が出ない方まで、すぐに実践できる内容になっています。動画を見た後は、ぜひ第一歩を踏み出してみてください。\n\n━━━━━━━━━━━━━━━━━━\n▼ チャンネル登録・SNSフォローのお願い\n━━━━━━━━━━━━━━━━━━\n最新のAI活用術や副業ノウハウを毎週配信中！\n\nコメント欄で感想や質問もお待ちしています！\n\n#AI副業 #ChatGPT活用 #副業初心者 #在宅ワーク #AIツール\n\n---\n\n🔔 チャンネル登録はこちら → https://www.youtube.com/@nucho0202\n🐦 X(Twitter): https://x.com/Rascal_AI_Dev\n📷 Instagram: https://www.instagram.com/ai_side_hack_/",
+  "tags": [
+    "AI副業",
+    "ChatGPT活用",
+    "副業初心者",
+    "在宅ワーク",
+    "AIツール"
+  ],
+  "thumbnail": "# YouTubeサムネイル提案\n\n## COPY:\nAI副業で月10万円稼ぐ秘訣\nAIで自動収益化する裏技\n未経験でもAIが稼いでくれる\n\n## PROMPT:\nA vibrant YouTube thumbnail (16:9 aspect ratio) featuring a young professional with a shocked, delighted expression showing both palms facing forward. The background is split into bright neon colors - electric blue on the left, golden yellow on the right. In the center, large bold white text reads \"AI副業で稼ぐ!\" with a bright green upward arrow. Floating around are small icons: a robot head, money bills, and a laptop. The overall style is modern, eye-catching, with high contrast and clean typography typical of successful YouTube thumbnails. Professional lighting, vibrant saturation, digital art style.\n\n---\n\n**ポイント:**\n- テキスト3案は数字・期待感・簡潔さでクリック率向上を狙う\n- プロンプトは驚き表情＋色彩分離＋矢印で上昇感を表現\n- AI関連キーワードとお金のアイコンで内容を即座に理解できる設計",
+  "thumbnailPath": null,
+  "date": "2026-04-19",
+  "status": "uploaded",
+  "videoPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-19/long.mp4",
+  "videoId": "ADQnpmfOzs0",
+  "crossPublished": false,
+  "createdAt": "2026-04-19T03:50:35.786Z",
+  "captionsPath": "/Users/Rascal/work/automation/youtube/drafts/2026-04-19/long_captions.srt",
+  "renderedAt": "2026-04-19T04:23:24.359Z",
+  "url": "https://www.youtube.com/watch?v=ADQnpmfOzs0",
+  "uploadedAt": "2026-04-19T14:57:52.732Z"
+}

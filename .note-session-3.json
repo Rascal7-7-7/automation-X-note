@@ -1,0 +1,130 @@
+{
+  "cookies": [
+    {
+      "name": "_GRECAPTCHA",
+      "value": "09AKhCRwh22nCrITwqRViBXfdNcdfzEl8HYha5sU1h9ACTf-W3KCiHySjVYCRaSL-kj15fKl4d8gUQynwGRo5QuCY",
+      "domain": "www.google.com",
+      "path": "/recaptcha",
+      "expires": 1792335607.465868,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "None"
+    },
+    {
+      "name": "_gid",
+      "value": "GA1.2.911113466.1776783598",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1776870637,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_note_session_v5",
+      "value": "d7f1da1c44e2620b04f4eeec5ac675ea",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1784646642.318482,
+      "httpOnly": true,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "fp",
+      "value": "9d7b9bfbb8274a41c95604ed7d51fb05e",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_vid_v1",
+      "value": "ac2867f401b3651e0beb6069a9b31bae",
+      "domain": "note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_vid_v2",
+      "value": "ac2867f401b3651e0beb6069a9b31bae",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.1729508923.1776783598",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1811344238.041055,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_J9CPC3WE56",
+      "value": "GS2.1.s1776783597$o1$g1$t1776784242$j56$l0$h0",
+      "domain": ".note.com",
+      "path": "/",
+      "expires": 1811344242.083099,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_vid_v1",
+      "value": "ac2867f401b3651e0beb6069a9b31bae",
+      "domain": ".editor.note.com",
+      "path": "/",
+      "expires": 1776786042,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": [
+    {
+      "origin": "https://note.com",
+      "localStorage": [
+        {
+          "name": "confirmAnniversaryBadge",
+          "value": "2026/04/22"
+        },
+        {
+          "name": "_grecaptcha",
+          "value": "09AKhCRwiR-RD37eD0ZnyUrbQnarDbphKGPtQ88iFt-hFBvSBhPlRs17-rjWAuQpEZ8MfjlkEDDWwfHTT8XW9tn5wyeh9EpN0y5xH7LgwuZXSuB1PC1GBwbIf-pF1H1sWA"
+        },
+        {
+          "name": "note-client-code",
+          "value": "df03d4a7577076049b1d2a7575798f0dbd2fdd88692f2458068886d40e3fa636"
+        },
+        {
+          "name": "showingCategory",
+          "value": "1,2,3,4,5,6,7"
+        }
+      ]
+    },
+    {
+      "origin": "https://www.google.com",
+      "localStorage": [
+        {
+          "name": "rc::a",
+          "value": "MWI0NWFzOHJqZXdx"
+        },
+        {
+          "name": "rc::f",
+          "value": "0aACwDMCvz3SBASHDvE5qkpHS6JeUC-lyxAoWF3sNk3bDWrszrmLXik0Fjui53sxvbFC4FJG4"
+        }
+      ]
+    }
+  ]
+}

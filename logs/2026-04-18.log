@@ -1,0 +1,621 @@
+{"ts":"2026-04-18T07:45:07.069Z","level":"INFO","module":"scheduler","message":"registered: x:enqueue [0 7 * * *]"}
+{"ts":"2026-04-18T07:45:07.070Z","level":"INFO","module":"scheduler","message":"registered: x:process [30 8,12,18 * * *]"}
+{"ts":"2026-04-18T07:45:07.070Z","level":"INFO","module":"scheduler","message":"registered: x:like [0 12,18 * * *]"}
+{"ts":"2026-04-18T07:45:07.070Z","level":"INFO","module":"scheduler","message":"registered: note:research [0 8 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.070Z","level":"INFO","module":"scheduler","message":"registered: note:generate [0 10 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: note:image [0 11 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: note:post [0 10 * * 2,4,6]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: x:reply [0 9,21 * * *]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: x:quote-rt [30 9 * * *]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: x:article [0 7 * * 2,4]"}
+{"ts":"2026-04-18T07:45:07.071Z","level":"INFO","module":"scheduler","message":"registered: x:note-promo [15 10 * * 2,4,6]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:1 [0 9 * * *]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:1 [30 9 * * *]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:render:1 [0 10 * * *]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:1 [0 19 * * *]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:generate:2 [0 10 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:image:2 [30 10 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.072Z","level":"INFO","module":"scheduler","message":"registered: instagram:render:2 [0 11 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: instagram:post:2 [0 19 * * 1,3,5]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-fetch [0 2 * * *]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:reddit-generate [0 3 * * *]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:reddit-short [0 4 * * *]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:reddit-short [0 20 * * 1,2,3,4,5]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:short [0 0 * * *]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:short [0 1 * * *]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:short [0 18 * * 1,2,3,4,5]"}
+{"ts":"2026-04-18T07:45:07.073Z","level":"INFO","module":"scheduler","message":"registered: youtube:generate:long [0 0 * * 3]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: youtube:render:long [0 2 * * 3]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: youtube:upload:long [0 19 * * 3]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: x:collect [0 22 * * *]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: analytics:buzz [0 23 * * *]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: instagram:check-expiry [0 9 * * *]"}
+{"ts":"2026-04-18T07:45:07.074Z","level":"INFO","module":"scheduler","message":"registered: youtube:plan [0 23 * * 0]"}
+{"ts":"2026-04-18T09:00:00.767Z","level":"INFO","module":"scheduler","message":"START x:like"}
+{"ts":"2026-04-18T09:00:05.204Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-18T09:00:09.076Z","level":"INFO","module":"x:like","message":"  → 9 tweets found"}
+{"ts":"2026-04-18T09:00:09.076Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-18T09:00:12.936Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-18T09:00:12.936Z","level":"INFO","module":"x:like","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-18T09:00:16.769Z","level":"INFO","module":"x:like","message":"  → 4 tweets found"}
+{"ts":"2026-04-18T09:00:16.769Z","level":"INFO","module":"x:like","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-18T09:00:20.582Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-18T09:00:20.582Z","level":"INFO","module":"x:like","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-18T09:00:24.375Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-18T09:00:24.376Z","level":"INFO","module":"x:like","message":"playwright search: \"投資\""}
+{"ts":"2026-04-18T09:00:28.140Z","level":"INFO","module":"x:like","message":"  → 4 tweets found"}
+{"ts":"2026-04-18T09:00:28.178Z","level":"INFO","module":"x:like","message":"like run done. liked: 0"}
+{"ts":"2026-04-18T09:00:28.178Z","level":"INFO","module":"scheduler","message":"DONE  x:like"}
+{"ts":"2026-04-18T09:30:00.674Z","level":"INFO","module":"scheduler","message":"START x:process"}
+{"ts":"2026-04-18T09:30:04.785Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"# ツイート案\n\n本人の同意なしで名前を出されるのは\n本当に失礼ですよね。\n\n気持ちは分かりますが、\n相手にはその時間や心の余裕が\nないのかもしれません。\n\n① 相手のペースを尊重する\n② 返信を期待しすぎない\n③ 大切なことは直接伝える\n④ グループでの頻繁な連絡を避ける\n⑤ 相手の状況を想像してみる\n\n相手を傷つけるのは簡単ですが、\n信頼関係を保つのは難しい。\n\nもう一度冷静に考え直してみてください。\n\n役立ったらRTしてくれると嬉しいです🙏\n\n---\n\n**注記：**\n参考ツイートがNISAと関連がないため、\n一般的な人間関係のアドバイスに変更しました。\n\nもし「NISA」を主テーマにした\nツイートをご希望でしたら、\n別途キ","keyword":"NISA","attempts":2}}
+{"ts":"2026-04-18T09:30:04.787Z","level":"WARN","module":"x:pipeline","message":"validate NG: too long","data":{"text":"# ツイート案\n\n本人の同意なしで名前を出されるのは\n本当に失礼ですよね。\n\n気持ちは分かりますが、\n相手にはその時間や心の余裕が\nないのかもしれません。\n\n① 相手のペースを尊重する\n② 返信を期待しすぎない\n③ 大切なことは直接伝える\n④ グループでの頻繁な連絡を避ける\n⑤ 相手の状況を想像してみる\n\n相手を傷つけるのは簡単ですが、\n信頼関係を保つのは難しい。\n\nもう一度冷静に考え直してみてください。\n\n役立ったらRTしてくれると嬉しいです🙏\n\n---\n\n**注記：**\n参考ツイートがNISAと関連がないため、\n一般的な人間関係のアドバイスに変更しました。\n\nもし「NISA」を主テーマにした\nツイートをご希望でしたら、\n別途キ"}}
+{"ts":"2026-04-18T09:30:04.789Z","level":"WARN","module":"x:pipeline","message":"processing failed: validate NG: too long","data":{"attempts":3}}
+{"ts":"2026-04-18T09:30:04.789Z","level":"INFO","module":"scheduler","message":"DONE  x:process"}
+{"ts":"2026-04-18T10:00:00.698Z","level":"INFO","module":"scheduler","message":"START instagram:post:1"}
+{"ts":"2026-04-18T10:00:00.702Z","level":"WARN","module":"instagram:post","message":"no draft for account1 today: /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-18/post.json"}
+{"ts":"2026-04-18T10:00:00.703Z","level":"INFO","module":"scheduler","message":"DONE  instagram:post:1"}
+{"ts":"2026-04-18T12:00:00.745Z","level":"INFO","module":"scheduler","message":"START x:reply"}
+{"ts":"2026-04-18T12:00:04.764Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"AI活用\""}
+{"ts":"2026-04-18T12:00:04.764Z","level":"INFO","module":"x:reply","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-18T12:00:08.782Z","level":"INFO","module":"x:reply","message":"  → 7 tweets found"}
+{"ts":"2026-04-18T12:00:08.782Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"Claude\""}
+{"ts":"2026-04-18T12:00:08.783Z","level":"INFO","module":"x:reply","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-18T12:00:13.008Z","level":"INFO","module":"x:reply","message":"  → 7 tweets found"}
+{"ts":"2026-04-18T12:00:13.009Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"副業\""}
+{"ts":"2026-04-18T12:00:13.009Z","level":"INFO","module":"x:reply","message":"playwright search: \"副業\""}
+{"ts":"2026-04-18T12:00:16.930Z","level":"INFO","module":"x:reply","message":"  → 8 tweets found"}
+{"ts":"2026-04-18T12:00:16.931Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"自動化\""}
+{"ts":"2026-04-18T12:00:16.931Z","level":"INFO","module":"x:reply","message":"playwright search: \"自動化\""}
+{"ts":"2026-04-18T12:00:20.857Z","level":"INFO","module":"x:reply","message":"  → 9 tweets found"}
+{"ts":"2026-04-18T12:00:20.857Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"生産性\""}
+{"ts":"2026-04-18T12:00:20.857Z","level":"INFO","module":"x:reply","message":"playwright search: \"生産性\""}
+{"ts":"2026-04-18T12:00:24.765Z","level":"INFO","module":"x:reply","message":"  → 10 tweets found"}
+{"ts":"2026-04-18T12:00:28.656Z","level":"INFO","module":"x:reply","message":"generated reply for 2045471120183427108","data":{"replyText":"療養食は普段から在庫確認が大切ですよね。ローリングストックは「使ったら補充」のルーティンを作るのが継続のコツ。賞味期限をカレンダーに記録するだけでも管理がぐっと楽になります。"}}
+{"ts":"2026-04-18T12:00:28.672Z","level":"INFO","module":"x:reply","message":"replied to tweet 2045471120183427108 (score:5)"}
+{"ts":"2026-04-18T12:00:30.681Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"ChatGPT\""}
+{"ts":"2026-04-18T12:00:30.682Z","level":"INFO","module":"x:reply","message":"playwright search: \"ChatGPT\""}
+{"ts":"2026-04-18T12:00:34.449Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-18T12:00:34.489Z","level":"INFO","module":"x:reply","message":"reply run done. replied: 1"}
+{"ts":"2026-04-18T12:00:34.490Z","level":"INFO","module":"scheduler","message":"DONE  x:reply"}
+{"ts":"2026-04-18T13:00:00.596Z","level":"INFO","module":"scheduler","message":"START x:collect"}
+{"ts":"2026-04-18T13:00:00.600Z","level":"INFO","module":"analytics:collect-x","message":"fetching metrics for 3 tweets"}
+{"ts":"2026-04-18T13:00:00.838Z","level":"INFO","module":"analytics:collect-x","message":"collected metrics for 2 tweets"}
+{"ts":"2026-04-18T13:00:00.838Z","level":"INFO","module":"scheduler","message":"DONE  x:collect"}
+{"ts":"2026-04-18T14:00:00.519Z","level":"INFO","module":"scheduler","message":"START analytics:buzz"}
+{"ts":"2026-04-18T14:00:00.522Z","level":"INFO","module":"analytics:buzz","message":"analysis start"}
+{"ts":"2026-04-18T14:00:00.538Z","level":"INFO","module":"analytics:buzz","message":"reports written","data":{"x":"sampleSize, topKeywords, bestPostHours, promoVsNormal, effectivePatterns, weakPatterns","note":"sampleSize, avgTitleLength, titlesWithNumbers, titlesWithoutNumbers, topThemes"}}
+{"ts":"2026-04-18T14:00:00.539Z","level":"INFO","module":"scheduler","message":"DONE  analytics:buzz"}
+{"ts":"2026-04-18T15:00:00.043Z","level":"INFO","module":"scheduler","message":"START youtube:generate:short"}
+{"ts":"2026-04-18T15:00:00.044Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T15:00:23.390Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T15:00:23.391Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T15:00:23.391Z","level":"INFO","module":"scheduler","message":"DONE  youtube:generate:short"}
+{"ts":"2026-04-18T15:49:07.303Z","level":"INFO","module":"scheduler","message":"prod single run: youtube:generate:short"}
+{"ts":"2026-04-18T15:49:07.303Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T15:49:07.977Z","level":"INFO","module":"scheduler","message":"prod single run: youtube:generate:long"}
+{"ts":"2026-04-18T15:49:07.978Z","level":"INFO","module":"youtube:generate","message":"generating long for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T15:49:25.569Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T15:49:25.570Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T15:49:25.570Z","level":"INFO","module":"scheduler","message":"prod single run done: youtube:generate:short"}
+{"ts":"2026-04-18T15:49:42.680Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T15:49:42.681Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.json"}
+{"ts":"2026-04-18T15:49:42.681Z","level":"INFO","module":"scheduler","message":"prod single run done: youtube:generate:long"}
+{"ts":"2026-04-18T15:50:06.445Z","level":"INFO","module":"scheduler","message":"prod single run: youtube:render:short"}
+{"ts":"2026-04-18T15:50:06.445Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T15:50:06.446Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T15:50:07.075Z","level":"INFO","module":"scheduler","message":"prod single run: youtube:render:long"}
+{"ts":"2026-04-18T15:50:07.076Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T15:50:07.076Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T15:50:14.406Z","level":"INFO","module":"youtube:render","message":"scene image 1/6 generated"}
+{"ts":"2026-04-18T15:50:16.010Z","level":"INFO","module":"youtube:render","message":"scene image 1/20 generated"}
+{"ts":"2026-04-18T15:50:21.068Z","level":"INFO","module":"youtube:render","message":"scene image 2/6 generated"}
+{"ts":"2026-04-18T15:50:24.974Z","level":"INFO","module":"youtube:render","message":"scene image 2/20 generated"}
+{"ts":"2026-04-18T15:50:28.202Z","level":"INFO","module":"youtube:render","message":"scene image 3/6 generated"}
+{"ts":"2026-04-18T15:50:35.283Z","level":"INFO","module":"youtube:render","message":"scene image 3/20 generated"}
+{"ts":"2026-04-18T15:50:35.730Z","level":"INFO","module":"youtube:render","message":"scene image 4/6 generated"}
+{"ts":"2026-04-18T15:50:43.745Z","level":"INFO","module":"youtube:render","message":"scene image 4/20 generated"}
+{"ts":"2026-04-18T15:50:44.204Z","level":"INFO","module":"youtube:render","message":"scene image 5/6 generated"}
+{"ts":"2026-04-18T15:50:51.978Z","level":"INFO","module":"youtube:render","message":"scene image 6/6 generated"}
+{"ts":"2026-04-18T15:50:53.641Z","level":"INFO","module":"youtube:render","message":"scene image 5/20 generated"}
+{"ts":"2026-04-18T15:50:58.202Z","level":"INFO","module":"youtube:render","message":"TTS generated (6 scenes, total 41.9s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/tts.mp3"}
+{"ts":"2026-04-18T15:50:59.466Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T15:51:00.345Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T15:51:01.156Z","level":"INFO","module":"youtube:render","message":"scene image 7/20 generated"}
+{"ts":"2026-04-18T15:51:01.751Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T15:51:03.135Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T15:51:04.122Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T15:51:05.448Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T15:51:05.937Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T15:51:05.938Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (6 lines, palette:1) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T15:51:05.938Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T15:51:11.025Z","level":"INFO","module":"youtube:render","message":"scene image 8/20 generated"}
+{"ts":"2026-04-18T15:51:12.132Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T15:51:12.132Z","level":"INFO","module":"scheduler","message":"prod single run done: youtube:render:short"}
+{"ts":"2026-04-18T15:51:19.152Z","level":"INFO","module":"youtube:render","message":"scene image 9/20 generated"}
+{"ts":"2026-04-18T15:51:27.850Z","level":"INFO","module":"youtube:render","message":"scene image 10/20 generated"}
+{"ts":"2026-04-18T15:51:35.068Z","level":"INFO","module":"youtube:render","message":"scene image 11/20 generated"}
+{"ts":"2026-04-18T15:51:45.265Z","level":"INFO","module":"youtube:render","message":"scene image 12/20 generated"}
+{"ts":"2026-04-18T15:51:54.198Z","level":"INFO","module":"youtube:render","message":"scene image 13/20 generated"}
+{"ts":"2026-04-18T15:51:59.539Z","level":"INFO","module":"youtube:render","message":"scene image 14/20 generated"}
+{"ts":"2026-04-18T15:52:08.762Z","level":"INFO","module":"youtube:render","message":"scene image 15/20 generated"}
+{"ts":"2026-04-18T15:52:18.047Z","level":"INFO","module":"youtube:render","message":"scene image 16/20 generated"}
+{"ts":"2026-04-18T15:52:24.237Z","level":"INFO","module":"youtube:render","message":"scene image 17/20 generated"}
+{"ts":"2026-04-18T15:52:32.052Z","level":"INFO","module":"youtube:render","message":"scene image 18/20 generated"}
+{"ts":"2026-04-18T15:52:40.209Z","level":"INFO","module":"youtube:render","message":"scene image 19/20 generated"}
+{"ts":"2026-04-18T15:52:48.286Z","level":"INFO","module":"youtube:render","message":"scene image 20/20 generated"}
+{"ts":"2026-04-18T15:52:51.807Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T15:52:54.404Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T15:52:57.529Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T15:53:00.919Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T15:53:03.535Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T15:53:07.369Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T15:53:10.805Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T15:53:13.419Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T15:53:17.032Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T15:53:20.218Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T15:53:22.796Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T15:53:25.700Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T15:53:29.150Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T15:53:31.775Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T15:53:34.852Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T15:53:38.302Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T15:53:40.951Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T15:53:44.112Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T15:53:47.359Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T15:53:49.947Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T15:53:54.612Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T15:53:54.613Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (6 lines, palette:0) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T15:53:54.613Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T15:54:51.016Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T15:54:51.016Z","level":"INFO","module":"scheduler","message":"prod single run done: youtube:render:long"}
+{"ts":"2026-04-18T15:56:45.335Z","level":"INFO","module":"scheduler","message":"prod single run: youtube:render:long"}
+{"ts":"2026-04-18T15:56:45.336Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T15:56:45.336Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T15:56:55.374Z","level":"INFO","module":"youtube:render","message":"scene image 1/20 generated"}
+{"ts":"2026-04-18T15:57:05.298Z","level":"INFO","module":"youtube:render","message":"scene image 2/20 generated"}
+{"ts":"2026-04-18T15:57:13.786Z","level":"INFO","module":"youtube:render","message":"scene image 3/20 generated"}
+{"ts":"2026-04-18T15:57:23.033Z","level":"INFO","module":"youtube:render","message":"scene image 4/20 generated"}
+{"ts":"2026-04-18T15:57:30.999Z","level":"INFO","module":"youtube:render","message":"scene image 5/20 generated"}
+{"ts":"2026-04-18T15:57:38.736Z","level":"INFO","module":"youtube:render","message":"scene image 6/20 generated"}
+{"ts":"2026-04-18T15:57:45.531Z","level":"INFO","module":"youtube:render","message":"scene image 7/20 generated"}
+{"ts":"2026-04-18T15:57:53.057Z","level":"INFO","module":"youtube:render","message":"scene image 8/20 generated"}
+{"ts":"2026-04-18T15:58:02.700Z","level":"INFO","module":"youtube:render","message":"scene image 9/20 generated"}
+{"ts":"2026-04-18T15:58:09.811Z","level":"INFO","module":"youtube:render","message":"scene image 10/20 generated"}
+{"ts":"2026-04-18T15:58:16.265Z","level":"INFO","module":"youtube:render","message":"scene image 11/20 generated"}
+{"ts":"2026-04-18T15:58:27.545Z","level":"INFO","module":"youtube:render","message":"scene image 12/20 generated"}
+{"ts":"2026-04-18T15:58:34.738Z","level":"INFO","module":"youtube:render","message":"scene image 13/20 generated"}
+{"ts":"2026-04-18T15:58:41.066Z","level":"INFO","module":"youtube:render","message":"scene image 14/20 generated"}
+{"ts":"2026-04-18T15:58:48.835Z","level":"INFO","module":"youtube:render","message":"scene image 15/20 generated"}
+{"ts":"2026-04-18T15:58:56.375Z","level":"INFO","module":"youtube:render","message":"scene image 16/20 generated"}
+{"ts":"2026-04-18T15:59:04.365Z","level":"INFO","module":"youtube:render","message":"scene image 17/20 generated"}
+{"ts":"2026-04-18T15:59:11.473Z","level":"INFO","module":"youtube:render","message":"scene image 18/20 generated"}
+{"ts":"2026-04-18T15:59:20.369Z","level":"INFO","module":"youtube:render","message":"scene image 19/20 generated"}
+{"ts":"2026-04-18T15:59:27.846Z","level":"INFO","module":"youtube:render","message":"scene image 20/20 generated"}
+{"ts":"2026-04-18T15:59:51.296Z","level":"INFO","module":"youtube:render","message":"TTS generated (20 scenes, total 197.2s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_tts.mp3"}
+{"ts":"2026-04-18T15:59:53.085Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T15:59:54.416Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T15:59:56.202Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T15:59:57.952Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T15:59:59.315Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T16:00:00.267Z","level":"INFO","module":"scheduler","message":"START youtube:render:short"}
+{"ts":"2026-04-18T16:00:00.270Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:00:00.270Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:00:00.958Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T16:00:03.163Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T16:00:04.706Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T16:00:06.485Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T16:00:06.739Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T16:00:08.536Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T16:00:09.902Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T16:00:10.050Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T16:00:12.334Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T16:00:14.201Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T16:00:15.364Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T16:00:16.201Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T16:00:16.749Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T16:00:18.377Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T16:00:19.522Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T16:00:21.621Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T16:00:21.747Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T16:00:23.645Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T16:00:24.832Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T16:00:25.341Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T16:00:26.765Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T16:00:26.766Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines, palette:0) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T16:00:26.766Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T16:00:28.976Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T16:00:29.070Z","level":"ERROR","module":"youtube:render","message":"render error: Command failed: ffmpeg -y -f concat -safe 0 -i /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_concat.txt -stream_loop -1 -i /Users/Rascal/work/automation/youtube/assets/bgm/ambient_default.mp3 -i /Users/Rascal/work/automation/youtube/drafts/2026-04-18/tts.mp3 -filter_complex [2:a]apad=whole_dur=60[ttspad];[1:a]volume=0.12[bgm];[ttspad][bgm]amix=inputs=2:duration=first:normalize=0,afade=t=out:st=58:d=2[aout] -map 0:v -map [aout] -c:v copy -c:a aac -b:a 128k -t 60 /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_nosub.mp4\nffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg-full/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gnutls --enable-gpl --enable-libaom --enable-libaribb24 --enable-libbluray --enable-libdav1d --enable-libharfbuzz --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librav1e --enable-librist --enable-librubberband --enable-libsnappy --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtesseract --enable-libtheora --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libxvid --enable-lzma --enable-libfontconfig --enable-libfreetype --enable-frei0r --enable-libass --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libspeex --enable-libsoxr --enable-libzmq --enable-libzimg --enable-whisper --disable-libjack --disable-indev=jack --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      60. 26.100 / 60. 26.100\n  libavcodec     62. 28.100 / 62. 28.100\n  libavformat    62. 12.100 / 62. 12.100\n  libavdevice    62.  3.100 / 62.  3.100\n  libavfilter    11. 14.100 / 11. 14.100\n  libswscale      9.  5.100 /  9.  5.100\n  libswresample   6.  3.100 /  6.  3.100\n[in#0 @ 0xa12c78000] Impossible to open '/Users/Rascal/work/automation/youtube/drafts/2026-04-18/kb_clip_0.mp4'\n[in#0 @ 0xa12c6c000] Error opening input: No such file or directory\nError opening input file /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_concat.txt.\nError opening input files: No such file or directory\n"}
+{"ts":"2026-04-18T16:00:29.070Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:short"}
+{"ts":"2026-04-18T16:00:32.803Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T16:00:32.803Z","level":"INFO","module":"scheduler","message":"prod single run done: youtube:render:long"}
+{"ts":"2026-04-18T16:12:36.988Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:12:36.988Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:12:45.938Z","level":"INFO","module":"youtube:render","message":"scene image 1/6 generated"}
+{"ts":"2026-04-18T16:12:54.940Z","level":"INFO","module":"youtube:render","message":"scene image 2/6 generated"}
+{"ts":"2026-04-18T16:13:03.161Z","level":"INFO","module":"youtube:render","message":"scene image 3/6 generated"}
+{"ts":"2026-04-18T16:13:11.389Z","level":"INFO","module":"youtube:render","message":"scene image 4/6 generated"}
+{"ts":"2026-04-18T16:13:18.569Z","level":"INFO","module":"youtube:render","message":"scene image 5/6 generated"}
+{"ts":"2026-04-18T16:13:30.573Z","level":"INFO","module":"youtube:render","message":"scene image 6/6 generated"}
+{"ts":"2026-04-18T16:13:34.403Z","level":"INFO","module":"youtube:render","message":"TTS generated (6 scenes, total 41.9s) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_tts.mp3"}
+{"ts":"2026-04-18T16:13:41.112Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T16:13:47.572Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T16:13:55.293Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T16:14:02.718Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T16:14:09.699Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T16:14:16.231Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T16:14:16.735Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T16:14:16.735Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (6 lines, palette:0) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T16:14:16.735Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T16:14:23.143Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T16:14:44.233Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T16:15:01.135Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T16:15:01.136Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T16:15:09.269Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:15:09.270Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:15:19.162Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T16:15:28.819Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T16:15:38.761Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T16:15:48.663Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T16:15:58.285Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T16:16:08.143Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T16:16:08.819Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T16:16:08.819Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (7 lines, palette:1) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T16:16:08.819Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T16:16:17.568Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T16:16:21.185Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:16:21.186Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:16:45.838Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T16:17:09.947Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T16:17:34.519Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T16:17:59.227Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T16:18:23.387Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T16:18:48.050Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T16:19:12.848Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T16:19:37.104Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T16:20:01.876Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T16:20:26.509Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T16:20:50.705Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T16:21:15.245Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T16:21:39.910Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T16:21:41.552Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:21:41.552Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:22:04.801Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T16:22:06.978Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T16:22:30.145Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T16:22:31.881Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T16:22:55.532Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T16:22:57.129Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T16:23:20.520Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T16:23:22.590Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T16:23:45.837Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T16:23:47.439Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T16:24:11.220Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T16:24:12.736Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T16:24:36.082Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T16:24:37.954Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T16:24:40.767Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T16:24:40.767Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines, palette:1) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T16:24:40.767Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T16:25:01.254Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T16:25:08.251Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T16:25:33.108Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T16:25:57.907Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T16:26:22.224Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T16:26:46.959Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T16:27:11.972Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T16:27:36.211Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T16:28:00.662Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T16:28:25.333Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T16:28:49.662Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T16:29:12.596Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T16:29:12.597Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T16:29:14.417Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T16:29:38.023Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T16:29:39.746Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T16:30:02.796Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T16:30:04.623Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T16:30:09.229Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T16:30:09.230Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines, palette:0) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T16:30:09.230Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T16:30:16.429Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T16:30:29.280Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T16:30:54.074Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T16:31:18.295Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T16:31:42.929Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T16:32:07.631Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T16:32:31.819Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T16:32:56.538Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T16:33:21.176Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T16:33:45.401Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T16:34:10.039Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T16:34:34.726Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T16:34:58.716Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T16:35:23.101Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T16:35:47.596Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T16:36:11.595Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T16:36:36.010Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T16:37:00.460Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T16:37:24.128Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T16:37:24.182Z","level":"ERROR","module":"youtube:render","message":"render error: Command failed: ffmpeg -y -f concat -safe 0 -i /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_concat.txt -stream_loop -1 -i /Users/Rascal/work/automation/youtube/assets/bgm/ambient_default.mp3 -i /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_tts.mp3 -filter_complex [2:a]apad=whole_dur=500[ttspad];[1:a]volume=0.12[bgm];[ttspad][bgm]amix=inputs=2:duration=first:normalize=0,afade=t=out:st=498:d=2[aout] -map 0:v -map [aout] -c:v copy -c:a aac -b:a 128k -t 500 /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_nosub.mp4\nffmpeg version 8.1 Copyright (c) 2000-2026 the FFmpeg developers\n  built with Apple clang version 17.0.0 (clang-1700.6.4.2)\n  configuration: --prefix=/opt/homebrew/Cellar/ffmpeg-full/8.1 --enable-shared --enable-pthreads --enable-version3 --cc=clang --host-cflags= --host-ldflags= --enable-ffplay --enable-gnutls --enable-gpl --enable-libaom --enable-libaribb24 --enable-libbluray --enable-libdav1d --enable-libharfbuzz --enable-libjxl --enable-libmp3lame --enable-libopus --enable-libplacebo --enable-librav1e --enable-librist --enable-librubberband --enable-libsnappy --enable-libsrt --enable-libssh --enable-libsvtav1 --enable-libtesseract --enable-libtheora --enable-libvidstab --enable-libvmaf --enable-libvorbis --enable-libvpx --enable-libwebp --enable-libx264 --enable-libx265 --enable-libxml2 --enable-libxvid --enable-lzma --enable-libfontconfig --enable-libfreetype --enable-frei0r --enable-libass --enable-libopencore-amrnb --enable-libopencore-amrwb --enable-libopenjpeg --enable-libspeex --enable-libsoxr --enable-libzmq --enable-libzimg --enable-whisper --disable-libjack --disable-indev=jack --enable-videotoolbox --enable-audiotoolbox --enable-neon\n  libavutil      60. 26.100 / 60. 26.100\n  libavcodec     62. 28.100 / 62. 28.100\n  libavformat    62. 12.100 / 62. 12.100\n  libavdevice    62.  3.100 / 62.  3.100\n  libavfilter    11. 14.100 / 11. 14.100\n  libswscale      9.  5.100 /  9.  5.100\n  libswresample   6.  3.100 /  6.  3.100\n[in#0 @ 0xae4c2c000] Impossible to open '/Users/Rascal/work/automation/youtube/drafts/2026-04-18/kb_clip_0.mp4'\n[in#0 @ 0xae5088000] Error opening input: No such file or directory\nError opening input file /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_concat.txt.\nError opening input files: No such file or directory\n"}
+{"ts":"2026-04-18T17:00:00.535Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-fetch"}
+{"ts":"2026-04-18T17:00:01.151Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/artificial: 15 posts fetched"}
+{"ts":"2026-04-18T17:00:01.852Z","level":"INFO","module":"youtube:reddit-fetch","message":"r/ChatGPT: 15 posts fetched"}
+{"ts":"2026-04-18T17:00:03.478Z","level":"INFO","module":"youtube:reddit-fetch","message":"queued → [r/ChatGPT] score:1153 \"GPT image 2 is insane\""}
+{"ts":"2026-04-18T17:00:03.485Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-fetch"}
+{"ts":"2026-04-18T17:02:55.057Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:03:03.916Z","level":"WARN","module":"youtube:generate","message":"short script JSON parse failed, using raw text"}
+{"ts":"2026-04-18T17:03:12.125Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:03:12.125Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T17:03:57.937Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:04:16.498Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:04:16.499Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T17:04:23.476Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T17:04:23.477Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T17:04:33.374Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T17:04:43.028Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T17:04:52.947Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T17:05:02.872Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T17:05:12.499Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T17:05:22.366Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T17:05:23.030Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T17:05:23.030Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (7 lines, palette:2) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T17:05:23.030Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T17:05:31.803Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T17:15:31.039Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:15:50.041Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:15:50.042Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T17:15:54.232Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T17:15:54.232Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T17:16:04.208Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T17:16:13.947Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T17:16:23.963Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T17:16:33.946Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T17:16:43.659Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T17:16:53.585Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T17:16:54.257Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T17:16:54.258Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (7 lines, palette:0) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T17:16:54.258Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T17:17:03.361Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T17:22:53.853Z","level":"INFO","module":"youtube:generate","message":"generating long for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:23:40.028Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:23:40.029Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.json"}
+{"ts":"2026-04-18T17:23:47.133Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T17:23:47.134Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T17:24:11.809Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T17:24:35.980Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T17:25:00.523Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T17:25:25.119Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T17:25:49.258Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T17:26:13.892Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T17:26:38.545Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T17:27:02.722Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T17:27:27.387Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T17:27:52.096Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T17:28:16.289Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T17:28:41.139Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T17:29:05.941Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T17:29:30.094Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T17:29:54.568Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T17:30:19.079Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T17:30:43.094Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T17:31:07.507Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T17:31:31.959Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T17:31:55.774Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T17:32:00.371Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T17:32:00.372Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines, palette:2) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T17:32:00.372Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T17:32:55.242Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T17:40:43.473Z","level":"INFO","module":"youtube:generate","message":"generating short for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:41:00.961Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:41:00.961Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.json"}
+{"ts":"2026-04-18T17:41:06.344Z","level":"INFO","module":"youtube:render","message":"rendering short for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T17:41:06.344Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T17:41:16.338Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T17:41:26.075Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T17:41:36.062Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T17:41:46.023Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T17:41:55.731Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T17:42:05.656Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T17:42:06.331Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_captions.srt"}
+{"ts":"2026-04-18T17:42:06.332Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (7 lines, palette:1) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short_subs.ass"}
+{"ts":"2026-04-18T17:42:06.332Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T17:42:15.393Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/short.mp4"}
+{"ts":"2026-04-18T17:43:16.709Z","level":"INFO","module":"youtube:generate","message":"generating long for theme: \"AIツールで副業収益を上げる方法\""}
+{"ts":"2026-04-18T17:44:02.964Z","level":"INFO","module":"youtube:generate","message":"thumbnail saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/thumbnail.png"}
+{"ts":"2026-04-18T17:44:02.964Z","level":"INFO","module":"youtube:generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.json"}
+{"ts":"2026-04-18T17:44:10.607Z","level":"INFO","module":"youtube:render","message":"rendering long for \"AIツールで副業収益を上げる方法\"..."}
+{"ts":"2026-04-18T17:44:10.608Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T17:44:35.240Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/20 done"}
+{"ts":"2026-04-18T17:44:59.388Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/20 done"}
+{"ts":"2026-04-18T17:45:23.932Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/20 done"}
+{"ts":"2026-04-18T17:45:48.586Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/20 done"}
+{"ts":"2026-04-18T17:46:12.716Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/20 done"}
+{"ts":"2026-04-18T17:46:37.363Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/20 done"}
+{"ts":"2026-04-18T17:47:02.149Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 7/20 done"}
+{"ts":"2026-04-18T17:47:26.357Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 8/20 done"}
+{"ts":"2026-04-18T17:47:51.220Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 9/20 done"}
+{"ts":"2026-04-18T17:48:15.972Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 10/20 done"}
+{"ts":"2026-04-18T17:48:40.192Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 11/20 done"}
+{"ts":"2026-04-18T17:49:04.841Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 12/20 done"}
+{"ts":"2026-04-18T17:49:29.498Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 13/20 done"}
+{"ts":"2026-04-18T17:49:53.563Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 14/20 done"}
+{"ts":"2026-04-18T17:50:17.894Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 15/20 done"}
+{"ts":"2026-04-18T17:50:42.416Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 16/20 done"}
+{"ts":"2026-04-18T17:51:06.428Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 17/20 done"}
+{"ts":"2026-04-18T17:51:31.078Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 18/20 done"}
+{"ts":"2026-04-18T17:51:55.698Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 19/20 done"}
+{"ts":"2026-04-18T17:52:19.757Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 20/20 done"}
+{"ts":"2026-04-18T17:52:24.417Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 24 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_captions.srt"}
+{"ts":"2026-04-18T17:52:24.417Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (24 lines, palette:1) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long_subs.ass"}
+{"ts":"2026-04-18T17:52:24.417Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T17:53:11.593Z","level":"INFO","module":"youtube:plan","message":"all dates covered for next 14 days — skipping"}
+{"ts":"2026-04-18T17:53:23.087Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/long.mp4"}
+{"ts":"2026-04-18T17:53:30.358Z","level":"INFO","module":"youtube:plan","message":"all dates covered for next 14 days — skipping"}
+{"ts":"2026-04-18T17:53:35.987Z","level":"INFO","module":"youtube:plan","message":"generating themes for 2 missing dates"}
+{"ts":"2026-04-18T17:53:40.881Z","level":"INFO","module":"youtube:plan","message":"plan updated: 2 themes added"}
+{"ts":"2026-04-18T18:00:00.277Z","level":"INFO","module":"scheduler","message":"START youtube:reddit-generate"}
+{"ts":"2026-04-18T18:00:00.281Z","level":"INFO","module":"youtube:reddit-generate","message":"generating reddit-short from r/ChatGPT: \"GPT image 2 is insane\""}
+{"ts":"2026-04-18T18:00:05.977Z","level":"INFO","module":"youtube:reddit-generate","message":"draft saved → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short.json"}
+{"ts":"2026-04-18T18:00:05.978Z","level":"INFO","module":"scheduler","message":"DONE  youtube:reddit-generate"}
+{"ts":"2026-04-18T19:00:00.936Z","level":"INFO","module":"scheduler","message":"START youtube:render:reddit-short"}
+{"ts":"2026-04-18T19:00:00.939Z","level":"INFO","module":"youtube:render","message":"rendering reddit-short for \"海外Reddit r/ChatGPT: GPT image 2 is insane\"..."}
+{"ts":"2026-04-18T19:00:00.940Z","level":"INFO","module":"youtube:render","message":"HEYGEN_API_KEY not set, falling back to FFmpeg/Nanobanana"}
+{"ts":"2026-04-18T19:00:02.718Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 1/6 done"}
+{"ts":"2026-04-18T19:00:03.941Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 2/6 done"}
+{"ts":"2026-04-18T19:00:05.622Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 3/6 done"}
+{"ts":"2026-04-18T19:00:07.283Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 4/6 done"}
+{"ts":"2026-04-18T19:00:08.542Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 5/6 done"}
+{"ts":"2026-04-18T19:00:10.352Z","level":"INFO","module":"youtube:render","message":"Ken Burns clip 6/6 done"}
+{"ts":"2026-04-18T19:00:11.007Z","level":"INFO","module":"youtube:render","message":"SRT generated (VTT-sync, 6 cards) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short_captions.srt"}
+{"ts":"2026-04-18T19:00:11.008Z","level":"INFO","module":"youtube:render","message":"ASS subtitle written (6 lines) → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short_subs.ass"}
+{"ts":"2026-04-18T19:00:11.008Z","level":"INFO","module":"youtube:render","message":"Burning ASS subtitles into video"}
+{"ts":"2026-04-18T19:00:19.353Z","level":"INFO","module":"youtube:render","message":"rendered → /Users/Rascal/work/automation/youtube/drafts/2026-04-18/reddit-short.mp4"}
+{"ts":"2026-04-18T19:00:19.353Z","level":"INFO","module":"scheduler","message":"DONE  youtube:render:reddit-short"}
+{"ts":"2026-04-18T22:00:00.160Z","level":"INFO","module":"scheduler","message":"START x:enqueue"}
+{"ts":"2026-04-18T22:00:03.983Z","level":"INFO","module":"x:research","message":"searching: \"Claude\" (ai)"}
+{"ts":"2026-04-18T22:00:07.967Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-18T22:00:09.470Z","level":"INFO","module":"x:research","message":"searching: \"ChatGPT\" (ai)"}
+{"ts":"2026-04-18T22:00:13.270Z","level":"INFO","module":"x:research","message":"  → 8 tweets (ai)"}
+{"ts":"2026-04-18T22:00:14.772Z","level":"INFO","module":"x:research","message":"searching: \"生成AI\" (ai)"}
+{"ts":"2026-04-18T22:00:18.611Z","level":"INFO","module":"x:research","message":"  → 4 tweets (ai)"}
+{"ts":"2026-04-18T22:00:20.114Z","level":"INFO","module":"x:research","message":"searching: \"LLM\" (ai)"}
+{"ts":"2026-04-18T22:00:23.874Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-18T22:00:25.378Z","level":"INFO","module":"x:research","message":"searching: \"AI活用\" (ai)"}
+{"ts":"2026-04-18T22:00:29.172Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-18T22:00:30.673Z","level":"INFO","module":"x:research","message":"searching: \"プロンプト\" (ai)"}
+{"ts":"2026-04-18T22:00:34.562Z","level":"INFO","module":"x:research","message":"  → 6 tweets (ai)"}
+{"ts":"2026-04-18T22:00:36.065Z","level":"INFO","module":"x:research","message":"searching: \"個人開発\" (dev)"}
+{"ts":"2026-04-18T22:00:39.980Z","level":"INFO","module":"x:research","message":"  → 7 tweets (dev)"}
+{"ts":"2026-04-18T22:00:41.482Z","level":"INFO","module":"x:research","message":"searching: \"副業エンジニア\" (dev)"}
+{"ts":"2026-04-18T22:00:45.399Z","level":"INFO","module":"x:research","message":"  → 6 tweets (dev)"}
+{"ts":"2026-04-18T22:00:46.901Z","level":"INFO","module":"x:research","message":"searching: \"SaaS\" (dev)"}
+{"ts":"2026-04-18T22:00:50.912Z","level":"INFO","module":"x:research","message":"  → 7 tweets (dev)"}
+{"ts":"2026-04-18T22:00:52.415Z","level":"INFO","module":"x:research","message":"searching: \"インディーハッカー\" (dev)"}
+{"ts":"2026-04-18T22:00:56.449Z","level":"INFO","module":"x:research","message":"  → 5 tweets (dev)"}
+{"ts":"2026-04-18T22:00:57.952Z","level":"INFO","module":"x:research","message":"searching: \"プロダクト開発\" (dev)"}
+{"ts":"2026-04-18T22:01:01.830Z","level":"INFO","module":"x:research","message":"  → 5 tweets (dev)"}
+{"ts":"2026-04-18T22:01:03.332Z","level":"INFO","module":"x:research","message":"searching: \"NISA\" (finance)"}
+{"ts":"2026-04-18T22:01:07.070Z","level":"INFO","module":"x:research","message":"  → 7 tweets (finance)"}
+{"ts":"2026-04-18T22:01:08.573Z","level":"INFO","module":"x:research","message":"searching: \"投資\" (finance)"}
+{"ts":"2026-04-18T22:01:12.477Z","level":"INFO","module":"x:research","message":"  → 8 tweets (finance)"}
+{"ts":"2026-04-18T22:01:13.978Z","level":"INFO","module":"x:research","message":"searching: \"資産運用\" (finance)"}
+{"ts":"2026-04-18T22:01:17.910Z","level":"INFO","module":"x:research","message":"  → 5 tweets (finance)"}
+{"ts":"2026-04-18T22:01:19.413Z","level":"INFO","module":"x:research","message":"searching: \"インデックス投資\" (finance)"}
+{"ts":"2026-04-18T22:01:23.251Z","level":"INFO","module":"x:research","message":"  → 8 tweets (finance)"}
+{"ts":"2026-04-18T22:01:24.753Z","level":"INFO","module":"x:research","message":"searching: \"米国株\" (finance)"}
+{"ts":"2026-04-18T22:01:28.529Z","level":"INFO","module":"x:research","message":"  → 3 tweets (finance)"}
+{"ts":"2026-04-18T22:01:30.107Z","level":"INFO","module":"x:research","message":"queued [ai] \"AI活用\" score:1"}
+{"ts":"2026-04-18T22:01:30.108Z","level":"INFO","module":"x:research","message":"queued [ai] \"AI活用\" score:1"}
+{"ts":"2026-04-18T22:01:30.108Z","level":"INFO","module":"x:research","message":"queued [dev] \"プロダクト開発\" score:30"}
+{"ts":"2026-04-18T22:01:30.108Z","level":"INFO","module":"x:research","message":"queued [dev] \"個人開発\" score:3"}
+{"ts":"2026-04-18T22:01:30.109Z","level":"INFO","module":"x:research","message":"queued [finance] \"インデックス投資\" score:2"}
+{"ts":"2026-04-18T22:01:30.109Z","level":"INFO","module":"x:research","message":"queued [finance] \"NISA\" score:1"}
+{"ts":"2026-04-18T22:01:30.109Z","level":"INFO","module":"x:research","message":"research done. total queued: 6"}
+{"ts":"2026-04-18T22:01:30.109Z","level":"INFO","module":"x:pipeline","message":"enqueue done. queue size: 6"}
+{"ts":"2026-04-18T22:01:30.109Z","level":"INFO","module":"scheduler","message":"DONE  x:enqueue"}
+{"ts":"2026-04-18T23:30:00.869Z","level":"INFO","module":"scheduler","message":"START x:process"}
+{"ts":"2026-04-18T23:30:03.345Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"# ChatGPTで就活が変わる人と変わらない人の差\n\nESの質が劇的に上がる人には\n共通点がある。\n\n① 添削を何度も繰り返す\n② AIの提案を鵜呑みにしない\n③ 自分の言葉に直す工夫\n④ フィードバックを即座に反映\n⑤ 業界ごとに指示を切り替える\n\nこの5つを実践するだけで\nES通過率は確実に上がります。\n\nAIは道具。使い手次第です。\n\n#生成AI #就活支援","keyword":"AI活用","attempts":0}}
+{"ts":"2026-04-18T23:30:03.347Z","level":"WARN","module":"x:pipeline","message":"validate NG: too long","data":{"text":"# ChatGPTで就活が変わる人と変わらない人の差\n\nESの質が劇的に上がる人には\n共通点がある。\n\n① 添削を何度も繰り返す\n② AIの提案を鵜呑みにしない\n③ 自分の言葉に直す工夫\n④ フィードバックを即座に反映\n⑤ 業界ごとに指示を切り替える\n\nこの5つを実践するだけで\nES通過率は確実に上がります。\n\nAIは道具。使い手次第です。\n\n#生成AI #就活支援"}}
+{"ts":"2026-04-18T23:30:03.351Z","level":"WARN","module":"x:pipeline","message":"processing failed: validate NG: too long","data":{"attempts":1}}
+{"ts":"2026-04-18T23:30:03.351Z","level":"INFO","module":"scheduler","message":"DONE  x:process"}
+{"ts":"2026-04-19T00:00:00.769Z","level":"INFO","module":"scheduler","message":"START x:reply"}
+{"ts":"2026-04-19T00:00:00.784Z","level":"INFO","module":"scheduler","message":"START instagram:generate:1"}
+{"ts":"2026-04-19T00:00:00.794Z","level":"INFO","module":"instagram:generate","message":"account1: theme=\"休日3時間でできる副業の始め方\" type=ストーリー型"}
+{"ts":"2026-04-19T00:00:00.801Z","level":"INFO","module":"scheduler","message":"START instagram:check-expiry"}
+{"ts":"2026-04-19T00:00:00.802Z","level":"INFO","module":"instagram:check-expiry","message":"account1 (@affi_master_jp): 残り58日"}
+{"ts":"2026-04-19T00:00:00.802Z","level":"INFO","module":"instagram:check-expiry","message":"account2 (@ai_side_hack_): 残り58日"}
+{"ts":"2026-04-19T00:00:00.802Z","level":"INFO","module":"scheduler","message":"DONE  instagram:check-expiry"}
+{"ts":"2026-04-19T00:00:04.572Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"AI活用\""}
+{"ts":"2026-04-19T00:00:04.572Z","level":"INFO","module":"x:reply","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-19T00:00:07.018Z","level":"INFO","module":"instagram:generate","message":"account1 draft saved → /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-19/post.json"}
+{"ts":"2026-04-19T00:00:07.018Z","level":"INFO","module":"scheduler","message":"DONE  instagram:generate:1"}
+{"ts":"2026-04-19T00:00:08.444Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-19T00:00:08.445Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"Claude\""}
+{"ts":"2026-04-19T00:00:08.445Z","level":"INFO","module":"x:reply","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-19T00:00:12.304Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-19T00:00:12.304Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"副業\""}
+{"ts":"2026-04-19T00:00:12.305Z","level":"INFO","module":"x:reply","message":"playwright search: \"副業\""}
+{"ts":"2026-04-19T00:00:16.235Z","level":"INFO","module":"x:reply","message":"  → 8 tweets found"}
+{"ts":"2026-04-19T00:00:16.235Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"自動化\""}
+{"ts":"2026-04-19T00:00:16.236Z","level":"INFO","module":"x:reply","message":"playwright search: \"自動化\""}
+{"ts":"2026-04-19T00:00:20.017Z","level":"INFO","module":"x:reply","message":"  → 4 tweets found"}
+{"ts":"2026-04-19T00:00:20.017Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"生産性\""}
+{"ts":"2026-04-19T00:00:20.018Z","level":"INFO","module":"x:reply","message":"playwright search: \"生産性\""}
+{"ts":"2026-04-19T00:00:23.834Z","level":"INFO","module":"x:reply","message":"  → 5 tweets found"}
+{"ts":"2026-04-19T00:00:23.834Z","level":"INFO","module":"x:reply","message":"searching for reply targets: \"ChatGPT\""}
+{"ts":"2026-04-19T00:00:23.834Z","level":"INFO","module":"x:reply","message":"playwright search: \"ChatGPT\""}
+{"ts":"2026-04-19T00:00:27.584Z","level":"INFO","module":"x:reply","message":"  → 7 tweets found"}
+{"ts":"2026-04-19T00:00:27.621Z","level":"INFO","module":"x:reply","message":"reply run done. replied: 0"}
+{"ts":"2026-04-19T00:00:27.621Z","level":"INFO","module":"scheduler","message":"DONE  x:reply"}
+{"ts":"2026-04-19T00:30:00.605Z","level":"INFO","module":"scheduler","message":"START x:quote-rt"}
+{"ts":"2026-04-19T00:30:00.614Z","level":"INFO","module":"scheduler","message":"START instagram:image:1"}
+{"ts":"2026-04-19T00:30:00.618Z","level":"INFO","module":"instagram:image","message":"generating image for account1"}
+{"ts":"2026-04-19T00:30:00.618Z","level":"INFO","module":"instagram:image","message":"calling DALL-E 3","data":{"prompt":"A clean infographic showing 5 step-by-step process boxes arranged vertically on a light gray background. Each step displays icons and minimal text placeholders for: preparation, skill selection, platform setup, first task, and earnings confirmation. Modern sans-serif typography, ample white space, professional color accents in teal and neutral tones. 4:5 aspect ratio, flat design style."}}
+{"ts":"2026-04-19T00:30:04.379Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"AI活用\""}
+{"ts":"2026-04-19T00:30:04.380Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-19T00:30:08.304Z","level":"INFO","module":"x:quote-rt","message":"  → 6 tweets found"}
+{"ts":"2026-04-19T00:30:08.305Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"Claude\""}
+{"ts":"2026-04-19T00:30:08.305Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-19T00:30:12.153Z","level":"INFO","module":"x:quote-rt","message":"  → 7 tweets found"}
+{"ts":"2026-04-19T00:30:12.153Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"生成AI\""}
+{"ts":"2026-04-19T00:30:12.154Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"生成AI\""}
+{"ts":"2026-04-19T00:30:15.762Z","level":"INFO","module":"instagram:image","message":"DALL-E 3 returned URL"}
+{"ts":"2026-04-19T00:30:16.036Z","level":"INFO","module":"x:quote-rt","message":"  → 9 tweets found"}
+{"ts":"2026-04-19T00:30:16.037Z","level":"INFO","module":"x:quote-rt","message":"searching for quote-RT targets: \"個人開発\""}
+{"ts":"2026-04-19T00:30:16.037Z","level":"INFO","module":"x:quote-rt","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-19T00:30:17.304Z","level":"INFO","module":"instagram:image","message":"image downloaded: 1409788 bytes"}
+{"ts":"2026-04-19T00:30:18.456Z","level":"INFO","module":"instagram:image","message":"GitHub upload done: https://raw.githubusercontent.com/rascal7-7-7/automation-X-note/main/instagram-images/2026-04-19-account1-1776558617304.png"}
+{"ts":"2026-04-19T00:30:18.457Z","level":"INFO","module":"instagram:image","message":"draft updated with imageUrl → /Users/Rascal/work/automation/instagram/drafts/account1/2026-04-19/post.json"}
+{"ts":"2026-04-19T00:30:18.457Z","level":"INFO","module":"scheduler","message":"DONE  instagram:image:1"}
+{"ts":"2026-04-19T00:30:19.885Z","level":"INFO","module":"x:quote-rt","message":"  → 7 tweets found"}
+{"ts":"2026-04-19T00:30:19.921Z","level":"INFO","module":"x:quote-rt","message":"quote-RT run done. quoted: 0"}
+{"ts":"2026-04-19T00:30:19.921Z","level":"INFO","module":"scheduler","message":"DONE  x:quote-rt"}
+{"ts":"2026-04-19T01:00:00.356Z","level":"INFO","module":"scheduler","message":"START instagram:render:1"}
+{"ts":"2026-04-19T01:00:00.361Z","level":"INFO","module":"instagram:render","message":"no avatar API configured — using ffmpeg slideshow fallback"}
+{"ts":"2026-04-19T01:00:00.365Z","level":"ERROR","module":"instagram:render","message":"Reels render error: ffmpeg fallback requires draft.imagePath — run instagram:image first"}
+{"ts":"2026-04-19T01:00:00.367Z","level":"INFO","module":"scheduler","message":"DONE  instagram:render:1"}
+{"ts":"2026-04-19T03:00:00.796Z","level":"INFO","module":"scheduler","message":"START x:like"}
+{"ts":"2026-04-19T03:00:04.595Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-19T03:00:08.433Z","level":"INFO","module":"x:like","message":"  → 9 tweets found"}
+{"ts":"2026-04-19T03:00:08.433Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-19T03:00:12.928Z","level":"INFO","module":"x:like","message":"  → 7 tweets found"}
+{"ts":"2026-04-19T03:00:12.929Z","level":"INFO","module":"x:like","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-19T03:00:17.269Z","level":"INFO","module":"x:like","message":"  → 9 tweets found"}
+{"ts":"2026-04-19T03:00:17.269Z","level":"INFO","module":"x:like","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-19T03:00:21.026Z","level":"INFO","module":"x:like","message":"  → 8 tweets found"}
+{"ts":"2026-04-19T03:00:21.034Z","level":"INFO","module":"x:like","message":"liked tweet 2045605429703504366 (score:5)"}
+{"ts":"2026-04-19T03:00:22.539Z","level":"INFO","module":"x:like","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-19T03:00:26.547Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-19T03:00:26.547Z","level":"INFO","module":"x:like","message":"playwright search: \"投資\""}
+{"ts":"2026-04-19T03:00:30.837Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-19T03:00:30.875Z","level":"INFO","module":"x:like","message":"like run done. liked: 1"}
+{"ts":"2026-04-19T03:00:30.875Z","level":"INFO","module":"scheduler","message":"DONE  x:like"}
+{"ts":"2026-04-19T03:30:00.776Z","level":"INFO","module":"scheduler","message":"START x:process"}
+{"ts":"2026-04-19T03:30:03.825Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"ChatGPTで就活の時間を\n90分短縮した方法\n\n① ESの添削\n下書き→ChatGPT→修正完了\n\n② 業界分析\n「〇〇業界の課題」と質問するだけ\n\n③ 面接対策\n頻出質問の回答例を自動生成\n\n④ インターン情報収集\n条件指定で候補を絞り込み\n\n⑤ 企業研究レポート\n5社分を2時間で完成\n\n生成AIは就活の味方。\n今から使ってる人が圧倒的に有利。\n\nブクマ推奨📌 #AI #就活支援","keyword":"AI活用","attempts":1}}
+{"ts":"2026-04-19T03:30:03.828Z","level":"WARN","module":"x:pipeline","message":"validate NG: too long","data":{"text":"ChatGPTで就活の時間を\n90分短縮した方法\n\n① ESの添削\n下書き→ChatGPT→修正完了\n\n② 業界分析\n「〇〇業界の課題」と質問するだけ\n\n③ 面接対策\n頻出質問の回答例を自動生成\n\n④ インターン情報収集\n条件指定で候補を絞り込み\n\n⑤ 企業研究レポート\n5社分を2時間で完成\n\n生成AIは就活の味方。\n今から使ってる人が圧倒的に有利。\n\nブクマ推奨📌 #AI #就活支援"}}
+{"ts":"2026-04-19T03:30:03.830Z","level":"WARN","module":"x:pipeline","message":"processing failed: validate NG: too long","data":{"attempts":2}}
+{"ts":"2026-04-19T03:30:03.831Z","level":"INFO","module":"scheduler","message":"DONE  x:process"}
+{"ts":"2026-04-19T09:00:00.611Z","level":"INFO","module":"scheduler","message":"START x:like"}
+{"ts":"2026-04-19T09:00:05.156Z","level":"INFO","module":"x:like","message":"playwright search: \"AI活用\""}
+{"ts":"2026-04-19T09:00:09.225Z","level":"INFO","module":"x:like","message":"  → 8 tweets found"}
+{"ts":"2026-04-19T09:00:09.226Z","level":"INFO","module":"x:like","message":"playwright search: \"Claude\""}
+{"ts":"2026-04-19T09:00:13.398Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-19T09:00:13.399Z","level":"INFO","module":"x:like","message":"playwright search: \"個人開発\""}
+{"ts":"2026-04-19T09:00:17.302Z","level":"INFO","module":"x:like","message":"  → 8 tweets found"}
+{"ts":"2026-04-19T09:00:17.302Z","level":"INFO","module":"x:like","message":"playwright search: \"副業エンジニア\""}
+{"ts":"2026-04-19T09:00:21.364Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-19T09:00:21.364Z","level":"INFO","module":"x:like","message":"playwright search: \"NISA\""}
+{"ts":"2026-04-19T09:00:25.270Z","level":"INFO","module":"x:like","message":"  → 6 tweets found"}
+{"ts":"2026-04-19T09:00:25.270Z","level":"INFO","module":"x:like","message":"playwright search: \"投資\""}
+{"ts":"2026-04-19T09:00:29.198Z","level":"INFO","module":"x:like","message":"  → 5 tweets found"}
+{"ts":"2026-04-19T09:00:29.240Z","level":"INFO","module":"x:like","message":"like run done. liked: 0"}
+{"ts":"2026-04-19T09:00:29.240Z","level":"INFO","module":"scheduler","message":"DONE  x:like"}
+{"ts":"2026-04-19T09:30:00.408Z","level":"INFO","module":"scheduler","message":"START x:process"}
+{"ts":"2026-04-19T09:30:04.937Z","level":"INFO","module":"x:pipeline","message":"generated","data":{"text":"# AI活用×就活テーマ「ES作成を時短する方法」\n\nChatGPTで就活ES作成時間を\n70%削減した人の共通点5つ\n\n① 企業研究の下調べを\nAIに丸投げしない\n\n② 自分の経験は先に\n箇条書きで整理する\n\n③ 初稿をAIに作らせて\n添削する側に回る\n\n④ 業界別テンプレを\n使い回さない工夫\n\n⑤ 面接対策まで含めて\nAIと一緒に進める\n\nこの5つができてる人は\n内定率がマジで違います。\n\nAIは最初の一歩だけ。\nあとは自分のストーリーを磨くゲーム。\n\n同じ就活生に届いてほしい🙏\n\n#28卒 #生成AI\n\n---\n\n**【補足】**\n- 冒頭で「70%削減」という具体数字でスクロール停止を狙う\n- リスト型で5つのポイント化\n- 「時短","keyword":"AI活用","attempts":2}}
+{"ts":"2026-04-19T09:30:04.939Z","level":"WARN","module":"x:pipeline","message":"validate NG: too long","data":{"text":"# AI活用×就活テーマ「ES作成を時短する方法」\n\nChatGPTで就活ES作成時間を\n70%削減した人の共通点5つ\n\n① 企業研究の下調べを\nAIに丸投げしない\n\n② 自分の経験は先に\n箇条書きで整理する\n\n③ 初稿をAIに作らせて\n添削する側に回る\n\n④ 業界別テンプレを\n使い回さない工夫\n\n⑤ 面接対策まで含めて\nAIと一緒に進める\n\nこの5つができてる人は\n内定率がマジで違います。\n\nAIは最初の一歩だけ。\nあとは自分のストーリーを磨くゲーム。\n\n同じ就活生に届いてほしい🙏\n\n#28卒 #生成AI\n\n---\n\n**【補足】**\n- 冒頭で「70%削減」という具体数字でスクロール停止を狙う\n- リスト型で5つのポイント化\n- 「時短"}}
+{"ts":"2026-04-19T09:30:04.941Z","level":"WARN","module":"x:pipeline","message":"processing failed: validate NG: too long","data":{"attempts":3}}
+{"ts":"2026-04-19T09:30:04.942Z","level":"INFO","module":"scheduler","message":"DONE  x:process"}
+{"ts":"2026-04-19T10:00:00.333Z","level":"INFO","module":"scheduler","message":"START instagram:post:1"}
+{"ts":"2026-04-19T10:00:00.343Z","level":"INFO","module":"instagram:post","message":"creating container: IMAGE"}
+{"ts":"2026-04-19T10:00:13.131Z","level":"INFO","module":"instagram:post","message":"account1 posted: 17987856794971993"}
+{"ts":"2026-04-19T10:00:13.137Z","level":"INFO","module":"scheduler","message":"DONE  instagram:post:1"}
