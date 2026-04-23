@@ -73,6 +73,40 @@ export const TASKS = [
     type: 'short',
   },
 
+  // ── YouTube ChatGPT絵コンテショート（毎日・アカウント2） ─────────────────
+  {
+    name: 'youtube:generate:chatgpt-short',
+    cron: '0 5 * * *',            // 毎日 05:00 — storyboard + 9フレーム生成
+    type: 'chatgpt-short',
+  },
+  {
+    name: 'youtube:render:chatgpt-short',
+    cron: '0 6 * * *',            // 毎日 06:00 — gpt-image-2 → Ken Burns → FFmpeg
+    type: 'chatgpt-short',
+  },
+  {
+    name: 'youtube:upload:chatgpt-short',
+    cron: '0 19 * * *',           // 毎日 19:00 — らすかる【AI絵コンテ工場】(account2)
+    type: 'chatgpt-short',
+  },
+
+  // ── YouTube AIアニメショート（毎日・アカウント2） ──────────────────────────
+  {
+    name: 'youtube:generate:anime-short',
+    cron: '0 4 * * *',            // 毎日 04:00 — アニメストーリーボード生成
+    type: 'anime-short',
+  },
+  {
+    name: 'youtube:render:anime-short',
+    cron: '0 5 * * *',            // 毎日 05:30 — gpt-image-2 → Seedance → FFmpeg
+    type: 'anime-short',
+  },
+  {
+    name: 'youtube:upload:anime-short',
+    cron: '30 18 * * *',          // 毎日 18:30 — account2 へアップロード
+    type: 'anime-short',
+  },
+
   // ── YouTube ロング（水曜週1回） ──────────────────────────────────
   {
     name: 'youtube:generate:long',
@@ -131,5 +165,9 @@ export const TASKS = [
   {
     name: 'research:ai-tools',
     cron: '0 6,18 * * *',          // 毎日 06:00・18:00 — 新MCP/Claude機能リサーチ（X は2日に1回）
+  },
+  {
+    name: 'x:ai-news',
+    cron: '30 8,20 * * *',         // 毎日 08:30・20:30 — 最新AIニュース感情ツイート
   },
 ];

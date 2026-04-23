@@ -31,6 +31,39 @@ import {
   generateAvatarVideo,
   downloadVideo,
 } from '../shared/heygen-client.js';
+import {
+  isFalAvailable,
+  generateSeedanceVideo,
+  uploadToFal,
+} from '../shared/fal-client.js';
+import {
+  isReplicateAvailable,
+  generateReplicateVideo,
+} from '../shared/replicate-client.js';
+import {
+  isWaveSpeedAvailable,
+  generateWaveSpeedVideo,
+  imageToDataUri,
+} from '../shared/wavespeed-client.js';
+
+// ── OpenAI（gpt-image-2）lazy instantiation ──────────────────────────
+// Deferred so a missing OPENAI_API_KEY does not break other render types at startup.
+// Call getOpenAI() (async) before any gpt-image-2 usage.
+let _openai = null;
+async function getOpenAI() {
+  if (_openai) return _openai;
+  // OPENAI_API_KEY2 = gpt-image-2専用キー、OPENAI_API_KEY = 共用キー
+  const apiKey = process.env.OPENAI_API_KEY2 ?? process.env.OPENAI_API_KEY;
+  if (!apiKey) return null;
+  try {
+    const { default: OpenAI } = await import('openai');
+    _openai = new OpenAI({ apiKey });
+    return _openai;
+  } catch {
+    logger.warn(MODULE, 'openai package not available — install it with: npm i openai');
+    return null;
+  }
+}
 
 const execFileAsync = promisify(execFile);
 
@@ -104,7 +137,10 @@ export async function runRender({ type = 'short', date } = {}) {
 
     let videoPath;
 
-    if (isHeyGenAvailable()) {
+    if (type === 'chatgpt-short' || type === 'anime-short') {
+      // ── gpt-image-2 × Seedance 2.0 ストーリーボードパス ──────
+      videoPath = await renderChatGPTShort(draft, type, outDir, outPath);
+    } else if (isHeyGenAvailable()) {
       // ── HeyGen アバター動画生成パス ──────────────────────────
       videoPath = await renderWithHeyGen(draft, type, outDir);
     } else {
@@ -285,6 +321,303 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
   }
 
   return paths;
+}
+
+// ── ChatGPT (gpt-image-2) × Seedance 2.0 ストーリーボードパイプライン ──────
+//
+// @onofumi_AI が公開したワークフロー（17.9万views）:
+//   1. gpt-image-2 で「3×3グリッドのストーリーボード」を1枚生成
+//   2. グリッドを9コマに分割（FFmpeg crop）
+//   3. 各コマ → Seedance 2.0（fal.ai）でimage-to-video（3-5秒）
+//   4. 全クリップを結合して YouTube Short 完成
+
+/**
+ * gpt-image-2 で 3×3 グリッドのストーリーボード画像を1枚生成する。
+ *
+ * @param {string} storyboardPrompt - コンテンツの内容説明
+ * @param {string} stylePrompt      - 画風（英語）
+ * @param {string} outDir           - 出力ディレクトリ
+ * @returns {Promise<string>} グリッド画像の絶対パス
+ */
+async function generateStoryboardGrid(storyboardPrompt, stylePrompt, outDir) {
+  const openai = await getOpenAI();
+  const gridPath = path.join(outDir, 'storyboard_grid.png');
+
+  if (fs.existsSync(gridPath)) {
+    logger.info(MODULE, '[gpt-image-2] grid already exists, skip generation');
+    return gridPath;
+  }
+
+  if (!openai) {
+    logger.warn(MODULE, '[gpt-image-2] OpenAI unavailable — skipping grid generation');
+    return null;
+  }
+
+  // @onofumi_AI の鉄板プロンプト形式: 「ストーリーボードを3×3のグリッド形式で作成。」+ 内容
+  const prompt = [
+    'Create a storyboard in 3x3 grid format.',
+    storyboardPrompt,
+    stylePrompt ? `Art style: ${stylePrompt}.` : '',
+    'Each panel clearly separated. No text overlays. No panel numbers.',
+    'Consistent character design across all 9 panels.',
+  ].filter(Boolean).join(' ');
+
+  // gpt-image-2 requires org verification — fall back to gpt-image-1 if denied
+  const models = ['gpt-image-2', 'gpt-image-1'];
+  let response, usedModel;
+
+  for (const m of models) {
+    try {
+      logger.info(MODULE, `[gpt-image-2] generating 3x3 storyboard grid (model: ${m})...`);
+      response = await openai.images.generate({
+        model:          m,
+        prompt,
+        size:           '1024x1024',
+        output_format:  'png',
+        quality:        'high',
+        n:              1,
+      });
+      usedModel = m;
+      break;
+    } catch (err) {
+      if (err.status === 403 && m !== models[models.length - 1]) {
+        logger.warn(MODULE, `[gpt-image-2] ${m} requires org verification, trying ${models[models.indexOf(m) + 1]}...`);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  logger.info(MODULE, `[gpt-image-2] grid generated with ${usedModel}`);
+  const b64 = response.data?.[0]?.b64_json;
+  if (!b64) throw new Error(`${usedModel} returned no b64_json`);
+
+  fs.writeFileSync(gridPath, Buffer.from(b64, 'base64'));
+  logger.info(MODULE, `[gpt-image-2] grid saved → ${gridPath}`);
+  return gridPath;
+}
+
+/**
+ * 3×3 グリッド画像を 9 コマに分割して PNG ファイルとして保存する。
+ *
+ * @param {string} gridPath - グリッド画像パス（1024×1024）
+ * @param {string} outDir   - 出力ディレクトリ
+ * @returns {Promise<string[]>} 9 コマのパス配列（左上→右下の順）
+ */
+async function splitGridIntoFrames(gridPath, outDir) {
+  // セルサイズ = 1024 / 3 ≒ 341px（端数は crop で吸収）
+  const cellSize = Math.floor(1024 / 3);
+  const framePaths = [];
+
+  for (let row = 0; row < 3; row++) {
+    for (let col = 0; col < 3; col++) {
+      const idx      = row * 3 + col;
+      const framePath = path.join(outDir, `frame_${idx}.png`);
+
+      if (!fs.existsSync(framePath)) {
+        const x = col * cellSize;
+        const y = row * cellSize;
+        await execFileAsync('ffmpeg', [
+          '-y', '-i', gridPath,
+          '-vf', `crop=${cellSize}:${cellSize}:${x}:${y},scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920`,
+          framePath,
+        ], { timeout: 15000 });
+      }
+
+      framePaths.push(framePath);
+    }
+  }
+
+  logger.info(MODULE, `[grid-split] 9 frames extracted → ${outDir}`);
+  return framePaths;
+}
+
+/**
+ * 各フレームを Seedance 2.0（fal.ai）で動画化し、クリップパスの配列を返す。
+ * FAL_KEY 未設定の場合は Ken Burns フォールバック（静止画モーション）を使用する。
+ *
+ * @param {string[]} framePaths    - 9 コマの画像パス
+ * @param {string[]} motionPrompts - 各コマのモーションプロンプト（英語）
+ * @param {string}   outDir        - 出力ディレクトリ
+ * @returns {Promise<string[]>} 9 クリップの mp4 パス
+ */
+async function generateSeedanceClips(framePaths, motionPrompts, outDir) {
+  const clipPaths = [];
+
+  for (let i = 0; i < framePaths.length; i++) {
+    const clipPath = path.join(outDir, `clip_${i}.mp4`);
+
+    if (fs.existsSync(clipPath)) {
+      logger.info(MODULE, `[seedance] clip ${i} already exists, skip`);
+      clipPaths.push(clipPath);
+      continue;
+    }
+
+    const basePrompt = motionPrompts[i] ?? 'gentle camera movement, cinematic, smooth motion';
+    const prompt     = `${basePrompt} Maintain exact appearance from reference image. Consistent character throughout, no deformation or style drift. Anatomically correct, 5 fingers per hand, no face distortion.`;
+
+    let clipGenerated = false;
+
+    // ── 1st try: FAL Seedance 2.0 ───────────────────────────────────
+    if (isFalAvailable()) {
+      try {
+        logger.info(MODULE, `[seedance] clip ${i + 1}/${framePaths.length}...`);
+        const falUrl   = await uploadToFal(framePaths[i]);
+        const videoUrl = await generateSeedanceVideo({
+          imageUrl:    falUrl,
+          prompt,
+          duration:    5,
+          resolution:  '720p',
+          aspectRatio: '9:16',
+          useFast:     true,
+        });
+        const res = await fetch(videoUrl);
+        if (!res.ok) throw new Error(`download failed: ${res.status}`);
+        fs.writeFileSync(clipPath, Buffer.from(await res.arrayBuffer()));
+        logger.info(MODULE, `[seedance] clip ${i} saved → ${clipPath}`);
+        clipPaths.push(clipPath);
+        clipGenerated = true;
+      } catch (err) {
+        logger.warn(MODULE, `[seedance] clip ${i} failed (${err.message}), trying Replicate...`);
+      }
+    }
+
+    // ── 2nd try: WaveSpeed WAN 2.2 ──────────────────────────────────
+    if (!clipGenerated && isWaveSpeedAvailable()) {
+      try {
+        logger.info(MODULE, `[wavespeed] clip ${i + 1}/${framePaths.length}...`);
+        const dataUri  = imageToDataUri(framePaths[i]);
+        const videoUrl = await generateWaveSpeedVideo({ imageUrl: dataUri, prompt, duration: 5 });
+        const res = await fetch(videoUrl);
+        if (!res.ok) throw new Error(`download failed: ${res.status}`);
+        fs.writeFileSync(clipPath, Buffer.from(await res.arrayBuffer()));
+        logger.info(MODULE, `[wavespeed] clip ${i} saved → ${clipPath}`);
+        clipPaths.push(clipPath);
+        clipGenerated = true;
+      } catch (err) {
+        logger.warn(MODULE, `[wavespeed] clip ${i} failed (${err.message}), trying Replicate...`);
+      }
+    }
+
+    // ── 3rd try: Replicate WAN 2.1 ──────────────────────────────────
+    if (!clipGenerated && isReplicateAvailable()) {
+      try {
+        logger.info(MODULE, `[replicate] clip ${i + 1}/${framePaths.length}...`);
+        const dataUri  = imageToDataUri(framePaths[i]);
+        const videoUrl = await generateReplicateVideo({ imageUrl: dataUri, prompt, duration: 5 });
+        const res = await fetch(videoUrl);
+        if (!res.ok) throw new Error(`download failed: ${res.status}`);
+        fs.writeFileSync(clipPath, Buffer.from(await res.arrayBuffer()));
+        logger.info(MODULE, `[replicate] clip ${i} saved → ${clipPath}`);
+        clipPaths.push(clipPath);
+        clipGenerated = true;
+      } catch (err) {
+        logger.warn(MODULE, `[replicate] clip ${i} failed (${err.message}), trying Ken Burns...`);
+      }
+    }
+
+    // ── 3rd: Ken Burns fallback ──────────────────────────────────────
+    if (!clipGenerated) {
+      logger.warn(MODULE, `[i2v] no service available — Ken Burns fallback for clip ${i}`);
+      clipPaths.push(await generateKenBurnsClip(framePaths[i], 5, 'short', clipPath, i));
+    }
+  }
+
+  return clipPaths;
+}
+
+/**
+ * 複数の動画クリップを FFmpeg で結合する。
+ *
+ * @param {string[]} clipPaths - 結合するクリップのパス（順序通り）
+ * @param {string}   outPath   - 出力 mp4 パス
+ * @returns {Promise<string>} outPath
+ */
+async function concatClips(clipPaths, outPath) {
+  const listPath = outPath.replace('.mp4', '_concat.txt');
+  const lines    = clipPaths.map(p => `file '${p}'`).join('\n');
+  fs.writeFileSync(listPath, lines);
+
+  await execFileAsync('ffmpeg', [
+    '-y',
+    '-f', 'concat', '-safe', '0', '-i', listPath,
+    '-c:v', 'libx264', '-c:a', 'aac',
+    '-movflags', '+faststart',
+    outPath,
+  ], { timeout: 120000 });
+
+  fs.rmSync(listPath, { force: true });
+  logger.info(MODULE, `[concat] ${clipPaths.length} clips → ${outPath}`);
+  return outPath;
+}
+
+/**
+ * chatgpt-short レンダーパス。
+ *
+ * フロー: gpt-image-2（3×3ストーリーボード）→ グリッド分割 → Seedance 2.0（各コマ動画化）→ FFmpeg結合
+ *
+ * @param {object} draft   - draft.json の内容
+ * @param {string} type    - 'chatgpt-short'
+ * @param {string} outDir  - 出力ディレクトリ
+ * @param {string} outPath - 出力 mp4 パス
+ * @returns {Promise<string>} 生成された mp4 の絶対パス
+ */
+async function renderChatGPTShort(draft, type, outDir, outPath) {
+  const storyboardPrompt = draft.storyboardPrompt ?? draft.theme ?? 'AI technology lifestyle scenes';
+  const stylePrompt      = draft.stylePrompt ?? '';
+  const frames           = Array.isArray(draft.frames) ? draft.frames : [];
+  const motionPrompts    = frames.map(f => f.motionPrompt ?? 'gentle camera movement, cinematic');
+
+  logger.info(MODULE, `[chatgpt-short] theme: "${storyboardPrompt}"`);
+
+  // Step 1: 3×3グリッドストーリーボード生成
+  let gridPath;
+  try {
+    gridPath = await generateStoryboardGrid(storyboardPrompt, stylePrompt, outDir);
+  } catch (err) {
+    logger.warn(MODULE, `[chatgpt-short] grid generation failed (${err.message})`);
+    gridPath = null;
+  }
+
+  // Step 2: グリッド分割 または フォールバック（グリッド生成失敗時は個別フォールバック画像）
+  let framePaths;
+  if (gridPath) {
+    framePaths = await splitGridIntoFrames(gridPath, outDir);
+  } else {
+    logger.warn(MODULE, '[chatgpt-short] using 9 fallback images');
+    framePaths = await Promise.all(
+      Array.from({ length: 9 }, (_, i) => generateFallbackImage(outDir, i, 'short'))
+    );
+  }
+
+  // motionPrompts が足りない場合は汎用プロンプトで補完
+  const resolvedMotions = framePaths.map((_, i) =>
+    motionPrompts[i] ?? 'gentle zoom-in, smooth cinematic movement'
+  );
+
+  // Step 3: Seedance 2.0 で各コマを動画化
+  const clipPaths = await generateSeedanceClips(framePaths, resolvedMotions, outDir);
+
+  // Step 4: 全クリップを結合
+  await concatClips(clipPaths, outPath);
+
+  // Step 5: BGM をミックス（字幕・TTS なし — ビジュアルのみで成立させる）
+  const bgmPath   = pickBgm();
+  const finalPath = outPath.replace('.mp4', '_final.mp4');
+  await execFileAsync('ffmpeg', [
+    '-y',
+    '-i', outPath,
+    '-i', bgmPath,
+    '-filter_complex', '[1:a]volume=0.15[bgm];[0:a][bgm]amix=inputs=2:duration=first:dropout_transition=3[aout]',
+    '-map', '0:v', '-map', '[aout]',
+    '-c:v', 'copy', '-c:a', 'aac', '-shortest',
+    finalPath,
+  ], { timeout: 120000 }).catch(() => {
+    // BGMミックス失敗時はそのまま使用
+    fs.copyFileSync(outPath, finalPath);
+  });
+
+  return finalPath;
 }
 
 /**

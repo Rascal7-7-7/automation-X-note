@@ -33,6 +33,7 @@ import { runFetch   as runRedditFetch }        from '../youtube/reddit-fetch.js'
 import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.js';
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
 import { runAIToolsResearch } from '../shared/ai-tools-researcher.js';
+import { runAINews }          from '../x/ai-news.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
 import { runResearch as runGhostResearch }     from '../ghost/research.js';
@@ -75,9 +76,15 @@ const HANDLERS = {
   'youtube:generate:short':  (task) => runYtGenerate({ type: task.type }),
   'youtube:render:short':    (task) => runYtRender({ type: task.type }),
   'youtube:upload:short':    (task) => runYtUpload({ type: task.type }),
-  'youtube:generate:long':   (task) => runYtGenerate({ type: task.type }),
-  'youtube:render:long':     (task) => runYtRender({ type: task.type }),
-  'youtube:upload:long':              (task) => runYtUpload({ type: task.type }),
+  'youtube:generate:long':             (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:long':               (task) => runYtRender({ type: task.type }),
+  'youtube:upload:long':               (task) => runYtUpload({ type: task.type }),
+  'youtube:generate:chatgpt-short':    (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:chatgpt-short':      (task) => runYtRender({ type: task.type }),
+  'youtube:upload:chatgpt-short':      (task) => runYtUpload({ type: task.type }),
+  'youtube:generate:anime-short':      (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:anime-short':        (task) => runYtRender({ type: task.type }),
+  'youtube:upload:anime-short':        (task) => runYtUpload({ type: task.type }),
   'youtube:plan':                     ()     => runYtPlan(),
 
   'ghost:research': () => runGhostResearch(),
@@ -90,6 +97,7 @@ const HANDLERS = {
   'youtube:render:reddit-short':      (task) => runYtRender({ type: task.type }),
   'youtube:upload:reddit-short':      (task) => runYtUpload({ type: task.type }),
   'research:ai-tools':               ()     => runAIToolsResearch(),
+  'x:ai-news':                       ()     => runAINews(),
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────
