@@ -9,7 +9,7 @@
  */
 import 'dotenv/config';
 import { execFileSync } from 'child_process';
-import { getXBrowser } from './browser-client.js';
+import { getBraveBrowser } from './browser-client.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { appendFileSync } from 'fs';
@@ -71,7 +71,7 @@ async function searchByPlaywright(page, keyword) {
   logger.info(MODULE, `playwright search: "${keyword}"`);
 
   await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20_000 });
-  await page.waitForTimeout(3_000);
+  await page.waitForTimeout(2_000);
 
   const articles = await page.locator('article[data-testid="tweet"]').all();
   const results  = [];
@@ -162,7 +162,7 @@ export async function runQuoteRT(keywords, opts = {}) {
   const remaining = Math.min(maxPerRun, DAILY_MAX - todayCount);
   let count = 0;
 
-  const { browser, page } = await getXBrowser({ headless: true });
+  const { browser, page } = await getBraveBrowser();
 
   try {
     for (const keyword of keywords) {
@@ -181,12 +181,12 @@ export async function runQuoteRT(keywords, opts = {}) {
           const commentary = await generateCommentary(tweet.text);
           logger.info(MODULE, `generated commentary for ${tweet.id}`, { commentary });
 
-          const result      = xurlQuoteRT(tweet.id, commentary);
+          const result      = await xurlQuoteRT(tweet.id, commentary);
           const quoteTweetId = result?.data?.id ?? result?.id;
           recordQuoted(tweet.id, commentary, quoteTweetId);
           count++;
           logger.info(MODULE, `quote-RT done. original:${tweet.id} new:${quoteTweetId} (score:${tweet.score})`);
-          await page.waitForTimeout(2_000);
+          await page.waitForTimeout(1_500);
         } catch (err) {
           logger.warn(MODULE, `quote-RT failed for ${tweet.id}: ${err.message}`);
         }

@@ -64,4 +64,16 @@ router.post('/collect', async (_req, res) => {
   }
 });
 
+router.get('/insights', async (_req, res) => {
+  try {
+    const { runInsights } = await import('../../instagram/collect.js');
+    const summary = await runInsights();
+    if (!summary) return res.status(404).json({ ok: false, error: 'no data' });
+    res.json({ ok: true, summary });
+  } catch (err) {
+    logger.error(MODULE, err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

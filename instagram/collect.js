@@ -95,3 +95,64 @@ async function fetchInsights(post) {
     return null;
   }
 }
+
+// ── インサイト集計レポート ──────────────────────────────────────────
+
+const REPORTS_DIR   = path.join(__dirname, '../analytics/reports');
+const INSTA_JSONL   = path.join(LOGS_DIR, 'insta-posts.jsonl');
+const INSTA_SUMMARY = path.join(REPORTS_DIR, 'instagram-summary.json');
+
+export async function runInsights() {
+  // JSONL が空なら先に collect を実行
+  const hasData = fs.existsSync(INSTA_JSONL) && fs.statSync(INSTA_JSONL).size > 0;
+  if (!hasData) {
+    logger.info(MODULE, 'no insta-posts.jsonl — running collect first');
+    await runCollect();
+  }
+
+  if (!fs.existsSync(INSTA_JSONL)) {
+    logger.warn(MODULE, 'insta-posts.jsonl still missing after collect');
+    return null;
+  }
+
+  // JSONL を読んで postId ごとに最新レコードを保持
+  const lines   = fs.readFileSync(INSTA_JSONL, 'utf8').split('\n').filter(Boolean);
+  const byPost  = {};
+  for (const line of lines) {
+    try {
+      const r = JSON.parse(line);
+      if (!byPost[r.postId] || r.collectedAt > byPost[r.postId].collectedAt) {
+        byPost[r.postId] = r;
+      }
+    } catch { /* skip */ }
+  }
+
+  const records = Object.values(byPost);
+  if (records.length === 0) {
+    logger.warn(MODULE, 'no valid records in insta-posts.jsonl');
+    return null;
+  }
+
+  const sum = (key) => records.reduce((acc, r) => acc + (r[key] ?? 0), 0);
+  const avg = (key) => Math.round(sum(key) / records.length);
+
+  const summary = {
+    generatedAt:       new Date().toISOString(),
+    postCount:         records.length,
+    totalImpressions:  sum('impressions'),
+    totalReach:        sum('reach'),
+    totalSaved:        sum('saved'),
+    totalLikes:        sum('likes_count'),
+    totalComments:     sum('comments_count'),
+    avgProfileVisits:  avg('profile_visits'),
+    avgSaved:          avg('saved'),
+    avgReach:          avg('reach'),
+    topPost:           records.sort((a, b) => (b.saved ?? 0) - (a.saved ?? 0))[0] ?? null,
+  };
+
+  if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+  fs.writeFileSync(INSTA_SUMMARY, JSON.stringify(summary, null, 2));
+  logger.info(MODULE, `instagram-summary.json written. posts:${records.length} saved:${summary.totalSaved}`);
+
+  return summary;
+}

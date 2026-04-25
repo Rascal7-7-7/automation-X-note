@@ -21,7 +21,15 @@ async function isLoggedIn(page) {
   try {
     await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 15_000 });
     await page.waitForTimeout(2_000);
-    // ホームのコンポーズボタンが見えればログイン済み
+    const url = page.url();
+    // ログインページにリダイレクトされていなければログイン済みと判定
+    if (url.includes('/login') || url.includes('/i/flow/login') || url.includes('/flow/login')) {
+      return false;
+    }
+    if (url.includes('x.com/home') || url.includes('twitter.com/home')) {
+      return true;
+    }
+    // フォールバック: Tweetボタン確認
     const count = await page.locator('[data-testid="SideNav_NewTweet_Button"]').count();
     return count > 0;
   } catch {
@@ -115,29 +123,70 @@ export async function getXBrowser(opts = {}) {
 
   const loggedIn = await isLoggedIn(page);
   if (!loggedIn) {
+    // セッションファイルがあっても headless では使えない場合がある（Brave CDPセッションとの非互換）
+    // セッションは削除せず、エラーを投げる → ユーザーが node x/create-session.js で再作成
+    if (fs.existsSync(SESSION_FILE)) {
+      await browser.close();
+      throw new Error('X session expired or incompatible — run: node x/create-session.js');
+    }
     try {
       await login(page);
       await context.storageState({ path: SESSION_FILE });
       logger.info(MODULE, `session saved: ${SESSION_FILE}`);
     } catch (err) {
-      // セッションが壊れている場合は削除して新規ログイン
-      if (fs.existsSync(SESSION_FILE)) {
-        fs.unlinkSync(SESSION_FILE);
-        logger.warn(MODULE, 'stale session deleted — retrying fresh login');
-        await page.close();
-        const freshContext = await browser.newContext({
-          userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/124.0 Safari/537.36',
-          locale: 'ja-JP',
-        });
-        const freshPage = await freshContext.newPage();
-        await login(freshPage);
-        await freshContext.storageState({ path: SESSION_FILE });
-        logger.info(MODULE, 'fresh session saved');
-        return { browser, context: freshContext, page: freshPage };
-      }
       throw err;
     }
   }
 
   return { browser, context, page };
+}
+
+// ── Brave CDP ────────────────────────────────────────────────────────
+const CDP_URL   = 'http://localhost:9222';
+const BRAVE_BIN = '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser';
+
+async function isCdpReady() {
+  try { return (await fetch(`${CDP_URL}/json/version`)).ok; } catch { return false; }
+}
+
+async function launchBrave() {
+  const { spawn } = await import('child_process');
+  spawn(BRAVE_BIN, ['--remote-debugging-port=9222', '--no-first-run'], {
+    detached: true, stdio: 'ignore',
+  }).unref();
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 500));
+    if (await isCdpReady()) return;
+  }
+  throw new Error('Brave launch timeout — open Brave manually with --remote-debugging-port=9222');
+}
+
+/**
+ * Brave を CDP 経由で操作するブラウザを返す。
+ * - Brave 未起動なら自動起動
+ * - browser.close() は disconnect のみ（Brave を終了しない）
+ */
+export async function getBraveBrowser() {
+  if (!(await isCdpReady())) {
+    logger.info(MODULE, 'Brave not running — launching');
+    await launchBrave();
+    logger.info(MODULE, 'Brave launched');
+  }
+
+  const browser = await chromium.connectOverCDP(CDP_URL, { timeout: 30_000 });
+  const context  = browser.contexts()[0] ?? await browser.newContext();
+  const page     = context.pages()[0]    ?? await context.newPage();
+
+  // 未認証チェック
+  const url = page.url();
+  if (!url.includes('x.com') && !url.includes('twitter.com')) {
+    await page.goto('https://x.com/home', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await page.waitForTimeout(2_000);
+  }
+  if (page.url().includes('/login') || page.url().includes('/i/flow')) {
+    throw new Error('Brave X not logged in — open x.com in Brave and log in');
+  }
+
+  logger.info(MODULE, 'Brave CDP connected');
+  return { browser, page };
 }
