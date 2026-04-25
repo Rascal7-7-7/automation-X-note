@@ -167,7 +167,11 @@ export const TASKS = [
     cron: '0 6,18 * * *',          // 毎日 06:00・18:00 — 新MCP/Claude機能リサーチ（X は2日に1回）
   },
   {
+    name: 'analytics:daily-research',
+    cron: '0 7 * * *',             // 毎日 07:00 — GitHub/HN/Reddit AI トレンド収集 → x-writer トピック提案
+  },
+  {
     name: 'x:ai-news',
-    cron: '30 8,20 * * *',         // 毎日 08:30・20:30 — 最新AIニュース感情ツイート
+    cron: '0 9 * * *',             // 毎日 09:00 JST — AIニュースツイート + 引用RT
   },
 ];

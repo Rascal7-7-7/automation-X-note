@@ -33,6 +33,7 @@ import { runFetch   as runRedditFetch }        from '../youtube/reddit-fetch.js'
 import { runGenerate as runRedditGenerate }    from '../youtube/reddit-generate.js';
 import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry.js';
 import { runAIToolsResearch } from '../shared/ai-tools-researcher.js';
+import { runDailyResearch }  from '../analytics/daily-research.js';
 import { runAINews }          from '../x/ai-news.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
@@ -97,7 +98,11 @@ const HANDLERS = {
   'youtube:render:reddit-short':      (task) => runYtRender({ type: task.type }),
   'youtube:upload:reddit-short':      (task) => runYtUpload({ type: task.type }),
   'research:ai-tools':               ()     => runAIToolsResearch(),
-  'x:ai-news':                       ()     => runAINews(),
+  'analytics:daily-research':        ()     => runDailyResearch(),
+  'x:ai-news':                       async () => {
+    await runAINews();
+    await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
+  },
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────
