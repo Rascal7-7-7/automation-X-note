@@ -112,7 +112,7 @@ function analyzeNote(notePosts, perf) {
       const draftData = p.draftPath ? draftByPath[p.draftPath] : null;
       // fall back to reading the draft JSON file from disk
       let diskData = null;
-      if (!p.title && !draftData?.title && p.draftPath) {
+      if (p.draftPath && ((!p.title && !draftData?.title) || (!p.theme && !draftData?.theme))) {
         const diskPath = p.draftPath.replace(/^\/home\/[^/]+\//, `${process.env.HOME}/`);
         try { diskData = JSON.parse(fs.readFileSync(diskPath, 'utf8')); } catch { /* missing */ }
       }

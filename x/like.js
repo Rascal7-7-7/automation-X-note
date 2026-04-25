@@ -8,8 +8,7 @@
  * ⚠️ X の利用規約の範囲内で、自分のアカウントへの操作のみ行うこと
  */
 import 'dotenv/config';
-import { execFileSync } from 'child_process';
-import { getXBrowser } from './browser-client.js';
+import { getBraveBrowser } from './browser-client.js';
 import { logger } from '../shared/logger.js';
 import fs from 'fs';
 import path from 'path';
@@ -87,44 +86,33 @@ async function getCount(el, testId) {
   return 0;
 }
 
-// ── xurl 可用性チェック ───────────────────────────────────────────
-let _xurlAvailable = null;
-function isXurlAvailable() {
-  if (_xurlAvailable === null) {
-    try {
-      execFileSync('xurl', ['--version'], { encoding: 'utf8', stdio: 'pipe' });
-      _xurlAvailable = true;
-    } catch { _xurlAvailable = false; }
-  }
-  return _xurlAvailable;
-}
+// ── いいね（Playwright CDP クリック）────────────────────────────
 
-// ── いいね ────────────────────────────────────────────────────────
-
-async function xurlLike(tweetId) {
-  if (isXurlAvailable()) {
-    const raw = execFileSync('xurl', ['like', tweetId], { encoding: 'utf8' });
-    return JSON.parse(raw);
-  }
-  const { TwitterApi } = await import('twitter-api-v2');
-  const client = new TwitterApi({
-    appKey: process.env.X_API_KEY, appSecret: process.env.X_API_SECRET,
-    accessToken: process.env.X_ACCESS_TOKEN, accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
+async function playwrightLike(page, tweetId) {
+  await page.goto(`https://x.com/i/web/status/${tweetId}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 15_000,
   });
-  const me = await client.v2.me();
-  return client.v2.like(me.data.id, tweetId);
+  await page.waitForTimeout(2_000);
+
+  const likeBtn = page.locator('[data-testid="like"]').first();
+  const ariaPressed = await likeBtn.getAttribute('aria-pressed').catch(() => null);
+  if (ariaPressed === 'true') return; // already liked
+
+  await likeBtn.click();
+  await page.waitForTimeout(1_000);
 }
 
 // ── メイン ────────────────────────────────────────────────────────
 
 export async function runLike(keywords, opts = {}) {
-  const scoreThreshold = opts.scoreThreshold ?? 3;
+  const scoreThreshold = opts.scoreThreshold ?? 0;
   const maxPerRun      = opts.maxPerRun      ?? 5;
 
   const liked = loadLiked();
   let count = 0;
 
-  const { browser, page } = await getXBrowser({ headless: true });
+  const { browser, page } = await getBraveBrowser();
 
   try {
     for (const keyword of keywords) {
@@ -139,7 +127,7 @@ export async function runLike(keywords, opts = {}) {
         if (count >= maxPerRun) break;
 
         try {
-          await xurlLike(tweet.id);
+          await playwrightLike(page, tweet.id);
           liked.add(tweet.id);
           count++;
           logger.info(MODULE, `liked tweet ${tweet.id} (score:${tweet.score})`);
