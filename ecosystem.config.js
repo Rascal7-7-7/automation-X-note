@@ -1,7 +1,7 @@
 module.exports = {
   apps: [
     {
-      name: 'automation-scheduler',
+      name: 'sns-scheduler',
       script: './scheduler/index.js',
       interpreter: 'node',
       interpreter_args: '--experimental-vm-modules',
@@ -21,7 +21,7 @@ module.exports = {
       merge_logs: true,
     },
     {
-      name: 'bridge-server',
+      name: 'sns-bridge',
       script: './bridge/server.js',
       interpreter: 'node',
       interpreter_args: '--experimental-vm-modules',
@@ -41,7 +41,7 @@ module.exports = {
       merge_logs: true,
     },
     {
-      name: 'brave-watchdog',
+      name: 'sns-brave-watchdog',
       script: './x/brave-watchdog.js',
       interpreter: 'node',
       interpreter_args: '--experimental-vm-modules',
