@@ -125,10 +125,12 @@ async function runDev() {
 }
 
 // ── PROD MODE ──────────────────────────────────────────────────────
+// モジュールレベルで保持 → runProd() を複数回呼んでも重複登録しない
+const _runningMap  = new Map();
+const _scheduledJobs = new Map();
+
 function runProd() {
   console.log('PROD MODE — cron start');
-
-  const runningMap = new Map();
 
   for (const task of TASKS) {
     const handler = HANDLERS[task.name];
@@ -137,15 +139,24 @@ function runProd() {
       continue;
     }
 
-    runningMap.set(task.name, false);
+    // account付きユニークキー → 同名タスク（note:research×3等）を別ジョブとして管理
+    const jobKey = task.account != null ? `${task.name}:${task.account}` : task.name;
 
-    cron.schedule(task.cron, async () => {
-      if (runningMap.get(task.name)) {
-        logger.warn(MODULE, `SKIP (already running): ${task.name}`);
+    // 既存ジョブを停止してから再登録（多重登録防止）
+    if (_scheduledJobs.has(jobKey)) {
+      _scheduledJobs.get(jobKey).stop();
+      logger.info(MODULE, `re-registering: ${jobKey}`);
+    }
+
+    _runningMap.set(jobKey, false);
+
+    const job = cron.schedule(task.cron, async () => {
+      if (_runningMap.get(jobKey)) {
+        logger.warn(MODULE, `SKIP (already running): ${jobKey}`);
         return;
       }
 
-      runningMap.set(task.name, true);
+      _runningMap.set(jobKey, true);
       logger.info(MODULE, `START ${task.name}`);
 
       try {
@@ -153,12 +164,13 @@ function runProd() {
         logger.info(MODULE, `DONE  ${task.name}`);
       } catch (err) {
         logger.error(MODULE, `FAIL  ${task.name}`, { message: err.message });
-        notifyError(`タスク失敗: ${task.name}`, err.message ?? 'エラー詳細なし');
+        await notifyError(`タスク失敗: ${task.name}`, err.message ?? 'エラー詳細なし');
       } finally {
-        runningMap.set(task.name, false);
+        _runningMap.set(jobKey, false);
       }
     }, { timezone: 'Asia/Tokyo' });
 
+    _scheduledJobs.set(jobKey, job);
     logger.info(MODULE, `registered: ${task.name} [${task.cron}]`);
   }
 }

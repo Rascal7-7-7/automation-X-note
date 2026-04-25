@@ -68,82 +68,54 @@ function notifyPublishReady(title, noteUrl) {
   logger.info(MODULE, `notify: ${title} — ${noteUrl}`);
 }
 
-async function insertPaidSection(page, editor, draft) {
+async function insertPaidSection(page, editor, bodyText) {
   // エディタ内での有料ライン挿入は note.com が対応していないため、
   // 全文（freeBody + paidBody）を本文に入力する。
   // 有料ライン境界は公開モーダルの「ラインをこの場所に変更」ボタンで設定する。
   await editor.click();
-  await editor.fill(draft.body);
+  await editor.fill(bodyText);
 }
 
 // ── ヘッダー画像アップロード ────────────────────────────────────────
 async function uploadCoverImage(page, imagePath) {
   // 本文入力前（空のエディタ状態）に呼ぶこと — 入力後はボタンが消える
-  // 試行1: label[for] または input[type=file] を直接探す
-  const fileInput = page.locator('input[type="file"][accept*="image"]').first();
-  if (await fileInput.count() > 0) {
-    await fileInput.setInputFiles(imagePath);
-    await page.waitForTimeout(2_000);
-    logger.info(MODULE, 'cover image uploaded via file input');
-    return;
-  }
+  // note.com カバー画像の2ステップフロー (DOM inspection 2026-04-22 確認):
+  //   Step1: button[aria-label="画像を追加"] をクリック → サブメニュー展開
+  //   Step2: サブメニュー内の "画像をアップロード" ボタンをクリック → filechooser
 
-  // 試行2: 「画像をアップロード」テキストを含む最小の葉要素をクリック
-  const found = await page.evaluate(() => {
-    const target = '画像をアップロード';
-    // 全要素を末端から走査して textContent が一致する最小要素を返す
-    const all = Array.from(document.querySelectorAll('*'));
-    for (let i = all.length - 1; i >= 0; i--) {
-      const el = all[i];
-      const txt = el.textContent?.trim() ?? '';
-      if (txt.startsWith(target) && txt.length < 60) {
-        el.click();
-        return el.tagName + '|' + txt.slice(0, 40);
-      }
-    }
-    return null;
-  });
-
-  if (!found) {
-    // 試行3: aria-label や data-testid でカバー画像ボタンを探す
-    const coverSelectors = [
-      'button[aria-label*="カバー"]',
-      'button[aria-label*="cover"]',
-      'button[aria-label*="ヘッダー"]',
-      '[data-testid*="cover"]',
-      '[data-testid*="header-image"]',
-    ];
-    for (const sel of coverSelectors) {
-      const btn = page.locator(sel).first();
-      if (await btn.count() > 0) {
-        const [fileChooser] = await Promise.all([
-          page.waitForEvent('filechooser', { timeout: 6_000 }),
-          btn.click(),
-        ]);
-        await fileChooser.setFiles(imagePath);
-        await page.waitForTimeout(2_000);
-        logger.info(MODULE, `cover image uploaded via ${sel}`);
-        return;
-      }
-    }
+  const coverBtn = page.locator('button[aria-label="画像を追加"]').first();
+  if (await coverBtn.count() === 0) {
     logger.warn(MODULE, 'cover image button not found — skipping');
     return;
   }
 
-  logger.info(MODULE, `cover image element clicked: ${found}`);
+  // Step1: サブメニューを開く
+  await coverBtn.click();
+  await page.waitForTimeout(800);
+
   try {
-    const fileChooser = await page.waitForEvent('filechooser', { timeout: 6_000 });
+    // Step2: "画像をアップロード" ボタンをクリック → filechooser
+    const uploadBtn = page.locator('button:has-text("画像をアップロード")').first();
+    const [fileChooser] = await Promise.all([
+      page.waitForEvent('filechooser', { timeout: 8_000 }),
+      uploadBtn.click(),
+    ]);
     await fileChooser.setFiles(imagePath);
+
+    // Step3: トリミングモーダルが出るのを待って「保存」で確定
+    await page.waitForSelector('[data-testid="cropper"]', { timeout: 8_000 });
+    const saveBtn = page.locator('button').filter({ hasText: /^保存$/ }).first();
+    await saveBtn.click();
     await page.waitForTimeout(2_000);
     logger.info(MODULE, 'cover image uploaded');
   } catch (err) {
-    logger.warn(MODULE, `filechooser not opened after click: ${err.message}`);
+    logger.warn(MODULE, `cover image upload failed: ${err.message}`);
   }
 }
 
 // ── 公開処理 ────────────────────────────────────────────────────────
 async function publishNote(page, draft, username = 'rascal_ai_devops') {
-  // Step 1: 「公開に進む」ボタンをクリック → /publish/ ページへ遷移
+  // Step 1: 「公開に進む」クリック
   const publishBtnSelectors = [
     'button:has-text("公開に進む")',
     'button:has-text("公開する")',
@@ -164,118 +136,113 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
   }
   if (!clicked) throw new Error('publish button not found');
 
-  // /publish/ ページへの遷移を待つ
-  await page.waitForTimeout(2_500);
+  // publish ページが完全にロードされるまで待つ（URLとselectorの両方を試みる）
+  await page.waitForURL(/\/publish\//, { timeout: 10_000 }).catch(() => {});
+  // ハッシュタグ入力フィールドが出現するまで待機（最大15秒）
+  await page.waitForSelector(
+    'input[placeholder*="ハッシュタグ"], input[placeholder*="タグ"]',
+    { timeout: 15_000 }
+  ).catch(() => {});
+  await page.waitForTimeout(1_000);
+
+  // publish ページ直後に出る MessageModal（tip・お知らせ等）を先に dismiss
+  try {
+    const blockingOverlay = page.locator('[class*="MessageModal__overlay"], [class*="ReactModal__Overlay"]').first();
+    if (await blockingOverlay.count() > 0) {
+      logger.info(MODULE, 'blocking modal detected — dismissing before publish steps');
+      const closeBtn = blockingOverlay.locator(
+        'button:has-text("閉じる"), button:has-text("スキップ"), button:has-text("OK"), button[aria-label="閉じる"]'
+      ).first();
+      if (await closeBtn.count() > 0) {
+        await closeBtn.click();
+      } else {
+        await page.keyboard.press('Escape');
+      }
+      await page.waitForTimeout(1_000);
+    }
+  } catch { /* no modal — continue */ }
 
   // Step 2: ハッシュタグ設定
+  // note.com publish ページのハッシュタグ入力は React controlled input
+  // fill() では onChange が発火しない場合があるため keyboard.type() を使う
   const tags = draft.tags ?? draft.hashtags ?? [];
   if (tags.length > 0) {
     try {
-      // 「ハッシュタグ」ボタンをクリックして入力フィールドを開く
-      const hashBtn = page.getByText('ハッシュタグ').first();
-      if (await hashBtn.count() > 0) {
-        await hashBtn.click();
-        await page.waitForTimeout(500);
-      }
-      // ハッシュタグ入力フィールドを探す
-      const tagInput = page.locator('input[placeholder*="タグ"], input[placeholder*="ハッシュ"]').first();
+      const tagInput = page.locator(
+        'input[placeholder*="ハッシュタグ"], input[placeholder*="タグ"]'
+      ).first();
       if (await tagInput.count() > 0) {
         for (const tag of tags.slice(0, 5)) {
           const cleanTag = tag.replace(/^#/, '');
-          await tagInput.fill(cleanTag);
+          await tagInput.click();
+          await tagInput.fill('');
+          await page.keyboard.type(cleanTag, { delay: 80 });
+          await page.waitForTimeout(800);  // autocomplete が出るのを待つ
           await page.keyboard.press('Enter');
-          await page.waitForTimeout(300);
+          await page.waitForTimeout(600);  // タグが確定するのを待つ
         }
         logger.info(MODULE, `hashtags set: ${tags.join(', ')}`);
+      } else {
+        logger.warn(MODULE, 'hashtag input not found on publish page');
       }
     } catch (err) {
       logger.warn(MODULE, `hashtag setting failed: ${err.message}`);
     }
   }
 
-  // Step 3: 有料設定（draft.price が設定されている場合）
+  // Step 3: 有料設定
+  // 「有料」ラジオボタンは publish ページ内のスクロール位置が必要な場合があるため
+  // scrollIntoViewIfNeeded() で確実に表示させてからクリックする
   if (draft.price) {
     try {
-      // まず「有料」ラジオ/トグルをクリックして価格入力を出現させる
-      const paidTriggers = [
-        'label:has-text("有料")',
-        'input[type="radio"][value*="paid"]',
-        'input[type="radio"][value*="有料"]',
-        'button:has-text("有料")',
-        '[data-testid*="paid"]',
-        'span:has-text("有料")',
-      ];
-      let paidEnabled = false;
-      for (const sel of paidTriggers) {
-        try {
-          const el = page.locator(sel).first();
-          if (await el.count() > 0) {
-            await el.click();
-            await page.waitForTimeout(1_000);  // 価格入力フィールドが出現するのを待つ
-            // 身元確認モーダルが出たら dismiss して有料設定をスキップ
-            const idModal = page.locator('[class*="IdentificationModal"], [class*="ReactModal__Overlay"]').first();
-            if (await idModal.count() > 0) {
-              logger.warn(MODULE, '⚠ 身元確認モーダル検出 — 有料設定スキップ（手動で設定してください）');
-              await page.keyboard.press('Escape');
-              await page.waitForTimeout(800);
-              break;
-            }
-            paidEnabled = true;
-            logger.info(MODULE, `paid toggle clicked: ${sel}`);
-            break;
-          }
-        } catch { /* try next */ }
-      }
+      const paidLabel = page.locator('label:has-text("有料")').first();
+      if (await paidLabel.count() > 0) {
+        await paidLabel.scrollIntoViewIfNeeded();
+        await page.waitForTimeout(500);
+        await paidLabel.click({ force: true });
+        await page.waitForTimeout(1_500);
 
-      // 価格入力フィールドを探す（有料トグル後に出現する）
-      // note.com の価格入力は type="text" placeholder="300"
-      const priceInput = page.locator(
-        'input[type="number"], input[placeholder*="価格"], input[placeholder*="円"], input[placeholder="300"]'
-      ).first();
-      if (await priceInput.count() > 0) {
-        await priceInput.click({ clickCount: 3 });
-        await priceInput.fill(String(draft.price));
-        await page.waitForTimeout(300);
-        logger.info(MODULE, `price set: ${draft.price}円`);
-      } else if (paidEnabled) {
-        logger.warn(MODULE, 'paid toggle clicked but price input not found');
+        // 身元確認モーダルが出たら dismiss
+        const idModal = page.locator('[class*="IdentificationModal"]').first();
+        if (await idModal.count() > 0) {
+          logger.warn(MODULE, '⚠ 身元確認モーダル検出 — 有料設定スキップ');
+          const closeBtn = idModal.locator(
+            'button:has-text("閉じる"), button:has-text("キャンセル"), [aria-label="閉じる"]'
+          ).first();
+          if (await closeBtn.count() > 0) {
+            await closeBtn.click();
+          } else {
+            await page.keyboard.press('Escape');
+          }
+          await page.waitForTimeout(1_000);
+        } else {
+          logger.info(MODULE, 'paid toggle clicked');
+          // 価格入力フィールド（有料トグル後に出現する）
+          const priceInput = page.locator(
+            'input[placeholder="300"], input[name="price"], input[type="number"][min], input[placeholder*="価格"], input[placeholder*="円"], [data-testid*="price"] input'
+          ).first();
+          if (await priceInput.count() > 0) {
+            await priceInput.scrollIntoViewIfNeeded();
+            await priceInput.click({ clickCount: 3 });
+            await priceInput.fill(String(draft.price));
+            await page.waitForTimeout(400);
+            logger.info(MODULE, `price set: ${draft.price}円`);
+          } else {
+            logger.warn(MODULE, 'price input not found after clicking 有料');
+          }
+        }
       } else {
-        logger.warn(MODULE, 'paid toggle not found — article will be free');
+        logger.warn(MODULE, '有料 label not found — article will be published free');
       }
     } catch (err) {
-      logger.warn(MODULE, `price setting failed: ${err.message}`);
+      logger.warn(MODULE, `paid setting failed: ${err.message}`);
     }
   }
 
-  // Step 4: 最終「投稿する」ボタン（価格入力後に少し待つ）
+  // Step 4: 最終投稿ボタン
   await page.waitForTimeout(1_000);
-  // 「投稿する」テキストを持つ全要素を探す（button 以外も含む）
-  const publishEl = await page.evaluate(() => {
-    const keywords = ['投稿する', '今すぐ公開', 'noteに公開', '公開する'];
-    const all = Array.from(document.querySelectorAll('*'));
-    for (const kw of keywords) {
-      for (let i = all.length - 1; i >= 0; i--) {
-        const el = all[i];
-        if (el.children.length === 0 && el.textContent?.trim() === kw) {
-          return { tag: el.tagName, text: el.textContent.trim(), found: true };
-        }
-      }
-    }
-    // 部分一致でも探す
-    for (const kw of keywords) {
-      for (let i = all.length - 1; i >= 0; i--) {
-        const el = all[i];
-        if (el.children.length === 0 && el.textContent?.includes(kw)) {
-          return { tag: el.tagName, text: el.textContent.trim().slice(0, 30), found: true, partial: true };
-        }
-      }
-    }
-    return { found: false };
-  });
-  // 「投稿する」ボタンはページ下部にあるためスクロールして表示させる
-  // note の publish ページは内部コンテナがスクロール対象
+  // ページ内スクロール可能なコンテナを一番下までスクロール
   await page.evaluate(() => {
-    // overflow: auto/scroll を持つ最大の div を探してスクロール
     const els = Array.from(document.querySelectorAll('div, main, section'));
     const scrollable = els
       .filter(el => el.scrollHeight > el.clientHeight + 10)
@@ -285,8 +252,7 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
   });
   await page.waitForTimeout(800);
 
-  // 有料記事: 「有料」選択後はヘッダーボタンが「投稿する」→「有料エリア設定」に変わる
-  // 無料記事: 「投稿する」のまま
+  // 有料記事なら「有料エリア設定」、無料記事なら「投稿する」
   const confirmSelectors = draft.price
     ? [
         'button:has-text("有料エリア設定")',
@@ -301,34 +267,31 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
       ];
 
   let confirmed = false;
+  let confirmedSel = '';
   for (const sel of confirmSelectors) {
     try {
       const btn = page.locator(sel).first();
       if (await btn.count() > 0) {
         await btn.click();
         confirmed = true;
+        confirmedSel = sel;
         logger.info(MODULE, `publish confirmed: ${sel}`);
         break;
       }
     } catch { /* try next */ }
   }
   if (!confirmed) {
-    logger.warn(MODULE, 'publish confirm button not found — article may remain as draft');
-  } else if (draft.price) {
-    // 有料エリア設定クリック後: 境界設定モーダルが開く
+    throw new Error('publish confirm button not found — article remains as draft, NOT marking posted');
+  } else if (draft.price && confirmedSel.includes('有料エリア設定')) {
+    // 有料エリア設定クリック後: 境界設定モーダルで freeBody 末尾に有料ラインを設定
     await page.waitForTimeout(1_000);
-
-    // freeBody の段落数を数えて、その直後に有料ラインを置く
-    // 例: freeBody が 8段落なら 8番目の「ラインをこの場所に変更」ボタンをクリック
     const freeParagraphs = (draft.freeBody ?? '')
       .split('\n\n')
       .filter(p => p.trim().length > 0).length;
     logger.info(MODULE, `freeBody paragraphs: ${freeParagraphs}`);
-
     try {
       const lineButtons = page.locator('button:has-text("ラインをこの場所に変更")');
       const count = await lineButtons.count();
-      // freeBody段落数に対応するボタンを選択（範囲外なら最後のボタン）
       const idx = Math.min(freeParagraphs - 1, count - 1);
       if (count > 0 && idx >= 0) {
         await lineButtons.nth(idx).click();
@@ -338,8 +301,6 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
     } catch (err) {
       logger.warn(MODULE, `paid line click failed: ${err.message}`);
     }
-
-    // モーダル内の「投稿する」をクリック
     const postBtn = page.locator('button:has-text("投稿する")').first();
     if (await postBtn.count() > 0) {
       await postBtn.click();
@@ -349,19 +310,13 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
     }
   }
 
-  // 公開後 note.com の記事URL（/n/xxxxx）への遷移を待つ
+  // 公開後 note URL への遷移を待つ
   let finalUrl = page.url();
   try {
     await page.waitForURL(/note\.com.*\/n\//, { timeout: 30_000 });
     finalUrl = page.url();
   } catch {
-    // リダイレクトが来なかった場合: editor URL からノートIDを抜いて URL を組み立てる
-    const editorUrl = page.url();
-    const noteIdMatch = editorUrl.match(/\/notes\/(n[a-z0-9]+)\//);
-    if (noteIdMatch) {
-      finalUrl = `https://note.com/${username}/n/${noteIdMatch[1]}`;
-      logger.info(MODULE, `constructed note URL from editor: ${finalUrl}`);
-    }
+    throw new Error('URL transition to note.com/*/n/* timed out — article may not have published. NOT marking as posted.');
   }
   logger.info(MODULE, `final URL: ${finalUrl}`);
   return finalUrl;
@@ -456,7 +411,7 @@ export async function runPost(accountIdOrOpts = {}) {
     const bodyText = rawBody.replace(/^#\s+.+\n+/, '').trimStart();
 
     if (draft.paidBody) {
-      await insertPaidSection(page, editor, draft);
+      await insertPaidSection(page, editor, bodyText);
     } else {
       await editor.click();
       await page.waitForTimeout(500);
@@ -485,13 +440,13 @@ export async function runPost(accountIdOrOpts = {}) {
     if (isDev) {
       const noteUrl = page.url();
       markPosted(file.filePath, noteUrl);
-      logNotePosted(file.filePath, noteUrl);
+      logNotePosted(file.filePath, noteUrl, draft);
       logger.info(MODULE, `DEV: saved as draft only — ${noteUrl}`);
       notifyPublishReady(draft.title, noteUrl);
     } else {
       const noteUrl = await publishNote(page, draft, username);
       markPosted(file.filePath, noteUrl);
-      logNotePosted(file.filePath, noteUrl);
+      logNotePosted(file.filePath, noteUrl, draft);
       logger.info(MODULE, `published: ${noteUrl}`);
     }
   } catch (err) {

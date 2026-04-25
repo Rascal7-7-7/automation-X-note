@@ -68,12 +68,14 @@ export function logNoteDraft(data) {
  * @param {string} draftPath
  * @param {string} noteUrl
  */
-export function logNotePosted(draftPath, noteUrl) {
+export function logNotePosted(draftPath, noteUrl, draft = null) {
   appendLine('note-posts.jsonl', {
     draftPath,
     noteUrl,
     status: 'posted',
     postedAt: new Date().toISOString(),
+    title: draft?.title ?? null,
+    theme: draft?.theme ?? null,
   });
 }
 

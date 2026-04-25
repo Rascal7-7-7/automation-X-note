@@ -100,7 +100,22 @@ function analyzeNote(notePosts, perf) {
     }
   }
 
-  const posted = notePosts.filter(p => p.status === 'posted' && p.noteUrl);
+  // Build a lookup from draftPath → draft record (which has title/theme)
+  const draftByPath = {};
+  for (const d of notePosts.filter(p => p.status === 'draft' && p.draftPath)) {
+    draftByPath[d.draftPath] = d;
+  }
+
+  const posted = notePosts
+    .filter(p => p.status === 'posted' && p.noteUrl)
+    .map(p => {
+      const draftData = p.draftPath ? draftByPath[p.draftPath] : null;
+      return {
+        ...p,
+        title: p.title ?? draftData?.title ?? null,
+        theme: p.theme ?? draftData?.theme ?? null,
+      };
+    });
 
   if (posted.length === 0) {
     return { note: 'not enough posted articles yet' };
@@ -111,16 +126,18 @@ function analyzeNote(notePosts, perf) {
   const withNumbers    = posted.filter(p => hasNumbers(p.title));
   const withoutNumbers = posted.filter(p => !hasNumbers(p.title));
 
+  const themeCount = posted.reduce((acc, p) => {
+    const key = p.theme ?? 'unknown';
+    acc[key] = (acc[key] ?? 0) + 1;
+    return acc;
+  }, {});
+
   return {
-    sampleSize:       posted.length,
-    avgTitleLength:   Math.round(avg(posted, p => p.title?.length ?? 0)),
-    titlesWithNumbers: withNumbers.length,
+    sampleSize:          posted.length,
+    avgTitleLength:      Math.round(avg(posted, p => p.title?.length ?? 0)),
+    titlesWithNumbers:   withNumbers.length,
     titlesWithoutNumbers: withoutNumbers.length,
-    topThemes: posted
-      .reduce((acc, p) => {
-        acc[p.theme] = (acc[p.theme] ?? 0) + 1;
-        return acc;
-      }, {}),
+    topThemes:           themeCount,
   };
 }
 
