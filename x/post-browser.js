@@ -40,12 +40,12 @@ export async function postTweetBrowser(text) {
       await page.waitForTimeout(1_500);
     }
 
-    // テキスト入力
-    await page.locator(SEL.textarea).fill(text);
+    // テキスト入力（複数マッチ対策で .first()）
+    await page.locator(SEL.textarea).first().fill(text);
     await page.waitForTimeout(1_000);
 
-    // 投稿ボタンをクリック
-    await page.locator(SEL.submitBtn).click();
+    // 投稿ボタンをクリック（複数マッチ対策で .first()）
+    await page.locator(SEL.submitBtn).first().click();
     await page.waitForTimeout(3_000);
 
     // トースト通知で成功確認

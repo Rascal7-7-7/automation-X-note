@@ -18,6 +18,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'ghost:generate';
 const DRAFTS_DIR = path.join(__dirname, 'drafts');
 const ideaQueue = new FileQueue(path.join(__dirname, 'queue/ideas.jsonl'));
+const _generatingTopics = new Set();
 
 // Unsplash curated photo IDs for AI/tech topics
 const FEATURE_IMAGES = [
@@ -100,6 +101,13 @@ SEO rules:
 - Use <strong> for key terms on first use
 - Include at least one data point or statistic per section
 
+Reader value rules (CRITICAL — these prevent the most common quality failures):
+- Every section must include at least ONE actionable step a beginner can do today
+- Include concrete income examples or time savings (e.g., "earn $200/month", "saves 3 hours/week")
+- Do NOT hide key information behind paywalls or "subscribe to learn more" — give real value upfront
+- Write for someone who earns $0 online today and wants to earn $500/month — make it achievable
+- Avoid vague statements like "AI can help you" — always say HOW, with which tool, in how many steps
+
 Structure rules:
 - Start with a compelling hook paragraph (no heading)
 - Use <h2> for main sections, <h3> for sub-headings
@@ -139,6 +147,27 @@ export async function runGenerate(opts = {}) {
   const sourcePlatform = idea?.sourcePlatform ?? null;
 
   logger.info(MODULE, `generating: ${topic.slice(0, 70)}`);
+
+  // 並行呼び出しによる重複生成防止
+  if (_generatingTopics.has(topic)) {
+    logger.info(MODULE, `duplicate topic in-progress, skipping: ${topic.slice(0, 70)}`);
+    return null;
+  }
+
+  // 同トピックの draft が既に存在する場合はスキップ
+  if (fs.existsSync(DRAFTS_DIR)) {
+    const existingTopics = fs.readdirSync(DRAFTS_DIR)
+      .filter(f => f.endsWith('.json'))
+      .map(f => { try { return JSON.parse(fs.readFileSync(path.join(DRAFTS_DIR, f), 'utf8')).sourceTopic; } catch { return null; } })
+      .filter(Boolean);
+    if (existingTopics.includes(topic)) {
+      logger.info(MODULE, `duplicate topic skipped: ${topic.slice(0, 70)}`);
+      return null;
+    }
+  }
+
+  _generatingTopics.add(topic);
+  try {
 
   // Stage 1: Outline
   const topicPrompt = redditContext
@@ -220,6 +249,9 @@ export async function runGenerate(opts = {}) {
   logger.info(MODULE, `saved: ${filename}`);
 
   return draft;
+  } finally {
+    _generatingTopics.delete(topic);
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

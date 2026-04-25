@@ -47,6 +47,12 @@ export async function runPost({ account = 1, type = 'auto' } = {}) {
 
   const draft = JSON.parse(fs.readFileSync(draftPath, 'utf8'));
 
+  // reels explicitly requested but no video uploaded yet
+  if (type === 'reels' && !draft.reelsVideoUrl) {
+    logger.warn(MODULE, `account${account}: reels requested but reelsVideoUrl not set — run render/upload first`);
+    return { posted: false, reason: 'no_reels_video', account };
+  }
+
   // type-specific duplicate check
   const isReelsRequest = type === 'reels' || (type === 'auto' && !!draft.reelsVideoUrl);
   const postedKey = isReelsRequest ? 'reelsPosted' : 'imagePosted';

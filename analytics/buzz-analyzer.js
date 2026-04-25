@@ -102,18 +102,24 @@ function analyzeNote(notePosts, perf) {
 
   // Build a lookup from draftPath → draft record (which has title/theme)
   const draftByPath = {};
-  for (const d of notePosts.filter(p => p.status === 'draft' && p.draftPath)) {
-    draftByPath[d.draftPath] = d;
+  for (const d of notePosts.filter(p => p.draftPath)) {
+    if (!draftByPath[d.draftPath] || d.title) draftByPath[d.draftPath] = d;
   }
 
   const posted = notePosts
     .filter(p => p.status === 'posted' && p.noteUrl)
     .map(p => {
       const draftData = p.draftPath ? draftByPath[p.draftPath] : null;
+      // fall back to reading the draft JSON file from disk
+      let diskData = null;
+      if (!p.title && !draftData?.title && p.draftPath) {
+        const diskPath = p.draftPath.replace(/^\/home\/[^/]+\//, `${process.env.HOME}/`);
+        try { diskData = JSON.parse(fs.readFileSync(diskPath, 'utf8')); } catch { /* missing */ }
+      }
       return {
         ...p,
-        title: p.title ?? draftData?.title ?? null,
-        theme: p.theme ?? draftData?.theme ?? null,
+        title: p.title ?? draftData?.title ?? diskData?.title ?? null,
+        theme: p.theme ?? draftData?.theme ?? diskData?.theme ?? null,
       };
     });
 
