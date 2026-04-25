@@ -40,11 +40,12 @@ router.post('/image', async (_req, res) => {
   }
 });
 
-router.post('/post', async (_req, res) => {
+router.post('/post', async (req, res) => {
   try {
+    const accountId = Number(req.body?.account ?? req.body?.accountId ?? 1);
     const { runPost } = await import('../../note/post.js');
-    await runPost();
-    res.json({ ok: true });
+    await runPost({ accountId, mode: 'prod' });
+    res.json({ ok: true, accountId });
   } catch (err) {
     logger.error(MODULE, err.message);
     res.status(500).json({ ok: false, error: err.message });

@@ -113,76 +113,103 @@ async function uploadCoverImage(page, imagePath) {
   }
 }
 
+// ── デバッグ補助 ─────────────────────────────────────────────────
+async function takeDebugScreenshot(page, label) {
+  const dir = path.join(__dirname, '..', 'logs', 'debug-screenshots');
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+  const ts = new Date().toISOString().replace(/[:.]/g, '-');
+  const fname = `${ts}-${label.replace(/[^\w-]/g, '_')}.png`;
+  const fpath = path.join(dir, fname);
+  await page.screenshot({ path: fpath, fullPage: false }).catch(() => {});
+  logger.info(MODULE, `[screenshot] ${fname}`);
+  return fpath;
+}
+
+/**
+ * selectors を順に試してクリック。失敗のたびにスクリーンショット保存。
+ * 全て失敗したら Error を throw する（呼び元で .catch(() => {}) により soft 化可能）。
+ */
+async function tryClick(page, selectors, { label = '', force = false } = {}) {
+  for (let i = 0; i < selectors.length; i++) {
+    const sel = selectors[i];
+    try {
+      const el = page.locator(sel).first();
+      if (await el.count() > 0) {
+        await el.scrollIntoViewIfNeeded();
+        await el.click({ force });
+        logger.info(MODULE, `tryClick [${label}] hit: ${sel}`);
+        return sel;
+      }
+    } catch (err) {
+      logger.warn(MODULE, `tryClick [${label}] miss #${i + 1} "${sel}": ${err.message}`);
+      await takeDebugScreenshot(page, `${label}-miss${i + 1}`);
+    }
+  }
+  await takeDebugScreenshot(page, `${label}-ALL_FAILED`);
+  throw new Error(`tryClick [${label}] all selectors failed: ${selectors.join(' | ')}`);
+}
+
 // ── 公開処理 ────────────────────────────────────────────────────────
 async function publishNote(page, draft, username = 'rascal_ai_devops') {
   // Step 1: 「公開に進む」クリック
+  await takeDebugScreenshot(page, 'step1-before-publish-btn');
   const publishBtnSelectors = [
     'button:has-text("公開に進む")',
     'button:has-text("公開する")',
     'button:has-text("公開")',
     '[data-testid="publish-button"]',
   ];
-  let clicked = false;
-  for (const sel of publishBtnSelectors) {
-    try {
-      const btn = page.locator(sel).first();
-      if (await btn.count() > 0) {
-        await btn.click();
-        clicked = true;
-        logger.info(MODULE, `publish button clicked: ${sel}`);
-        break;
-      }
-    } catch { /* try next */ }
-  }
-  if (!clicked) throw new Error('publish button not found');
+  await tryClick(page, publishBtnSelectors, { label: 'step1-publish-btn', force: true });
 
-  // publish ページが完全にロードされるまで待つ（URLとselectorの両方を試みる）
-  await page.waitForURL(/\/publish\//, { timeout: 10_000 }).catch(() => {});
-  // ハッシュタグ入力フィールドが出現するまで待機（最大15秒）
+  // publish モーダルが表示されるまで待つ（URL は変わらない — SPA オーバーレイ）
   await page.waitForSelector(
-    'input[placeholder*="ハッシュタグ"], input[placeholder*="タグ"]',
+    'button:has-text("投稿する"), button:has-text("有料エリア設定"), button:has-text("更新する")',
     { timeout: 15_000 }
   ).catch(() => {});
-  await page.waitForTimeout(1_000);
-
-  // publish ページ直後に出る MessageModal（tip・お知らせ等）を先に dismiss
-  try {
-    const blockingOverlay = page.locator('[class*="MessageModal__overlay"], [class*="ReactModal__Overlay"]').first();
-    if (await blockingOverlay.count() > 0) {
-      logger.info(MODULE, 'blocking modal detected — dismissing before publish steps');
-      const closeBtn = blockingOverlay.locator(
-        'button:has-text("閉じる"), button:has-text("スキップ"), button:has-text("OK"), button[aria-label="閉じる"]'
-      ).first();
-      if (await closeBtn.count() > 0) {
-        await closeBtn.click();
-      } else {
-        await page.keyboard.press('Escape');
-      }
-      await page.waitForTimeout(1_000);
-    }
-  } catch { /* no modal — continue */ }
+  await page.waitForTimeout(500);
+  await takeDebugScreenshot(page, 'step2-modal-ready');
+  logger.info(MODULE, `publish modal ready: ${page.url()}`);
 
   // Step 2: ハッシュタグ設定
-  // note.com publish ページのハッシュタグ入力は React controlled input
-  // fill() では onChange が発火しない場合があるため keyboard.type() を使う
+  // note.com publish ページはアコーディオン構造 — ハッシュタグセクションを先に展開する
   const tags = draft.tags ?? draft.hashtags ?? [];
   if (tags.length > 0) {
     try {
-      const tagInput = page.locator(
-        'input[placeholder*="ハッシュタグ"], input[placeholder*="タグ"]'
-      ).first();
-      if (await tagInput.count() > 0) {
+      await takeDebugScreenshot(page, 'step2-before-hashtag');
+      await tryClick(page, [
+        'text=ハッシュタグ',
+        'button:has-text("ハッシュタグ")',
+        '[class*="hashtag"] button',
+        '[class*="Hashtag"] button',
+      ], { label: 'step2-hashtag-accordion' }).catch(() => {});
+      await page.waitForTimeout(600);
+
+      const tagInputSelectors = [
+        'input[placeholder*="タグ"]',
+        'input[placeholder*="ハッシュタグ"]',
+        'input[placeholder*="追加"]',
+        '[class*="hashtag"] input',
+        '[class*="Hash"] input',
+        '[class*="tag"] input[type="text"]',
+      ];
+      let tagInput = null;
+      for (const sel of tagInputSelectors) {
+        const el = page.locator(sel).first();
+        if (await el.count() > 0) { tagInput = el; break; }
+      }
+      if (tagInput) {
         for (const tag of tags.slice(0, 5)) {
           const cleanTag = tag.replace(/^#/, '');
           await tagInput.click();
           await tagInput.fill('');
           await page.keyboard.type(cleanTag, { delay: 80 });
-          await page.waitForTimeout(800);  // autocomplete が出るのを待つ
+          await page.waitForTimeout(800);
           await page.keyboard.press('Enter');
-          await page.waitForTimeout(600);  // タグが確定するのを待つ
+          await page.waitForTimeout(600);
         }
         logger.info(MODULE, `hashtags set: ${tags.join(', ')}`);
       } else {
+        await takeDebugScreenshot(page, 'step2-hashtag-input-NOT_FOUND');
         logger.warn(MODULE, 'hashtag input not found on publish page');
       }
     } catch (err) {
@@ -191,48 +218,60 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
   }
 
   // Step 3: 有料設定
-  // 「有料」ラジオボタンは publish ページ内のスクロール位置が必要な場合があるため
-  // scrollIntoViewIfNeeded() で確実に表示させてからクリックする
+  // note.com publish ページはアコーディオン構造 — 記事タイプセクションを先に展開する
   if (draft.price) {
     try {
-      const paidLabel = page.locator('label:has-text("有料")').first();
-      if (await paidLabel.count() > 0) {
-        await paidLabel.scrollIntoViewIfNeeded();
-        await page.waitForTimeout(500);
-        await paidLabel.click({ force: true });
-        await page.waitForTimeout(1_500);
+      await takeDebugScreenshot(page, 'step3-before-paid');
+      await tryClick(page, [
+        'text=記事タイプ',
+        'button:has-text("記事タイプ")',
+        '[class*="articleType"] button',
+      ], { label: 'step3-article-type-accordion' }).catch(() => {});
+      await page.waitForTimeout(600);
 
-        // 身元確認モーダルが出たら dismiss
-        const idModal = page.locator('[class*="IdentificationModal"]').first();
-        if (await idModal.count() > 0) {
-          logger.warn(MODULE, '⚠ 身元確認モーダル検出 — 有料設定スキップ');
-          const closeBtn = idModal.locator(
-            'button:has-text("閉じる"), button:has-text("キャンセル"), [aria-label="閉じる"]'
-          ).first();
-          if (await closeBtn.count() > 0) {
-            await closeBtn.click();
-          } else {
-            await page.keyboard.press('Escape');
-          }
-          await page.waitForTimeout(1_000);
-        } else {
-          logger.info(MODULE, 'paid toggle clicked');
-          // 価格入力フィールド（有料トグル後に出現する）
-          const priceInput = page.locator(
-            'input[placeholder="300"], input[name="price"], input[type="number"][min], input[placeholder*="価格"], input[placeholder*="円"], [data-testid*="price"] input'
-          ).first();
-          if (await priceInput.count() > 0) {
-            await priceInput.scrollIntoViewIfNeeded();
-            await priceInput.click({ clickCount: 3 });
-            await priceInput.fill(String(draft.price));
-            await page.waitForTimeout(400);
-            logger.info(MODULE, `price set: ${draft.price}円`);
-          } else {
-            logger.warn(MODULE, 'price input not found after clicking 有料');
-          }
-        }
+      await tryClick(page, [
+        'label:has-text("有料")',
+        'input[type="radio"][value*="paid"]',
+        'button:has-text("有料")',
+        'span:has-text("有料")',
+      ], { label: 'step3-paid-toggle' });
+
+      await page.waitForTimeout(1_500);
+      await takeDebugScreenshot(page, 'step3-after-paid-toggle');
+
+      // 身元確認モーダルが出たら dismiss
+      const idModal = page.locator('[class*="IdentificationModal"]').first();
+      if (await idModal.count() > 0) {
+        logger.warn(MODULE, '⚠ 身元確認モーダル検出 — 有料設定スキップ');
+        await tryClick(page, [
+          'button:has-text("閉じる")',
+          'button:has-text("キャンセル")',
+          '[aria-label="閉じる"]',
+        ], { label: 'step3-id-modal-close' }).catch(() => {});
+        await page.waitForTimeout(1_000);
       } else {
-        logger.warn(MODULE, '有料 label not found — article will be published free');
+        logger.info(MODULE, 'paid toggle clicked');
+        const priceSelectors = [
+          'input[type="number"]',
+          'input[placeholder*="価格"]',
+          'input[placeholder*="円"]',
+          'input[placeholder="300"]',
+        ];
+        let priceInput = null;
+        for (const sel of priceSelectors) {
+          const el = page.locator(sel).first();
+          if (await el.count() > 0) { priceInput = el; break; }
+        }
+        if (priceInput) {
+          await priceInput.scrollIntoViewIfNeeded();
+          await priceInput.click({ clickCount: 3 });
+          await priceInput.fill(String(draft.price));
+          await page.waitForTimeout(400);
+          logger.info(MODULE, `price set: ${draft.price}円`);
+        } else {
+          await takeDebugScreenshot(page, 'step3-price-input-NOT_FOUND');
+          logger.warn(MODULE, 'price input not found after clicking 有料');
+        }
       }
     } catch (err) {
       logger.warn(MODULE, `paid setting failed: ${err.message}`);
@@ -241,7 +280,6 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
 
   // Step 4: 最終投稿ボタン
   await page.waitForTimeout(1_000);
-  // ページ内スクロール可能なコンテナを一番下までスクロール
   await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll('div, main, section'));
     const scrollable = els
@@ -251,6 +289,7 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
     else window.scrollTo(0, document.body.scrollHeight);
   });
   await page.waitForTimeout(800);
+  await takeDebugScreenshot(page, 'step4-before-confirm-btn');
 
   // 有料記事なら「有料エリア設定」、無料記事なら「投稿する」
   const confirmSelectors = draft.price
@@ -266,25 +305,12 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
         'button:has-text("noteに公開する")',
       ];
 
-  let confirmed = false;
-  let confirmedSel = '';
-  for (const sel of confirmSelectors) {
-    try {
-      const btn = page.locator(sel).first();
-      if (await btn.count() > 0) {
-        await btn.click();
-        confirmed = true;
-        confirmedSel = sel;
-        logger.info(MODULE, `publish confirmed: ${sel}`);
-        break;
-      }
-    } catch { /* try next */ }
-  }
-  if (!confirmed) {
-    throw new Error('publish confirm button not found — article remains as draft, NOT marking posted');
-  } else if (draft.price && confirmedSel.includes('有料エリア設定')) {
+  const confirmedSel = await tryClick(page, confirmSelectors, { label: 'step4-confirm-btn' });
+
+  if (draft.price && confirmedSel.includes('有料エリア設定')) {
     // 有料エリア設定クリック後: 境界設定モーダルで freeBody 末尾に有料ラインを設定
     await page.waitForTimeout(1_000);
+    await takeDebugScreenshot(page, 'step4-paid-boundary-modal');
     const freeParagraphs = (draft.freeBody ?? '')
       .split('\n\n')
       .filter(p => p.trim().length > 0).length;
@@ -301,22 +327,25 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
     } catch (err) {
       logger.warn(MODULE, `paid line click failed: ${err.message}`);
     }
-    const postBtn = page.locator('button:has-text("投稿する")').first();
-    if (await postBtn.count() > 0) {
-      await postBtn.click();
-      logger.info(MODULE, 'paid article posted via 投稿する in boundary modal');
-    } else {
-      logger.warn(MODULE, '投稿する not found in boundary modal');
-    }
+    await tryClick(page, ['button:has-text("投稿する")'], { label: 'step4-paid-final-post' })
+      .catch(err => logger.warn(MODULE, `step4-paid-final-post: ${err.message}`));
+    logger.info(MODULE, 'paid article posted via 投稿する in boundary modal');
   }
 
   // 公開後 note URL への遷移を待つ
   let finalUrl = page.url();
   try {
-    await page.waitForURL(/note\.com.*\/n\//, { timeout: 30_000 });
+    await page.waitForURL(/note\.com.*\/n\//, { timeout: 60_000 });
     finalUrl = page.url();
   } catch {
-    throw new Error('URL transition to note.com/*/n/* timed out — article may not have published. NOT marking as posted.');
+    const currentUrl = page.url();
+    if (/editor\.note\.com\/notes\/n[a-z0-9]+\//.test(currentUrl)) {
+      logger.warn(MODULE, `URL did not redirect — using editor URL: ${currentUrl}`);
+      finalUrl = currentUrl;
+    } else {
+      await takeDebugScreenshot(page, 'step4-url-timeout-FAILED');
+      throw new Error('URL transition to note.com/*/n/* timed out — article may not have published. NOT marking as posted.');
+    }
   }
   logger.info(MODULE, `final URL: ${finalUrl}`);
   return finalUrl;
@@ -384,6 +413,7 @@ export async function runPost(accountIdOrOpts = {}) {
 
     // エディタ読み込みを待つ（タイトル textarea が出現したら準備完了）
     await page.waitForSelector('textarea[placeholder="記事タイトル"]', { timeout: 30_000 });
+    await takeDebugScreenshot(page, 'runPost-editor-ready');
     await page.waitForTimeout(1_000);
 
     // ── タイトル ─────────────────────────────────────────────────
@@ -435,6 +465,13 @@ export async function runPost(accountIdOrOpts = {}) {
       logger.info(MODULE, 'draft saved');
     }
 
+    // 保存後: エディタを reload して clean 状態にする（publish-draft.js と同じアプローチ）
+    // clipboard paste 後の "dirty" 状態では 公開に進む が動作しない場合がある
+    const editorUrl = page.url();
+    await page.reload({ waitUntil: 'networkidle', timeout: 30_000 });
+    await page.waitForTimeout(2_000);
+    logger.info(MODULE, `editor reloaded: ${page.url()}`);
+
     // ── 公開（prod のみ） ─────────────────────────────────────────
     const isDev = ((typeof accountIdOrOpts === 'object' ? accountIdOrOpts.mode : undefined) ?? process.env.MODE ?? 'dev') === 'dev';
     if (isDev) {
@@ -450,6 +487,7 @@ export async function runPost(accountIdOrOpts = {}) {
       logger.info(MODULE, `published: ${noteUrl}`);
     }
   } catch (err) {
+    await takeDebugScreenshot(page, 'runPost-ERROR').catch(() => {});
     logger.error(MODULE, 'post failed', { message: err.message });
     throw err;
   } finally {
