@@ -14,12 +14,50 @@ const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1時間おき
 async function isCdpReady() {
   try {
     const res = await fetch(`${CDP_URL}/json/version`, { signal: AbortSignal.timeout(3000) });
-    return res.ok;
+    if (!res.ok) return false;
+    const info = await res.json();
+
+    // HTTP応答だけでなく、実際にWS経由でCDPコマンドを実行して疎通確認
+    // ゾンビ状態（WS接続はできるがコマンドが返らない）を検出する
+    const wsUrl = info.webSocketDebuggerUrl;
+    if (!wsUrl) return false;
+
+    return await new Promise((resolve) => {
+      const { WebSocket } = globalThis;
+      const ws = new WebSocket(wsUrl);
+      const timer = setTimeout(() => { ws.close(); resolve(false); }, 4000);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({ id: 1, method: 'Target.getTargets' }));
+      };
+      ws.onmessage = () => {
+        clearTimeout(timer);
+        ws.close();
+        resolve(true);
+      };
+      ws.onerror = () => { clearTimeout(timer); resolve(false); };
+      ws.onclose = () => { clearTimeout(timer); };
+    });
   } catch { return false; }
+}
+
+async function killBrave() {
+  const { execFile } = await import('child_process');
+  await new Promise(resolve => execFile('pkill', ['-f', 'Brave Browser'], () => resolve()));
+  await new Promise(r => setTimeout(r, 1500));
 }
 
 async function ensureBrave() {
   if (await isCdpReady()) return false; // already running
+
+  // HTTP応答あり・CDPゾンビの可能性 → 強制再起動
+  try {
+    const res = await fetch(`${CDP_URL}/json/version`, { signal: AbortSignal.timeout(2000) });
+    if (res.ok) {
+      logger.warn(MODULE, 'Brave CDP zombie detected — killing and restarting');
+      await killBrave();
+    }
+  } catch { /* port closed = normal down state */ }
 
   logger.warn(MODULE, 'Brave CDP not responding — launching');
   const { spawn } = await import('child_process');

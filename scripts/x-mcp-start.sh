@@ -2,7 +2,7 @@
 # X MCP サーバー起動スクリプト
 # automation/.env の X API 認証情報を MCP サーバーに渡す
 
-ENV_FILE="/home/rascal/work/automation/.env"
+ENV_FILE="/Users/Rascal/work/automation/.env"
 
 if [ ! -f "$ENV_FILE" ]; then
   echo "ERROR: .env not found at $ENV_FILE" >&2

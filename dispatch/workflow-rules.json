@@ -1,0 +1,56 @@
+{
+  "_comment": "done.json が作成されたとき自動で次のタブへディスパッチするルール",
+  "rules": [
+    {
+      "trigger": "x-gen.done.json",
+      "notify_coo": true,
+      "then_dispatch": [],
+      "coo_message": "【X生成完了】ツイートが生成されました。zd done で内容を確認し、publisherで投稿するか判断してください。"
+    },
+    {
+      "trigger": "x-exec.done.json",
+      "notify_coo": true,
+      "then_dispatch": ["分析"],
+      "dispatch_message": "X投稿が完了しました。投稿後のエンゲージメント監視を開始してください。",
+      "coo_message": "【X投稿完了】投稿が実行されました。分析タブにエンゲージメント監視を依頼済みです。"
+    },
+    {
+      "trigger": "note-gen.done.json",
+      "notify_coo": true,
+      "then_dispatch": [],
+      "coo_message": "【note生成完了】記事の下書きが保存されました。zd done で内容確認後、手動公開をお願いします。"
+    },
+    {
+      "trigger": "insta-gen.done.json",
+      "notify_coo": true,
+      "then_dispatch": ["Insta実行"],
+      "dispatch_message": "キャプション・画像が生成されました。投稿を実行してください。",
+      "coo_message": "【Insta生成完了】Insta実行タブに投稿指示を送りました。"
+    },
+    {
+      "trigger": "insta-exec.done.json",
+      "notify_coo": true,
+      "then_dispatch": ["分析"],
+      "dispatch_message": "Instagram投稿が完了しました。エンゲージメントデータを収集してください。",
+      "coo_message": "【Instagram投稿完了】分析タブにデータ収集を依頼済みです。"
+    },
+    {
+      "trigger": "ghost-gen.done.json",
+      "notify_coo": true,
+      "then_dispatch": [],
+      "coo_message": "【Ghost記事完了】英語記事が投稿されました。zd done で結果を確認してください。"
+    },
+    {
+      "trigger": "scheduler.done.json",
+      "notify_coo": true,
+      "then_dispatch": [],
+      "coo_message": "【スケジューラー報告】n8nワークフロー状況の報告が届きました。zd done で確認してください。"
+    },
+    {
+      "trigger": "analytics.done.json",
+      "notify_coo": true,
+      "then_dispatch": [],
+      "coo_message": "【分析完了】エンゲージメント分析レポートが完成しました。zd done で確認してください。"
+    }
+  ]
+}

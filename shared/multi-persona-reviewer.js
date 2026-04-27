@@ -146,7 +146,13 @@ const REVIEW_SYSTEM = `あなたは以下のペルソナとしてSNSコンテン
 - 9-10: 即拡散レベル・このペルソナが保存/シェアする
 - 7-8: 問題なし・通常投稿として適切
 - 5-6: 弱い・改善すれば良くなる
-- 1-4: 投稿すべきでない・マイナスイメージのリスクあり`;
+- 1-4: 投稿すべきでない・マイナスイメージのリスクあり
+
+【自動減点ルール（必ず適用）】
+- 具体的な数字（月○万・○時間・○%・○ステップ等）が全くない → -2点
+- 「うまくいく」「効果的」等の抽象表現のみで根拠・証拠がない → -2点
+- 競合と全く同じ内容・差別化ゼロ → -1点
+- 有料誘導が唐突・無料部分で価値提供なし → -2点（noteのみ）`;
 
 async function reviewWithPersona(persona, content, platform) {
   const system = REVIEW_SYSTEM
@@ -212,8 +218,11 @@ export async function generateWithReview(generateFn, platform = 'X', personaSet 
   let hint = persistentHint;
   let lastReview = null;
 
+  let lastContent = null;
+
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     const content = await generateFn(hint);
+    lastContent = content;
     const review = await reviewContent(content, platform, personaSet);
     lastReview = review;
 
@@ -232,6 +241,11 @@ export async function generateWithReview(generateFn, platform = 'X', personaSet 
   }
 
   logger.warn(MODULE, `max retries reached, posting anyway (score: ${lastReview.avgScore})`);
-  const finalContent = await generateFn(persistentHint);
-  return { content: finalContent, review: lastReview };
+  try {
+    const finalContent = await generateFn(persistentHint);
+    return { content: finalContent, review: lastReview };
+  } catch (err) {
+    logger.warn(MODULE, `final generate failed (${err.message}) — using last valid content`);
+    return { content: lastContent, review: lastReview };
+  }
 }
