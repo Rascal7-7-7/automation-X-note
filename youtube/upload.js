@@ -12,11 +12,17 @@
  *   5. サムネイル・メタデータを設定
  *   6. アップロード後に横展開（X/note/Instagram）をトリガー
  *
- * 必要な環境変数:
+ * 必要な環境変数（アカウント1 — デフォルト）:
  *   YOUTUBE_CLIENT_ID
  *   YOUTUBE_CLIENT_SECRET
  *   YOUTUBE_REFRESH_TOKEN
  *   YOUTUBE_CHANNEL_ID  （省略可）
+ *
+ * アカウント2の環境変数:
+ *   YOUTUBE_CLIENT_ID_2
+ *   YOUTUBE_CLIENT_SECRET_2
+ *   YOUTUBE_REFRESH_TOKEN_2
+ *   YOUTUBE_CHANNEL_ID_2  （省略可）
  */
 import 'dotenv/config';
 import fs from 'fs';
@@ -28,19 +34,36 @@ const __dirname  = path.dirname(fileURLToPath(import.meta.url));
 const DRAFTS_DIR = path.join(__dirname, 'drafts');
 const MODULE     = 'youtube:upload';
 
-const YT_API  = 'https://www.googleapis.com/youtube/v3';
+const YT_API    = 'https://www.googleapis.com/youtube/v3';
 const YT_UPLOAD = 'https://www.googleapis.com/upload/youtube/v3/videos';
 const TOKEN_URL = 'https://oauth2.googleapis.com/token';
 
-const {
-  YOUTUBE_CLIENT_ID,
-  YOUTUBE_CLIENT_SECRET,
-  YOUTUBE_REFRESH_TOKEN,
-} = process.env;
+// ── 認証情報ヘルパー ─────────────────────────────────────────────────
+
+/**
+ * accountId に応じた YouTube OAuth2 認証情報を返す（新オブジェクトを返す・ミューテーションなし）
+ * @param {1|2} accountId
+ * @returns {{ clientId: string, clientSecret: string, refreshToken: string, channelId: string|undefined }}
+ */
+function getYouTubeCredentials(accountId = 1) {
+  const suffix = accountId === 1 ? '' : `_${accountId}`;
+  return {
+    clientId:     process.env[`YOUTUBE_CLIENT_ID${suffix}`],
+    clientSecret: process.env[`YOUTUBE_CLIENT_SECRET${suffix}`],
+    refreshToken: process.env[`YOUTUBE_REFRESH_TOKEN${suffix}`],
+    channelId:    process.env[`YOUTUBE_CHANNEL_ID${suffix}`],
+  };
+}
 
 // ── メイン ──────────────────────────────────────────────────────────
 
-export async function runUpload({ type = 'short', videoPath: overrideVideoPath, date } = {}) {
+/**
+ * @param {{ type?: string, videoPath?: string, date?: string, accountId?: 1|2 }} options
+ */
+export async function runUpload({ type = 'short', videoPath: overrideVideoPath, date, accountId } = {}) {
+  // type === 'chatgpt-short' はデフォルトでアカウント2を使用（明示的に上書き可能）
+  const resolvedAccountId = accountId ?? (['chatgpt-short', 'anime-short'].includes(type) ? 2 : 1);
+
   const today     = date ?? new Date().toISOString().split('T')[0];
   const draftPath = path.join(DRAFTS_DIR, today, `${type}.json`);
 
@@ -54,9 +77,12 @@ export async function runUpload({ type = 'short', videoPath: overrideVideoPath, 
   // Linux絶対パス（/home/...）をMac環境のパスに正規化
   const videoPath = rawPath?.replace(/^\/home\/[^/]+\//, `${process.env.HOME}/`);
 
-  if (!YOUTUBE_CLIENT_ID || !YOUTUBE_CLIENT_SECRET || !YOUTUBE_REFRESH_TOKEN) {
-    logger.warn(MODULE, 'YouTube credentials not set — saving as pending');
-    return savePending(draftPath, draft, 'credentials not set');
+  const credentials = getYouTubeCredentials(resolvedAccountId);
+  const { clientId, clientSecret, refreshToken } = credentials;
+
+  if (!clientId || !clientSecret || !refreshToken) {
+    logger.warn(MODULE, `YouTube credentials not set for account ${resolvedAccountId} — saving as pending`);
+    return savePending(draftPath, draft, `credentials not set (account ${resolvedAccountId})`);
   }
 
   if (!videoPath || !fs.existsSync(videoPath)) {
@@ -64,8 +90,10 @@ export async function runUpload({ type = 'short', videoPath: overrideVideoPath, 
     return savePending(draftPath, draft, `video file not found: ${videoPath}`);
   }
 
+  logger.info(MODULE, `uploading with account ${resolvedAccountId}`);
+
   try {
-    const accessToken = await refreshAccessToken();
+    const accessToken = await refreshAccessToken(credentials);
     const videoId     = await uploadVideo(accessToken, draft, videoPath);
 
     // SRT字幕をアップロード（captionsPath が存在する場合）
@@ -90,14 +118,18 @@ export async function runUpload({ type = 'short', videoPath: overrideVideoPath, 
 
 // ── OAuth2 トークン更新 ──────────────────────────────────────────────
 
-async function refreshAccessToken() {
+/**
+ * @param {{ clientId: string, clientSecret: string, refreshToken: string }} credentials
+ * @returns {Promise<string>} アクセストークン
+ */
+async function refreshAccessToken({ clientId, clientSecret, refreshToken }) {
   const res = await fetch(TOKEN_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
-      client_id:     YOUTUBE_CLIENT_ID,
-      client_secret: YOUTUBE_CLIENT_SECRET,
-      refresh_token: YOUTUBE_REFRESH_TOKEN,
+      client_id:     clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
       grant_type:    'refresh_token',
     }),
   });
@@ -112,15 +144,16 @@ async function refreshAccessToken() {
 // ── 動画アップロード（Resumable Upload） ──────────────────────────────
 
 async function uploadVideo(accessToken, draft, videoPath) {
-  const isShort     = draft.type === 'short';
+  const isShort     = ['short', 'chatgpt-short', 'anime-short'].includes(draft.type);
   const baseTitle   = draft.titles?.[0] ?? draft.theme;
   const title       = isShort && !baseTitle.includes('#Shorts')
     ? `${baseTitle} #Shorts`
     : baseTitle;
-  const categoryId  = '28'; // 科学と技術（AI系コンテンツに適切）
+  // anime-short → '1' (フィルムとアニメーション), その他 → '28' (科学と技術)
+  const categoryId  = draft.type === 'anime-short' ? '1' : '28';
   const fileSize    = fs.statSync(videoPath).size;
   const mimeType    = videoPath.endsWith('.mov') ? 'video/quicktime' : 'video/mp4';
-  const tags        = draft.tags ?? [];
+  const tags        = [...(draft.tags ?? [])];
   if (isShort && !tags.includes('Shorts')) tags.unshift('Shorts');
 
   const metadata = {
@@ -257,6 +290,10 @@ function savePending(draftPath, draft, reason) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const [type, videoPath] = process.argv.slice(2);
-  runUpload({ type: type ?? 'short', videoPath });
+  const args     = process.argv.slice(2);
+  const type     = args.find(a => !a.startsWith('--')) ?? 'short';
+  const videoArg = args.find((a, i) => i > 0 && !a.startsWith('--'));
+  const accountArg = args.find(a => a.startsWith('--account='));
+  const accountId  = accountArg ? Number(accountArg.split('=')[1]) : undefined;
+  runUpload({ type, videoPath: videoArg, accountId });
 }
