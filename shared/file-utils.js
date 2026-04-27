@@ -27,3 +27,14 @@ export function saveFile(filePath, content) {
   fs.writeFileSync(tmp, content);
   fs.renameSync(tmp, filePath);
 }
+
+/**
+ * Convert a local image file to a base64 data URI.
+ * @param {string} filePath
+ * @returns {string}
+ */
+export function imageToDataUri(filePath) {
+  const mime = filePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
+  const b64  = fs.readFileSync(filePath).toString('base64');
+  return `data:${mime};base64,${b64}`;
+}

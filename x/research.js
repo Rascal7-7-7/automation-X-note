@@ -96,10 +96,13 @@ export async function runResearch(keywords) {
     for (const { kw, domain } of targets) {
       const results = await searchKeyword(page, kw, domain);
       allResults.push(...results);
-      await page.waitForTimeout(1_500); // キーワード間に間隔を置く
+      await page.waitForTimeout(1_500);
     }
+  } catch (err) {
+    logger.error(MODULE, `research failed: ${err.message}`);
+    return;
   } finally {
-    await browser.close();
+    await browser.close().catch(() => {});
   }
 
   // スコア上位をドメインごとに均等にキューへ

@@ -30,8 +30,8 @@ import {
 import {
   isWaveSpeedAvailable,
   generateWaveSpeedVideo,
-  imageToDataUri,
 } from '../shared/wavespeed-client.js';
+import { imageToDataUri } from '../shared/file-utils.js';
 import {
   generateKenBurnsClip,
   convertSRTtoASS,

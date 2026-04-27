@@ -90,13 +90,5 @@ export async function generateWaveSpeedVideo({ imageUrl, prompt, duration = 5 })
 }
 
 /**
- * ローカル PNG/JPEG を base64 data URI に変換。
- *
- * @param {string} filePath
- * @returns {string}
+ * imageToDataUri は shared/file-utils.js に統合済み。
  */
-export function imageToDataUri(filePath) {
-  const mime = filePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
-  const b64  = fs.readFileSync(filePath).toString('base64');
-  return `data:${mime};base64,${b64}`;
-}

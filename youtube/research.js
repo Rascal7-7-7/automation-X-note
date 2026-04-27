@@ -12,6 +12,7 @@
 import 'dotenv/config';
 import { withLightpanda } from '../shared/lightpanda.js';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../shared/logger.js';
@@ -34,39 +35,41 @@ export async function runResearch({ keywords } = {}) {
   const targets = keywords ?? SEARCH_KEYWORDS;
   if (!fs.existsSync(QUEUE_DIR)) fs.mkdirSync(QUEUE_DIR, { recursive: true });
 
-  const allResults = await withLightpanda(async (page) => {
-    const acc = [];
+  try {
+    const allResults = await withLightpanda(async (page) => {
+      const acc = [];
 
-    // 急上昇動画
-    const trending = await scrapeTrending(page);
-    acc.push(...trending);
-    logger.info(MODULE, `trending: ${trending.length} videos`);
+      const trending = await scrapeTrending(page);
+      acc.push(...trending);
+      logger.info(MODULE, `trending: ${trending.length} videos`);
 
-    // キーワード検索
-    for (const kw of targets) {
-      const results = await searchKeyword(page, kw);
-      acc.push(...results);
-      logger.info(MODULE, `search "${kw}": ${results.length} videos`);
-      await page.waitForTimeout(1_500);
-    }
+      for (const kw of targets) {
+        const results = await searchKeyword(page, kw);
+        acc.push(...results);
+        logger.info(MODULE, `search "${kw}": ${results.length} videos`);
+        await page.waitForTimeout(1_500);
+      }
 
-    return acc;
-  });
+      return acc;
+    });
 
-  // スコア上位を保存
-  const top = allResults
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 20);
+    const top = allResults
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20);
 
-  const reportPath = path.join(QUEUE_DIR, 'research.json');
-  fs.writeFileSync(reportPath, JSON.stringify({
-    date: new Date().toISOString().split('T')[0],
-    total: top.length,
-    videos: top,
-  }, null, 2));
+    const reportPath = path.join(QUEUE_DIR, 'research.json');
+    saveJSON(reportPath, {
+      date: new Date().toISOString().split('T')[0],
+      total: top.length,
+      videos: top,
+    });
 
-  logger.info(MODULE, `research done → ${reportPath}`);
-  return { total: top.length, videos: top };
+    logger.info(MODULE, `research done → ${reportPath}`);
+    return { total: top.length, videos: top };
+  } catch (err) {
+    logger.error(MODULE, `research failed: ${err.message}`);
+    return { total: 0, videos: [], error: err.message };
+  }
 }
 
 // ── スクレイピング ────────────────────────────────────────────────────

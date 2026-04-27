@@ -84,12 +84,5 @@ export async function generateReplicateVideo({ imageUrl, prompt, duration = 5, m
 /**
  * ローカル画像を Replicate の file upload API 経由でアップロードし URL を返す。
  * ※ Replicate は data URI も受け付けるため base64 で渡す。
- *
- * @param {string} filePath
- * @returns {Promise<string>} data URI（base64）
+ * imageToDataUri は shared/file-utils.js に統合済み。
  */
-export function imageToDataUri(filePath) {
-  const mime = filePath.endsWith('.png') ? 'image/png' : 'image/jpeg';
-  const b64  = fs.readFileSync(filePath).toString('base64');
-  return `data:${mime};base64,${b64}`;
-}
