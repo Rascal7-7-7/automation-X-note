@@ -56,6 +56,23 @@ export const TASKS = [
     type: 'reddit-short',
   },
 
+  // ── YouTube 速報ショート（月・水・金 朝イチ — AIニュース翌日反応） ──
+  {
+    name: 'youtube:generate:breaking-short',
+    cron: '30 7 * * 1,3,5',      // 月水金 07:30 — daily-research直後に速報生成
+    type: 'breaking-short',
+  },
+  {
+    name: 'youtube:render:breaking-short',
+    cron: '30 8 * * 1,3,5',      // 月水金 08:30 — レンダリング
+    type: 'breaking-short',
+  },
+  {
+    name: 'youtube:upload:breaking-short',
+    cron: '0 12 * * 1,3,5',      // 月水金 12:00 — 昼アップロード（速報は昼が最適）
+    type: 'breaking-short',
+  },
+
   // ── YouTube ショート（毎日） ────────────────────────────────────
   {
     name: 'youtube:generate:short',
@@ -90,22 +107,10 @@ export const TASKS = [
     type: 'chatgpt-short',
   },
 
-  // ── YouTube AIアニメショート（毎日・アカウント2） ──────────────────────────
-  {
-    name: 'youtube:generate:anime-short',
-    cron: '0 4 * * *',            // 毎日 04:00 — アニメストーリーボード生成
-    type: 'anime-short',
-  },
-  {
-    name: 'youtube:render:anime-short',
-    cron: '0 5 * * *',            // 毎日 05:30 — gpt-image-2 → Seedance → FFmpeg
-    type: 'anime-short',
-  },
-  {
-    name: 'youtube:upload:anime-short',
-    cron: '30 18 * * *',          // 毎日 18:30 — account2 へアップロード
-    type: 'anime-short',
-  },
+  // ── YouTube AIアニメショート — 一時停止中 ────────────────────────────────
+  // { name: 'youtube:generate:anime-short', cron: '0 4 * * *', type: 'anime-short' },
+  // { name: 'youtube:render:anime-short',   cron: '0 5 * * *', type: 'anime-short' },
+  // { name: 'youtube:upload:anime-short',   cron: '30 18 * * *', type: 'anime-short' },
 
   // ── YouTube ロング（水曜週1回） ──────────────────────────────────
   {
@@ -130,6 +135,14 @@ export const TASKS = [
     cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
   },
 
+  // ── YouTube Posts タブ（月・水・金 週3回） ──────────────────────
+  {
+    name: 'youtube:community-post',
+    cron: '0 9 * * 1,3,5',         // 月・水・金 09:00 — コミュニティ投稿文を生成してキューへ
+  },
+  // youtube:post-community — 登録者500人達成後に有効化
+  // { name: 'youtube:post-community', cron: '30 9 * * 1,3,5' },
+
   // ── note account1: AI副業・自動化（毎日 = 7本/週） ─────────────
   { name: 'note:research', account: 1, cron: '30 5 * * 1,4' },     // 月・木 05:30 — リサーチ（週2回でキュー補充）
   { name: 'note:generate', account: 1, cron: '0 6 * * *' },        // 毎日 06:00 — 生成
@@ -149,19 +162,10 @@ export const TASKS = [
   // ── note X再告知（7日・30日後 角度変えて再プロモ） ──────────────
   { name: 'note:repromo', cron: '0 20 * * 3' },                    // 水 20:00 — 7日/30日経過記事を再告知
 
-  // ── Ghost 英語ブログ（毎日） ──────────────────────────────────────
-  {
-    name: 'ghost:research',
-    cron: '0 6 * * *',             // 毎日 06:00 — Reddit/HNトレンド取得
-  },
-  {
-    name: 'ghost:generate',
-    cron: '0 8 * * *',             // 毎日 08:00 — 英語記事生成
-  },
-  {
-    name: 'ghost:post',
-    cron: '0 13 * * *',            // 毎日 13:00 — Ghost公開
-  },
+  // ── Ghost 英語ブログ — 停止中（2026-04-27 トラクションなし・有料プラン前に一時停止）──
+  // { name: 'ghost:research', cron: '0 6 * * *' },
+  // { name: 'ghost:generate', cron: '0 8 * * *' },
+  // { name: 'ghost:post',     cron: '0 13 * * *' },
   {
     name: 'research:ai-tools',
     cron: '0 6,18 * * *',          // 毎日 06:00・18:00 — 新MCP/Claude機能リサーチ（X は2日に1回）
@@ -174,4 +178,8 @@ export const TASKS = [
     name: 'x:ai-news',
     cron: '0 9 * * *',             // 毎日 09:00 JST — AIニュースツイート + 引用RT
   },
+
+  // ── X 自己リプライ返信（朝投稿・昼投稿へのフォローアップ） ──────
+  { name: 'x:self-reply', slot: 'morning', cron: '30 8 * * *' },  // 毎日 08:30 JST — 朝投稿へのリプライ返信
+  { name: 'x:self-reply', slot: 'noon',    cron: '0 13 * * *'  }, // 毎日 13:00 JST — 昼投稿へのリプライ返信
 ];
