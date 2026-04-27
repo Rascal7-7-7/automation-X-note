@@ -68,12 +68,166 @@ function notifyPublishReady(title, noteUrl) {
   logger.info(MODULE, `notify: ${title} — ${noteUrl}`);
 }
 
+// ``` コードブロックをセグメントに分割する
+function splitBodySegments(bodyText) {
+  const segments = [];
+  const lines = bodyText.split('\n');
+  let currentLines = [];
+  let inCode = false;
+
+  for (const line of lines) {
+    if (!inCode && /^```/.test(line)) {
+      if (currentLines.length) {
+        segments.push({ type: 'text', content: currentLines.join('\n') });
+        currentLines = [];
+      }
+      inCode = true;
+    } else if (inCode && /^```\s*$/.test(line)) {
+      segments.push({ type: 'code', content: currentLines.join('\n') });
+      currentLines = [];
+      inCode = false;
+    } else {
+      currentLines.push(line);
+    }
+  }
+  if (currentLines.length) {
+    segments.push({ type: inCode ? 'code' : 'text', content: currentLines.join('\n') });
+  }
+  return segments;
+}
+
+// コードブロック付き本文をProseMirrorに挿入する
+// - テキスト: クリップボードペースト
+// - コードブロック: ``` + Enter でネイティブコードブロック作成
+async function insertNativeCodeBlock(page, codeContent) {
+  const mod = IS_MAC ? 'Meta' : 'Control';
+
+  const cursorY = await page.evaluate(() => {
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return null;
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    return r.top + r.height / 2;
+  });
+  if (!cursorY) return false;
+
+  const editorLeft = await page.evaluate(() =>
+    document.querySelector('.ProseMirror')?.getBoundingClientRect().left ?? 400
+  );
+  await page.mouse.move(Math.max(editorLeft - 45, 10), cursorY);
+  await page.waitForTimeout(500);
+
+  const plusCoords = await page.evaluate((approxY) => {
+    const btns = Array.from(document.querySelectorAll('button,[role="button"]'));
+    const leftBtns = btns.filter(b => {
+      const r = b.getBoundingClientRect();
+      return r.x < 350 && r.x > 0 && r.width > 10 && r.width < 60 && r.height > 10;
+    });
+    leftBtns.sort((a, b) => {
+      const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
+      return Math.abs(ar.top - approxY) - Math.abs(br.top - approxY);
+    });
+    const t = leftBtns[0];
+    if (!t) return null;
+    const r = t.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }, cursorY);
+
+  if (!plusCoords) return false;
+
+  await page.mouse.click(plusCoords.x, plusCoords.y);
+  await page.waitForTimeout(700);
+
+  const codeItem = page.locator([
+    'button:has-text("コード")',
+    '[role="menuitem"]:has-text("コード")',
+    'li:has-text("コード")',
+  ].join(', ')).first();
+
+  if (await codeItem.count() === 0) return false;
+  await codeItem.click();
+  await page.waitForTimeout(400);
+
+  if (codeContent) {
+    await page.evaluate(t => navigator.clipboard.writeText(t), codeContent);
+    await page.keyboard.press(`${mod}+v`);
+    await page.waitForTimeout(200);
+  }
+
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await page.waitForTimeout(100);
+  return true;
+}
+
+async function pasteTextToEditor(page, text) {
+  const mod = IS_MAC ? 'Meta' : 'Control';
+  const charsBefore = await page.evaluate(() =>
+    document.querySelector('div.ProseMirror')?.textContent?.length ?? 0
+  );
+  // clipboard paste (primary)
+  await page.evaluate(t => navigator.clipboard.writeText(t), text);
+  await page.waitForTimeout(100);
+  await page.keyboard.press(`${mod}+v`);
+  await page.waitForTimeout(400);
+  const charsAfter = await page.evaluate(() =>
+    document.querySelector('div.ProseMirror')?.textContent?.length ?? 0
+  );
+  if (charsAfter <= charsBefore) {
+    // clipboard failed — fall back to insertText (CDP direct input)
+    await page.keyboard.insertText(text);
+    await page.waitForTimeout(300);
+  }
+}
+
+async function typeBodyWithCodeBlocks(page, bodyText) {
+  const segments = splitBodySegments(bodyText);
+  const mod = IS_MAC ? 'Meta' : 'Control';
+  let first = true;
+
+  // エディタにフォーカスを当てる
+  const editor = page.locator('div.ProseMirror[role="textbox"]').first();
+  await editor.click();
+  await page.waitForTimeout(300);
+
+  for (const seg of segments) {
+    if (seg.type === 'text' && seg.content.trim()) {
+      if (first) {
+        await page.keyboard.press(`${mod}+a`);
+        first = false;
+      }
+      await pasteTextToEditor(page, seg.content);
+    } else if (seg.type === 'code') {
+      await page.keyboard.press(`${mod}+End`);
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(200);
+
+      const inserted = await insertNativeCodeBlock(page, seg.content);
+      if (!inserted) {
+        // フォールバック: markdown ``` トリガー
+        await page.keyboard.type('```');
+        await page.keyboard.press('Enter');
+        await page.waitForTimeout(200);
+        if (seg.content) {
+          await page.evaluate(t => navigator.clipboard.writeText(t), seg.content);
+          await page.keyboard.press(`${mod}+v`);
+          await page.waitForTimeout(200);
+        }
+        await page.keyboard.press('Escape');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Enter');
+      }
+      await page.waitForTimeout(100);
+      first = false;
+    }
+  }
+}
+
 async function insertPaidSection(page, editor, bodyText) {
   // エディタ内での有料ライン挿入は note.com が対応していないため、
   // 全文（freeBody + paidBody）を本文に入力する。
   // 有料ライン境界は公開モーダルの「ラインをこの場所に変更」ボタンで設定する。
   await editor.click();
-  await editor.fill(bodyText);
+  await typeBodyWithCodeBlocks(page, bodyText);
 }
 
 // ── ヘッダー画像アップロード ────────────────────────────────────────
@@ -150,6 +304,82 @@ async function tryClick(page, selectors, { label = '', force = false } = {}) {
 }
 
 // ── 公開処理 ────────────────────────────────────────────────────────
+// note ID を URL から抽出
+function extractNoteId(url) {
+  const m = url.match(/\/n\/([a-z0-9]+)/);
+  return m ? m[1] : null;
+}
+
+const LIKE_SELECTORS = [
+  'button[data-test-id="likeButton"]',
+  'button[aria-label*="スキ"]',
+  'button[class*="likeButton"]',
+  'button[class*="like-button"]',
+  '[data-test="like-button"]',
+];
+
+async function clickLikeButton(page, noteId) {
+  for (const sel of LIKE_SELECTORS) {
+    const btn = page.locator(sel).first();
+    if (await btn.count() > 0) {
+      const pressed = await btn.getAttribute('aria-pressed').catch(() => null);
+      if (pressed === 'true') {
+        logger.info(MODULE, `like: already liked (${noteId})`);
+        return true;
+      }
+      await btn.click();
+      await page.waitForTimeout(1_000);
+      logger.info(MODULE, `like: liked ${noteId} via ${sel}`);
+      return true;
+    }
+  }
+  logger.warn(MODULE, `like: button not found for ${noteId}`);
+  return false;
+}
+
+async function selfLikeNote(page, noteUrl, username) {
+  try {
+    const noteId = extractNoteId(noteUrl);
+    if (!noteId) { logger.warn(MODULE, `selfLike: cannot extract noteId from ${noteUrl}`); return; }
+    const publicUrl = `https://note.com/${username}/n/${noteId}`;
+    await page.goto(publicUrl, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await page.waitForTimeout(2_000);
+    await clickLikeButton(page, noteId);
+  } catch (err) {
+    logger.warn(MODULE, `selfLike failed: ${err.message}`);
+  }
+}
+
+// 他アカウントのセッションから記事にいいね
+async function crossLikeNote(noteUrl, authorUsername, currentAccountId) {
+  const noteId = extractNoteId(noteUrl);
+  if (!noteId) return;
+  const publicUrl = `https://note.com/${authorUsername}/n/${noteId}`;
+
+  const otherAccountIds = [1, 2, 3].filter(id => id !== currentAccountId);
+  for (const accountId of otherAccountIds) {
+    const { sessionFile, username: likerUsername } = getAccountPaths(accountId);
+    if (!fs.existsSync(sessionFile)) {
+      logger.warn(MODULE, `crossLike: session not found for acct${accountId}`);
+      continue;
+    }
+    let browser;
+    try {
+      browser = await chromium.launch({ headless: true });
+      const ctx  = await browser.newContext({ storageState: sessionFile, viewport: { width: 1280, height: 900 } });
+      const page = await ctx.newPage();
+      await page.goto(publicUrl, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      await page.waitForTimeout(2_000);
+      await clickLikeButton(page, `${noteId}(acct${accountId}→${likerUsername})`);
+      await page.waitForTimeout(1_000);
+    } catch (err) {
+      logger.warn(MODULE, `crossLike acct${accountId} failed: ${err.message}`);
+    } finally {
+      await browser?.close();
+    }
+  }
+}
+
 async function publishNote(page, draft, username = 'rascal_ai_devops') {
   // Step 1: 「公開に進む」クリック
   await takeDebugScreenshot(page, 'step1-before-publish-btn');
@@ -198,7 +428,7 @@ async function publishNote(page, draft, username = 'rascal_ai_devops') {
         if (await el.count() > 0) { tagInput = el; break; }
       }
       if (tagInput) {
-        for (const tag of tags.slice(0, 5)) {
+        for (const tag of tags.slice(0, 10)) {
           const cleanTag = tag.replace(/^#/, '');
           await tagInput.click();
           await tagInput.fill('');
@@ -411,13 +641,50 @@ export async function runPost(accountIdOrOpts = {}) {
     }
     logger.info(MODULE, `editor URL: ${page.url()}`);
 
-    // エディタ読み込みを待つ（タイトル textarea が出現したら準備完了）
-    await page.waitForSelector('textarea[placeholder="記事タイトル"]', { timeout: 30_000 });
-    await takeDebugScreenshot(page, 'runPost-editor-ready');
+    // エディタ読み込みを待つ
+    await page.waitForSelector(
+      'textarea[placeholder="記事タイトル"], [placeholder="記事タイトル"], div.ProseMirror',
+      { timeout: 30_000 }
+    );
     await page.waitForTimeout(1_000);
 
+    // "AIと相談" パネルを閉じる（フォーカス奪取を防ぐ）
+    const aiPanelClose = page.locator('button[aria-label="閉じる"], button:has-text("×"), .ai-assistant button.close').first();
+    if (await aiPanelClose.count() > 0) {
+      await aiPanelClose.click().catch(() => {});
+      await page.waitForTimeout(500);
+    }
+    // X ボタン（SVG inside button）でも閉じる
+    const aiPanel = page.locator('.AIAssistant, [class*="ai-assistant"], [class*="AiAssistant"]').first();
+    if (await aiPanel.count() > 0) {
+      const xBtn = aiPanel.locator('button').first();
+      await xBtn.click().catch(() => {});
+      await page.waitForTimeout(300);
+    }
+
+    await takeDebugScreenshot(page, 'runPost-editor-ready');
+
     // ── タイトル ─────────────────────────────────────────────────
-    await page.locator('textarea[placeholder="記事タイトル"]').fill(draft.title);
+    // 1) textarea の fill を試みる
+    const titleTextarea = page.locator('textarea[placeholder="記事タイトル"]').first();
+    const titleDiv      = page.locator('[placeholder="記事タイトル"]:not(textarea), h1[contenteditable], .title-input[contenteditable]').first();
+
+    if (await titleTextarea.count() > 0) {
+      await titleTextarea.click();
+      await titleTextarea.fill(draft.title);
+    } else if (await titleDiv.count() > 0) {
+      await titleDiv.click();
+      await page.keyboard.press('Control+a');
+      await page.keyboard.type(draft.title, { delay: 0 });
+    } else {
+      // フォールバック: ProseMirror 先頭行にタイトルを入力
+      const ed = page.locator('div.ProseMirror[role="textbox"]').first();
+      await ed.click();
+      await page.keyboard.press('Control+Home');
+      await page.keyboard.type(draft.title, { delay: 0 });
+      await page.keyboard.press('Enter');
+    }
+    await page.waitForTimeout(500);
     logger.info(MODULE, 'title filled');
 
     // ── ヘッダー画像（本文入力前に行う — 本文入力後はボタンが消える）─
@@ -440,14 +707,12 @@ export async function runPost(accountIdOrOpts = {}) {
       : (draft.body ?? '');
     const bodyText = rawBody.replace(/^#\s+.+\n+/, '').trimStart();
 
+    await editor.click();
+    await page.waitForTimeout(500);
     if (draft.paidBody) {
       await insertPaidSection(page, editor, bodyText);
     } else {
-      await editor.click();
-      await page.waitForTimeout(500);
-      await page.evaluate(text => navigator.clipboard.writeText(text), bodyText);
-      await page.keyboard.press(IS_MAC ? 'Meta+a' : 'Control+a');
-      await page.keyboard.press(IS_MAC ? 'Meta+v' : 'Control+v');
+      await typeBodyWithCodeBlocks(page, bodyText);
       await page.waitForTimeout(1_000);
     }
 
@@ -485,6 +750,8 @@ export async function runPost(accountIdOrOpts = {}) {
       markPosted(file.filePath, noteUrl);
       logNotePosted(file.filePath, noteUrl, draft);
       logger.info(MODULE, `published: ${noteUrl}`);
+      await selfLikeNote(page, noteUrl, username);
+      await crossLikeNote(noteUrl, username, accountId);
     }
   } catch (err) {
     await takeDebugScreenshot(page, 'runPost-ERROR').catch(() => {});
