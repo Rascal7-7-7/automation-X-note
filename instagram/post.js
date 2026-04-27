@@ -14,6 +14,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../shared/logger.js';
@@ -152,21 +153,21 @@ function markPosted(draftPath, draft, postId, postedKey = 'imagePosted') {
   const bothPosted = rest.imagePosted && rest.reelsPosted
     || (postedKey === 'imagePosted' && rest.reelsPosted)
     || (postedKey === 'reelsPosted' && rest.imagePosted);
-  fs.writeFileSync(draftPath, JSON.stringify({
+  saveJSON(draftPath, {
     ...rest,
     [postedKey]: true,
     status:   bothPosted ? 'posted' : rest.status,
     postId,
     postedAt: new Date().toISOString(),
-  }, null, 2));
+  });
 }
 
 function savePending(draftPath, draft, reason, account) {
-  fs.writeFileSync(draftPath, JSON.stringify({
+  saveJSON(draftPath, {
     ...draft,
     status:        'pending',
     pendingReason: reason ?? 'credentials not set',
     updatedAt:     new Date().toISOString(),
-  }, null, 2));
+  });
   return { posted: false, reason: reason ?? 'pending', account };
 }
