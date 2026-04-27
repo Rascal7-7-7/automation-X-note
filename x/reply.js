@@ -10,7 +10,7 @@
  */
 import 'dotenv/config';
 import { execFileSync } from 'child_process';
-import { getXBrowser } from './browser-client.js';
+import { getBraveBrowser } from './browser-client.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { appendFileSync } from 'fs';
@@ -162,7 +162,7 @@ export async function runReply(keywords, opts = {}) {
   const remaining = Math.min(maxPerRun, DAILY_MAX - todayCount);
   let count = 0;
 
-  const { browser, page } = await getXBrowser({ headless: true });
+  const { browser, page } = await getBraveBrowser();
 
   try {
     for (const keyword of keywords) {

@@ -51,7 +51,7 @@ function pickTopic() {
       const keywords = report?.topKeywords ?? [];
       if (keywords.length > 0) {
         const kw = keywords[Math.floor(Math.random() * keywords.length)];
-        return `${kw.keyword}について副業・AI活用の観点でまとめたスレッド`;
+        return `${kw}について副業・AI活用の観点でまとめたスレッド`;
       }
     } catch {
       // レポート読み込み失敗は無視してフォールバック

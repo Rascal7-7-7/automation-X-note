@@ -3,7 +3,7 @@
 ## 起動
 
 ```bash
-cd /home/rascal/work/automation
+cd /Users/Rascal/work/automation
 chmod +x start.sh
 ./start.sh
 ```

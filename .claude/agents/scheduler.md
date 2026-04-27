@@ -34,7 +34,7 @@ curl -s http://localhost:5678/api/v1/workflows \
 ## 障害対応フロー
 
 1. ヘルスチェック → 問題特定
-2. Bridge Server 落ちている → `cd /home/rascal/work/automation && npm run bridge` を提案
+2. Bridge Server 落ちている → `cd /Users/Rascal/work/automation && npm run bridge` を提案
 3. n8n 落ちている → `npm run n8n` を提案
 4. ワークフローエラー → n8n UI でエラーログ確認を促す
 

@@ -123,7 +123,7 @@ export async function runResearch(opts = {}) {
       sourcePlatform: post.subreddit,
       score: post.score,
       queuedAt: new Date().toISOString(),
-    });
+    }, { dedupKey: 'topic' });
     logger.info(MODULE, `queued: ${post.title.slice(0, 60)}`);
   }
 
