@@ -44,7 +44,7 @@ export const NOTE_ACCOUNTS = {
 固有名詞: Claude / n8n / ChatGPT / xurl を積極的に使う。`,
     freeExtra: `対象読者: AI副業に興味はあるが何から始めるか分からない会社員。`,
     paidExtra: `具体的なツール: Claude Code / n8n / GitHub Actions / Python等のコード・設定を提供する。`,
-    price:      null,                                                // 無料（リーチ優先）
+    price:      500,                                                 // 有料500円（freeBodyが無料リード、paidBodyで詳細開示）
     ctaProfile: 'https://note.com/rascal_ai_devops',
     ctaLabel: 'AI活用・副業自動化の実践ノウハウを毎週公開',
   },
@@ -87,7 +87,7 @@ export const NOTE_ACCOUNTS = {
 トーン: リスクも正直に書く（信頼性重視）。ロマン的な「必ず儲かる」表現は禁止。`,
     freeExtra: `対象読者: 投資に興味はあるが怖くて始められない20〜40代 + 自動売買に興味があるエンジニア・AI副業志望者。`,
     paidExtra: `証拠: 取引履歴・証券口座スクリーンショット言及・バックテスト結果グラフ言及・実際のAPI設定コードをコードブロックで提供する。`,
-    price:      null,                                                // 無料（リーチ優先）
+    price:      500,                                                 // 有料500円（freeBodyが無料リード、paidBodyで詳細開示）
     ctaProfile: 'https://note.com/rascal_invest',
     ctaLabel: '投資×AI自動化の実践レポートを毎週公開',
   },
