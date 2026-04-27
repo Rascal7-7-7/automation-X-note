@@ -9,7 +9,7 @@
  * ⚠️ 公開は手動確認後に行ってください
  */
 import 'dotenv/config';
-import { chromium } from 'playwright';
+import { launchBrowser } from '../shared/browser-launch.js';
 import { logger } from '../shared/logger.js';
 import { logNotePosted } from '../analytics/logger.js';
 import fs from 'fs';
@@ -83,7 +83,7 @@ export async function runPost(accountIdOrOpts = {}) {
   const { draft } = file;
   logger.info(MODULE, `posting: ${draft.title}`);
 
-  const browser = await chromium.launch({ headless });
+  const browser = await launchBrowser({ headless });
   const context = await browser.newContext({
     storageState: fs.existsSync(sessionFile) ? sessionFile : undefined,
     viewport: { width: 1280, height: 900 },

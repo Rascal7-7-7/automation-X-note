@@ -155,7 +155,7 @@ async function uploadCoverToArticle(noteKey, imagePath, sessionFile) {
     await page.waitForTimeout(3_500);
 
     if (page.url().includes('/login')) {
-      logger.error(MODULE, `session expired for ${noteKey}`);
+      logger.error(MODULE, 'session expired', { noteKey });
       return false;
     }
 
@@ -215,7 +215,7 @@ async function insertSectionImage(noteKey, headingText, imagePath, sessionFile) 
     await page.waitForTimeout(3_500);
 
     if (page.url().includes('/login')) {
-      logger.error(MODULE, `session expired for ${noteKey}`);
+      logger.error(MODULE, 'session expired', { noteKey });
       return false;
     }
 
@@ -385,7 +385,7 @@ async function main() {
           }
         }
       } catch (err) {
-        logger.error(MODULE, `cover fix failed for ${noteKey}: ${err.message}`);
+        logger.error(MODULE, 'cover fix failed', { noteKey, message: err.message });
         results.errors.push({ noteKey, phase: 'cover', error: err.message });
       }
     } else if (DO_COVERS && draft.headerImage) {
@@ -414,7 +414,7 @@ async function main() {
             if (ok) results.imageFixed.push(`${noteKey}:${section}`);
           }
         } catch (err) {
-          logger.error(MODULE, `section image failed for ${noteKey}/${section}: ${err.message}`);
+          logger.error(MODULE, 'section image failed', { noteKey, section, message: err.message });
           results.errors.push({ noteKey, phase: 'section', section, error: err.message });
         }
       }
@@ -433,6 +433,6 @@ async function main() {
 }
 
 main().catch(err => {
-  logger.error(MODULE, err.message);
+  logger.error(MODULE, 'article quality fix failed', { message: err.message });
   process.exit(1);
 });

@@ -3,7 +3,7 @@
  * publishNote, selfLikeNote, crossLikeNote and helpers.
  */
 import 'dotenv/config';
-import { chromium } from 'playwright';
+import { launchBrowser } from '../shared/browser-launch.js';
 import fs from 'fs';
 import { logger } from '../shared/logger.js';
 import { takeDebugScreenshot, tryClick } from './post-browser.js';
@@ -72,7 +72,7 @@ export async function crossLikeNote(noteUrl, authorUsername, currentAccountId, g
     }
     let browser;
     try {
-      browser = await chromium.launch({ headless: true });
+      browser = await launchBrowser({ headless: true });
       const ctx  = await browser.newContext({ storageState: sessionFile, viewport: { width: 1280, height: 900 } });
       const page = await ctx.newPage();
       await page.goto(publicUrl, { waitUntil: 'domcontentloaded', timeout: 20_000 });

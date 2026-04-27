@@ -9,7 +9,7 @@
  *
  * 前提: node youtube/save-session.js でセッション作成済み
  */
-import { chromium } from 'playwright';
+import { launchBrowser } from '../shared/browser-launch.js';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -50,7 +50,7 @@ async function postCommunityUpdate(text) {
     throw new Error('セッションファイルがありません。先に: node youtube/save-session.js');
   }
 
-  const browser = await chromium.launch({
+  const browser = await launchBrowser({
     headless: true,
     channel: 'chrome',
     args: ['--disable-blink-features=AutomationControlled'],
@@ -127,7 +127,7 @@ export async function runPostCommunity() {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   runPostCommunity().catch(err => {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'community post failed', { message: err.message });
     process.exit(1);
   });
 }

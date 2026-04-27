@@ -314,7 +314,7 @@ async function fixArticle(page, item) {
       logger.info(MODULE, '  local draft updated');
     }
   } catch (err) {
-    logger.error(MODULE, `fix failed for ${title}: ${err.message}`);
+    logger.error(MODULE, 'fix failed', { title, message: err.message });
   }
 }
 
@@ -371,7 +371,7 @@ async function main() {
     await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await page.waitForTimeout(2_000);
     if (page.url().includes('/login')) {
-      logger.error(MODULE, `not logged in for account ${accountId} — load session first`);
+      logger.error(MODULE, 'not logged in', { accountId });
       await browser.close();
       continue;
     }

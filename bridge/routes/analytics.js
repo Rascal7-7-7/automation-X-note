@@ -15,7 +15,7 @@ router.post('/collect-x', async (_req, res) => {
     await collectXMetrics();
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x metrics collection failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -26,7 +26,7 @@ router.post('/buzz', async (_req, res) => {
     await runBuzzAnalysis();
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'buzz analysis failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -37,7 +37,7 @@ router.post('/ai-tools', async (_req, res) => {
     const result = await runAIToolsResearch();
     res.json({ ok: true, filename: result.filename });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'ai tools research failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -82,7 +82,7 @@ router.post('/daily-research', async (_req, res) => {
     const result = await runDailyResearch();
     res.json({ ok: true, ...result });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'daily research failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });

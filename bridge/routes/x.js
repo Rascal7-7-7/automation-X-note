@@ -13,7 +13,7 @@ router.post('/research', async (_req, res) => {
     await enqueue(null); // null = 全ドメイン
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x research failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -24,7 +24,7 @@ router.post('/process', async (_req, res) => {
     await processQueue({ mode: 'prod' });
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x process queue failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -35,7 +35,7 @@ router.post('/like', async (_req, res) => {
     await runLike(LIKE_KEYWORDS);
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x like failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -46,7 +46,7 @@ router.post('/note-promo', async (_req, res) => {
     await runNotePromo({ mode: 'prod' });
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'note promo failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -58,7 +58,7 @@ router.post('/reply', async (req, res) => {
     await runReply(keywords);
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x reply failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -70,7 +70,7 @@ router.post('/quote-rt', async (req, res) => {
     await runQuoteRT(keywords);
     res.json({ ok: true });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x quote-rt failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -82,7 +82,7 @@ router.post('/follow-quote-rt', async (req, res) => {
     const result = await runFollowQuoteRT(req.body ?? {});
     res.json({ ok: true, ...result });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x follow-quote-rt failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -94,7 +94,7 @@ router.post('/github-intro', async (req, res) => {
     const result = await runGithubIntro(req.body ?? {});
     res.json({ ok: true, ...result });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x github intro failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
@@ -106,7 +106,7 @@ router.post('/x-article', async (_req, res) => {
     const result = await runXArticle();
     res.json({ ok: true, ...result });
   } catch (err) {
-    logger.error(MODULE, err.message);
+    logger.error(MODULE, 'x article failed', { message: err.message });
     res.status(500).json({ ok: false, error: err.message });
   }
 });
