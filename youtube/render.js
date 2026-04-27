@@ -26,6 +26,7 @@ import { execFile } from 'child_process';
 import { promisify } from 'util';
 import { GoogleGenAI } from '@google/genai';
 import { logger } from '../shared/logger.js';
+import { captureSceneImage } from './capture.js';
 import {
   isHeyGenAvailable,
   generateAvatarVideo,
@@ -35,6 +36,8 @@ import {
   isFalAvailable,
   generateSeedanceVideo,
   uploadToFal,
+  generateBgmFromFal,
+  buildBgmPrompt,
 } from '../shared/fal-client.js';
 import {
   isReplicateAvailable,
@@ -79,9 +82,10 @@ const MODULE = 'youtube:render';
 // ── テロップカラーパレット（YPP 反復コンテンツ対策：動画ごとに変化） ──────────
 // ASS カラー形式: &HAABBGGRR (アルファ・青・緑・赤)
 const CAPTION_PALETTES = [
-  { primary: '&H00FFFFFF', hook: '&H0000FFFF' }, // 白 / 黄
+  { primary: '&H00FFFFFF', hook: '&H0000FFFF' }, // 白 / 黄（デフォルト・最高視認性）
   { primary: '&H0000FFFF', hook: '&H00FFFFFF' }, // 黄 / 白
   { primary: '&H00F0F0F0', hook: '&H0010D0FF' }, // オフホワイト / オレンジ
+  { primary: '&H00FFFFFF', hook: '&H000070FF' }, // 白 / 赤（緊急・速報系）
 ];
 
 // ── テロップ設定 ──────────────────────────────────────────────────
@@ -137,7 +141,10 @@ export async function runRender({ type = 'short', date } = {}) {
 
     let videoPath;
 
-    if (type === 'chatgpt-short' || type === 'anime-short') {
+    if (type === 'anime-short') {
+      // ── gpt-image-2 グリッド → Seedance 1コール 15秒 + 字幕 + BGM ──
+      videoPath = await renderAnimeShort(draft, outDir, outPath);
+    } else if (type === 'chatgpt-short') {
       // ── gpt-image-2 × Seedance 2.0 ストーリーボードパス ──────
       videoPath = await renderChatGPTShort(draft, type, outDir, outPath);
     } else if (isHeyGenAvailable()) {
@@ -239,9 +246,9 @@ function parseScenes(script, type) {
     .filter(l => l.length >= 8);                       // 短すぎる残骸を除去
 
   if (fmt === 'short') {
-    // ショート: 6シーン、duration は TTS 実測後に上書きされる（仮値 10s）
-    return lines.slice(0, 6).map(text => ({
-      text: text.slice(0, 40),
+    // ショート: 8シーン（手順型テンプレ対応）、duration は TTS 実測後に上書きされる
+    return lines.slice(0, 8).map(text => ({
+      text: text.slice(0, 50),
       duration: 10,
     }));
   } else {
@@ -296,6 +303,17 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
       continue;
     }
 
+    // ── 1. Playwright capture（実UI / モックHTML）を優先 ──────────────────
+    if (type !== 'reddit-short') {
+      const captured = await captureSceneImage(scenes[i].text, i, imgPath, type, { proofNumber: draft?.proofNumber });
+      if (captured) {
+        paths.push(captured);
+        logger.info(MODULE, `scene ${i + 1}/${scenes.length} captured (Playwright)`);
+        continue;
+      }
+    }
+
+    // ── 2. Imagen フォールバック ────────────────────────────────────────
     // scene 1以降はコメント/リアクション系プロンプトを優先
     const prompt = (i >= 1 && type === 'reddit-short')
       ? buildCommentScenePrompt(scenes[i].text, type)
@@ -313,7 +331,7 @@ async function generateSceneImages(scenes, outDir, type, draft = null) {
 
       fs.writeFileSync(imgPath, Buffer.from(imageBytes, 'base64'));
       paths.push(imgPath);
-      logger.info(MODULE, `scene image ${i + 1}/${scenes.length} generated`);
+      logger.info(MODULE, `scene image ${i + 1}/${scenes.length} generated (Imagen)`);
     } catch (err) {
       logger.warn(MODULE, `scene ${i} image failed, using fallback: ${err.message}`);
       paths.push(await generateFallbackImage(outDir, i, type));
@@ -620,14 +638,198 @@ async function renderChatGPTShort(draft, type, outDir, outPath) {
   return finalPath;
 }
 
+// ── anime-short: グリッド → 単一 Seedance 15s + 字幕 + BGM ─────────────
+
+/**
+ * anime-short 専用レンダラー。
+ * gpt-image-2 で 3×3 グリッドを生成し、Seedance 2.0 に 1 回だけ投げて
+ * 15 秒のアニメ動画を得る。字幕 SRT を生成し ASS バーンイン + BGM ミックスして返す。
+ *
+ * コスト比較: 旧方式（9 クリップ×$0.42） → 約$3.78 / 新方式（1 クリップ 15s） → 約$1.26
+ */
+async function renderAnimeShort(draft, outDir, outPath) {
+  const storyboardPrompt = draft.storyboardPrompt ?? draft.theme ?? 'anime awakening scene';
+  const stylePrompt      = draft.stylePrompt ?? '';
+  const hookText         = draft.hookText ?? null;
+  const frames           = Array.isArray(draft.frames) ? draft.frames : [];
+
+  logger.info(MODULE, `[anime-short] theme: "${draft.theme}"`);
+
+  // Step 1: 3×3 グリッド生成（gpt-image-2）
+  let gridPath;
+  try {
+    gridPath = await generateStoryboardGrid(storyboardPrompt, stylePrompt, outDir);
+  } catch (err) {
+    throw new Error(`[anime-short] grid generation failed: ${err.message}`);
+  }
+
+  // Step 2: グリッド → 15 秒アニメ動画（Seedance 2.0 シングルコール）
+  const rawVideoPath = path.join(outDir, 'anime-short_raw.mp4');
+  let videoReady = false;
+
+  if (!fs.existsSync(rawVideoPath)) {
+    if (isFalAvailable()) {
+      try {
+        logger.info(MODULE, '[anime-short] uploading grid to FAL...');
+        const gridUrl = await uploadToFal(gridPath);
+        // draft.frames の motionPrompt を各パネルの指示として連結
+        // Seedance best practice: 具体的なカメラ指示を明示、ただし過長は幻覚を増やすため先頭節のみ使用
+        const panelInstructions = frames.length > 0
+          ? frames.map((f, i) => {
+              const motion = (f.motionPrompt ?? 'gentle camera movement').split(',')[0].trim();
+              return `Panel ${i + 1}: ${motion}`;
+            }).join('. ')
+          : 'sequential camera movements, dynamic angles';
+        const prompt = `Anime cinematic short film. @image1 is a 3x3 storyboard. Animate panels left-to-right top-to-bottom as sequential scenes. ${panelInstructions}. Cel-shading style, consistent character throughout, no style drift.`;
+        logger.info(MODULE, '[anime-short] calling Seedance 2.0 (single 15 s)...');
+        const videoUrl = await generateSeedanceVideo({
+          imageUrl:    gridUrl,
+          prompt,
+          duration:    15,
+          resolution:  '720p',
+          aspectRatio: '9:16',
+          useFast:     false,
+        });
+        const res = await fetch(videoUrl);
+        if (!res.ok) throw new Error(`download failed: ${res.status}`);
+        fs.writeFileSync(rawVideoPath, Buffer.from(await res.arrayBuffer()));
+        logger.info(MODULE, `[anime-short] raw video saved → ${rawVideoPath}`);
+        videoReady = true;
+      } catch (err) {
+        logger.warn(MODULE, `[anime-short] Seedance failed: ${err.message} — falling back to Ken Burns`);
+      }
+    }
+
+    if (!videoReady) {
+      // フォールバック: グリッド分割 → Ken Burns スライドショー
+      const framePaths = await splitGridIntoFrames(gridPath, outDir);
+      const clips      = await Promise.all(
+        framePaths.map((fp, i) =>
+          generateKenBurnsClip(fp, 15 / framePaths.length, 'short', path.join(outDir, `kb_${i}.mp4`), i)
+        )
+      );
+      await concatClips(clips, rawVideoPath);
+      videoReady = true;
+    }
+  } else {
+    logger.info(MODULE, `[anime-short] raw video exists, reusing → ${rawVideoPath}`);
+    videoReady = true;
+  }
+
+  // Step 3: 日本語字幕 SRT 生成
+  const srtPath = path.join(outDir, 'anime-short.srt');
+  generateAnimeSubtitleSRT(draft, srtPath, 15);
+
+  // Step 4: SRT → ASS
+  const assPath    = path.join(outDir, 'anime-short.ass');
+  const paletteIdx = Math.floor(Math.random() * CAPTION_PALETTES.length);
+  convertSRTtoASS(srtPath, 'short', assPath, paletteIdx, hookText, { subtle: true });
+
+  // Step 5: FAL Stable Audio で テーマ連動 BGM 生成（キャッシュあり）
+  const bgmCachePath = path.join(outDir, 'anime-short_bgm.wav');
+  let bgmPath = null;
+  if (!fs.existsSync(bgmCachePath)) {
+    try {
+      const bgmPrompt = buildBgmPrompt(draft);
+      bgmPath = await generateBgmFromFal(bgmPrompt, bgmCachePath, 15);
+    } catch (err) {
+      logger.warn(MODULE, `[anime-short] BGM generation failed (${err.message}) — using local fallback`);
+      bgmPath = pickBgm();
+    }
+  } else {
+    logger.info(MODULE, `[anime-short] BGM cache exists, reusing → ${bgmCachePath}`);
+    bgmPath = bgmCachePath;
+  }
+
+  const finalPath = outPath.replace('.mp4', '_final.mp4');
+
+  const assEscaped   = assPath.replace(/\\/g, '/').replace(/:/g, '\\:');
+  // fontsdir 指定なし → libass がシステムフォント（ヒラギノ）を自動検出
+  const vfFilter     = `ass='${assEscaped}'`;
+
+  try {
+    if (bgmPath) {
+      await execFileAsync('ffmpeg', [
+        '-y',
+        '-i',           rawVideoPath,
+        '-stream_loop', '-1', '-i', bgmPath,
+        '-filter_complex',
+          `[0:v]${vfFilter}[vout];[1:a]volume=0.20,atrim=duration=15[aout]`,
+        '-map', '[vout]', '-map', '[aout]',
+        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+        '-c:a', 'aac', '-shortest',
+        finalPath,
+      ], { timeout: 180000 });
+    } else {
+      // BGM なし（ファイル不在時）
+      await execFileAsync('ffmpeg', [
+        '-y', '-i', rawVideoPath,
+        '-vf', vfFilter,
+        '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+        '-c:a', 'copy',
+        finalPath,
+      ], { timeout: 180000 });
+    }
+  } catch (err) {
+    logger.warn(MODULE, `[anime-short] subtitle/BGM pass failed (${err.message}) — using raw video`);
+    fs.copyFileSync(rawVideoPath, finalPath);
+  }
+
+  logger.info(MODULE, `[anime-short] final → ${finalPath}`);
+  return finalPath;
+}
+
+/**
+ * anime-short 用 SRT を生成する。
+ * hookText を冒頭に置き、3 幕構成（導入・覚醒・続きへ）で 15 秒を埋める。
+ */
+function generateAnimeSubtitleSRT(draft, srtPath, durationSec = 15) {
+  const hookText = draft.hookText ?? draft.theme ?? '';
+
+  // hookText は convertSRTtoASS に渡すと CardHook（中央大テロップ 0〜2.5s）になる
+  // SRT ダイアログは 3.0s 以降を担当
+  // hookText は convertSRTtoASS の CardHook（中央大テロップ）で表示済み
+  // SRT は 5.5s 以降の補助字幕のみ担当
+  const cards = [
+    { text: '力が覚醒する瞬間', start: 5.5,  end: 9.5  },
+    { text: '続く…',           start: 12.5, end: durationSec - 0.1 },
+  ];
+
+  const entries = cards.map((c, i) =>
+    `${i + 1}\n${secondsToSrtTs(c.start)} --> ${secondsToSrtTs(c.end)}\n${c.text}`
+  );
+
+  fs.writeFileSync(srtPath, entries.join('\n\n') + '\n', 'utf8');
+  logger.info(MODULE, `[anime-short] SRT written (${cards.length} cards) → ${srtPath}`);
+  return srtPath;
+}
+
 /**
  * reddit-short の scene_0 に使う画像をダウンロードして返す。
  * imageUrl → thumbnailUrl の順で試み、いずれもなければ null を返す。
  */
 async function resolveScene0Image(type, draft, outDir) {
-  if (type !== 'reddit-short' || !draft) return null;
+  if (!draft) return null;
+
+  // proof card: 専用パスで生成（AI生成シーン画像と分離）
+  if (draft.proofNumber) {
+    const proofPath = path.join(outDir, `${resolveStyleKey(type)}_proof_card.png`);
+    if (!fs.existsSync(proofPath)) {
+      try {
+        await generateProofCard(draft.proofNumber, proofPath, resolveStyleKey(type));
+        logger.info(MODULE, `proof card generated → ${proofPath}`);
+      } catch (err) {
+        logger.warn(MODULE, `proof card generation failed: ${err.message}`);
+        return null;
+      }
+    }
+    return proofPath;
+  }
 
   const imgPath = path.join(outDir, `${resolveStyleKey(type)}_scene_0.png`);
+
+  // reddit-short: Reddit 画像をダウンロード
+  if (type !== 'reddit-short') return null;
   if (fs.existsSync(imgPath)) return imgPath;
 
   const url = draft.redditSource?.imageUrl ?? draft.thumbnailUrl ?? null;
@@ -644,6 +846,54 @@ async function resolveScene0Image(type, draft, outDir) {
     logger.warn(MODULE, `scene_0 Reddit image download failed: ${err.message}`);
     return null;
   }
+}
+
+/**
+ * 収益ダッシュボード風 proof card を FFmpeg drawtext で生成
+ * 暗背景 + 緑の大型数字 + "先月の収益" ラベル — 実績証拠感を演出
+ */
+async function generateProofCard(proofNumber, outPath, styleKey) {
+  const w = styleKey === 'long' ? 1920 : 1080;
+  const h = styleKey === 'long' ? 1080 : 1920;
+  const HIRAGINO = '/System/Library/Fonts/ヒラギノ角ゴシック W7.ttc';
+  const hasFonts = fs.existsSync(HIRAGINO);
+  const fontArg  = hasFonts ? `:fontfile='${HIRAGINO.replace(/\\/g, '/').replace(/:/g, '\\:')}'` : '';
+
+  const now   = new Date();
+  const label = `${now.getFullYear()}年${now.getMonth() + 1}月 収益`;
+  const mainFontSize  = Math.round(Math.min(h * 0.09, w * 0.10));  // cap at w*10% to fit 11-char strings within portrait canvas
+  const labelFontSize = Math.round(h * 0.035);
+  const noteFontSize  = Math.round(h * 0.028);
+  const centerY = Math.round(h * 0.42);
+
+  // カード風ボックスをFFmpegで描画
+  const vf = [
+    // 暗い背景グラデーション風（単色で代用）
+    `drawbox=x=0:y=0:w=${w}:h=${h}:color=0x0d1117:t=fill`,
+    // カード枠
+    `drawbox=x=${Math.round(w*0.06)}:y=${Math.round(h*0.28)}:w=${Math.round(w*0.88)}:h=${Math.round(h*0.44)}:color=0x161b22:t=fill`,
+    `drawbox=x=${Math.round(w*0.06)}:y=${Math.round(h*0.28)}:w=${Math.round(w*0.88)}:h=${Math.round(h*0.44)}:color=0x30363d:t=2`,
+    // ラベル
+    `drawtext=text='${label}'${fontArg}:fontsize=${labelFontSize}:fontcolor=0x8b949e:x=(w-text_w)/2:y=${Math.round(centerY - h*0.1)}`,
+    // 区切り線
+    `drawbox=x=${Math.round(w*0.12)}:y=${Math.round(centerY - h*0.02)}:w=${Math.round(w*0.76)}:h=2:color=0x30363d:t=fill`,
+    // 収益数字（緑・大型）
+    `drawtext=text='${proofNumber.replace(/'/g, "\\'")}'${fontArg}:fontsize=${mainFontSize}:fontcolor=0x3fb950:x=(w-text_w)/2:y=${centerY}:shadowcolor=0x000000@0.5:shadowx=2:shadowy=2`,
+    // サブテキスト
+    `drawtext=text='振込確認済み'${fontArg}:fontsize=${noteFontSize}:fontcolor=0x58a6ff:x=(w-text_w)/2:y=${Math.round(centerY + h*0.12)}`,
+    // 下部ブランド
+    `drawtext=text='ぬちょ AI副業ハック'${fontArg}:fontsize=${noteFontSize}:fontcolor=0x8b949e:x=(w-text_w)/2:y=${Math.round(h*0.82)}`,
+  ].join(',');
+
+  const { execa } = await import('execa');
+  await execa('ffmpeg', [
+    '-y',
+    '-f', 'lavfi', '-i', `color=size=${w}x${h}:rate=1:color=black`,
+    '-vf', vf,
+    '-frames:v', '1',
+    '-q:v', '2',
+    outPath,
+  ]);
 }
 
 /** scene 1以降（コメントシーン）用のプロンプト生成 */
@@ -810,13 +1060,7 @@ const FALLBACK_VISUALS = [
 function buildImagePrompt(text, type, index = 0) {
   const ratio = resolveStyleKey(type) === 'short' ? 'vertical 9:16 portrait' : 'horizontal 16:9 landscape';
 
-  // For shorts: use surreal/uncanny visuals that match the buzz template strategy
-  if (resolveStyleKey(type) === 'short') {
-    const visual = UNCANNY_VISUALS[index % UNCANNY_VISUALS.length];
-    return `${ratio}, ${visual}, no text overlays, no logos, no watermarks`;
-  }
-
-  // For long-form: keyword-matched visuals from SCENE_VISUALS, then fallback
+  // Keyword-matched visuals for both short and long-form (content must match narration)
   for (const v of SCENE_VISUALS) {
     if (v.keys.some(k => text.includes(k))) {
       const options = Array.isArray(v.en) ? v.en : [v.en];
@@ -873,8 +1117,15 @@ async function generateFallbackImage(outDir, index, type) {
 
 // ── AivisSpeech TTS（ローカルAPI・高品質日本語）────────────────────────
 
-const AIVIS_API        = 'http://localhost:10101';
-const AIVIS_SPEAKER_ID = process.env.AIVIS_SPEAKER_ID ?? 888753763; // まお — おちつき
+const AIVIS_API        = 'http://localhost:50021';   // VOICEVOX
+const AIVIS_SPEAKER_ID = process.env.AIVIS_SPEAKER_ID ?? 8;           // 春日部つむぎ ノーマル
+
+function formatVTTTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = (sec % 60).toFixed(3).padStart(6, '0');
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${s}`;
+} // まお — あまあま（あんずもも未インストール時の代替）
 
 async function isAivisRunning() {
   try {
@@ -909,7 +1160,26 @@ async function generateTTS(scenes, outDir, type = 'short') {
   const prefix  = resolveStyleKey(type); // 'short' or 'long'
   const ttsPath = path.join(outDir, `${prefix}_tts.mp3`);
   const vttPath = path.join(outDir, `${prefix}_tts.vtt`);
-  if (fs.existsSync(ttsPath)) return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
+  if (fs.existsSync(ttsPath)) {
+    // Sync scene durations from cached VTT so Ken Burns clips align with narration
+    if (fs.existsSync(vttPath)) {
+      try {
+        const vtt = fs.readFileSync(vttPath, 'utf8');
+        const starts = [...vtt.matchAll(/^(\d{2}:\d{2}:\d{2}\.\d{3}) -->/gm)]
+          .map(m => { const [h, mn, s] = m[1].split(':').map(Number); return h * 3600 + mn * 60 + s; });
+        const ends = [...vtt.matchAll(/--> (\d{2}:\d{2}:\d{2}\.\d{3})/gm)]
+          .map(m => { const [h, mn, s] = m[1].split(':').map(Number); return h * 3600 + mn * 60 + s; });
+        for (let i = 0; i < Math.min(starts.length, scenes.length); i++) {
+          const dur = i < starts.length - 1
+            ? starts[i + 1] - starts[i]
+            : ends[i] - starts[i] + 1.2;
+          scenes[i].duration = parseFloat(dur.toFixed(2));
+        }
+        logger.info('youtube:render', 'scene durations synced from cached VTT');
+      } catch { /* leave defaults */ }
+    }
+    return { ttsPath, vttPath: fs.existsSync(vttPath) ? vttPath : null };
+  }
 
   const useAivis  = await isAivisRunning();
   const voice     = 'ja-JP-NanamiNeural';
@@ -917,7 +1187,7 @@ async function generateTTS(scenes, outDir, type = 'short') {
   const aivisSpeed = scenes.length <= 8 ? 1.0 : 1.1;
   const PAUSE_SEC = 1.2;
 
-  if (useAivis) logger.info(MODULE, 'TTS: AivisSpeech (おちつき)');
+  if (useAivis) logger.info(MODULE, `TTS: VOICEVOX (speaker=${AIVIS_SPEAKER_ID} / 春日部つむぎ)`);
   else          logger.info(MODULE, 'TTS: edge-tts fallback');
 
   const sceneTmps = [];
@@ -976,7 +1246,18 @@ async function generateTTS(scenes, outDir, type = 'short') {
     // scenes[i].duration を実測値で上書き（映像生成側が参照）
     scenes[i].duration = sceneDur;
 
-    if (!useAivis) vttInfos.push({ vttPath: rawVtt, offset });
+    if (useAivis) {
+      // AivisSpeech はVTTを出力しないため、シーンのタイミングから直接生成
+      const ttsDur = sceneDur - PAUSE_SEC;
+      fs.writeFileSync(rawVtt, [
+        'WEBVTT', '',
+        `00:00:00.000 --> ${formatVTTTime(ttsDur)}`,
+        scenes[i].text, '',
+      ].join('\n'), 'utf8');
+      vttInfos.push({ vttPath: rawVtt, offset });
+    } else {
+      vttInfos.push({ vttPath: rawVtt, offset });
+    }
     offset += sceneDur;
   }
 
@@ -1343,9 +1624,8 @@ async function assembleVideo({ type, scenes, imagePaths, bgmPath, ttsPath, vttPa
 
   if (resolvedAssPath && fs.existsSync(resolvedAssPath)) {
     const assEscaped   = resolvedAssPath.replace(/\\/g, '/').replace(/:/g, '\\:');
-    const fontsEscaped = FONTS_DIR.replace(/\\/g, '/').replace(/:/g, '\\:');
     pass2Args.push(
-      '-vf', `ass='${assEscaped}':fontsdir='${fontsEscaped}'`,
+      '-vf', `ass='${assEscaped}'`,
       '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
     );
     logger.info(MODULE, 'Burning ASS subtitles into video');
@@ -1528,18 +1808,67 @@ print("\\n".join(entries), end="", flush=True)
  * @param {string} assPath - 書き出し先の .ass ファイルパス
  * @returns {string} assPath
  */
-function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0, hookText = null) {
+// 字幕を maxChars 文字ごとに改行（ASS ハード改行 \N）
+// 句読点・助詞の直後を優先的に分割してネイティブな読み感を保つ
+function wrapSubtitleText(text, maxChars = 11) {
+  if (text.length <= maxChars) return text;
+  const breakAfter = ['。', '、', 'が', 'は', 'を', 'に', 'で', 'と', 'も', 'て', 'の'];
+  const isAsciiWord = (c) => /[a-zA-Z0-9_\-.]/.test(c);
+  let result = '';
+  let lineLen = 0;
+  let i = 0;
+  while (i < text.length) {
+    result += text[i];
+    lineLen++;
+    if (lineLen >= maxChars) {
+      // ASCII単語の途中なら単語末まで引っ張ってから改行
+      while (i + 1 < text.length && isAsciiWord(text[i]) && isAsciiWord(text[i + 1])) {
+        i++;
+        result += text[i];
+        lineLen++;
+      }
+      // 直後が句読点/助詞なら1文字含めてから改行
+      const next = text[i + 1] ?? '';
+      if (breakAfter.includes(next) && i + 1 < text.length) {
+        result += next;
+        i++;
+      }
+      if (i + 1 < text.length) { result += '\\N'; lineLen = 0; }
+    }
+    i++;
+  }
+  return result;
+}
+
+// 数字・ツール名・金額を黄色ハイライト（ASS override tag）
+const YELLOW = '&H0000FFFF';  // ASS形式 AABBGGRR
+const HIGHLIGHT_PATTERN = /(\d+[万円億%分時間本個秒]|\d+万[円以上]?|月\d+万|Claude\s*Code|ChatGPT|n8n|Cursor|Midjourney|無料|自動化|副業)/g;
+
+function highlightKeywords(text, palette) {
+  // hookText は palette.hook 色で全体が表示されるので追加着色不要
+  return text.replace(HIGHLIGHT_PATTERN, (m) => `{\\c${YELLOW}&}${m}{\\r}`);
+}
+
+function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0, hookText = null, opts = {}) {
+  const { subtle = false } = opts;
   const s            = STYLE[resolveStyleKey(type)];
   const W            = s.width;
   const H            = s.height;
-  const fontSize     = Math.round(H * 0.026);         // ~50px（ショート）/ ~28px（ロング）— はみ出し防止
-  const hookFontSize = Math.round(fontSize * 1.25);   // 冒頭フックは 1.25 倍
-  const cardFontSize = Math.round(H * 0.045);         // CardHook: 画面中央の大きなテロップ
-  const marginV      = Math.round(H * 0.22);          // 下端から 22%（YouTube Shorts UI の上）
-  const marginLR     = Math.round(W * 0.05);
-  const boxPad       = Math.round(fontSize * 0.35);
-  const hookBoxPad   = Math.round(hookFontSize * 0.35);
-  const cardBoxPad   = Math.round(cardFontSize * 0.4);
+  // subtle モード: フォント小さめ・アウトラインのみ（ボックスなし）
+  // 通常モード: 大型フォント（画面幅70%相当）・太アウトライン（視認性最優先）
+  const fontScale    = subtle ? 0.018 : 0.038;
+  const fontSize     = Math.round(H * fontScale);
+  const hookFontSize = Math.round(fontSize * (subtle ? 1.1 : 1.2));
+  const cardFontSize = Math.round(H * (subtle ? 0.032 : 0.048));
+  const marginV      = Math.round(H * 0.22);
+  const marginLR     = Math.round(W * 0.04);
+  const outline      = subtle ? 2.5 : 4.0;  // 通常は太アウトラインで黒縁強調
+  const shadow       = subtle ? 1   : 1;
+  // subtle: BorderStyle=1（アウトライン）, 通常: BorderStyle=1（アウトライン・ボックスなし）
+  const borderStyle  = 1;
+  const backDefault  = '&H00000000';  // 背景なし（アウトラインで視認性確保）
+  const backHook     = '&H00000000';
+  const backCard     = subtle ? '&H55000000' : '&H66000000';
 
   const palette = CAPTION_PALETTES[paletteIdx % CAPTION_PALETTES.length];
 
@@ -1549,16 +1878,13 @@ function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0, hookText = null
     `PlayResX: ${W}`,
     `PlayResY: ${H}`,
     'ScaledBorderAndShadow: yes',
-    'WrapStyle: 0',
+    'WrapStyle: 1',
     '',
     '[V4+ Styles]',
     'Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding',
-    // 通常字幕スタイル
-    `Style: Default,Noto Sans JP,${fontSize},${palette.primary},&H000000FF,&H00000000,&H80000000,1,0,0,0,100,100,1,0,3,${boxPad},0,2,${marginLR},${marginLR},${marginV},1`,
-    // 冒頭フック専用スタイル（大きめ・フック色・太字）
-    `Style: Hook,Noto Sans JP,${hookFontSize},${palette.hook},&H000000FF,&H00000000,&HCC000000,1,0,0,0,100,100,1,0,3,${hookBoxPad},0,2,${marginLR},${marginLR},${marginV},1`,
-    // CardHook: 画面中央に0〜2.5秒表示する大きなテロップ（generate.jsのhookText）
-    `Style: CardHook,Noto Sans JP,${cardFontSize},&H00FFFFFF,&H000000FF,&H00000000,&HDD000000,1,0,0,0,100,100,2,0,3,${cardBoxPad},0,5,0,0,0,1`,
+    `Style: Default,ヒラギノ角ゴシック,${fontSize},${palette.primary},&H000000FF,&H00000000,${backDefault},1,0,0,0,100,100,1,0,${borderStyle},${outline},${shadow},2,${marginLR},${marginLR},${marginV},1`,
+    `Style: Hook,ヒラギノ角ゴシック,${hookFontSize},${palette.hook},&H000000FF,&H00000000,${backHook},1,0,0,0,100,100,1,0,${borderStyle},${outline},${shadow},2,${marginLR},${marginLR},${marginV},1`,
+    `Style: CardHook,ヒラギノ角ゴシック,${cardFontSize},&H00FFFFFF,&H000000FF,&H00000000,${backCard},1,0,0,0,100,100,2,0,${borderStyle},${outline},${shadow},5,0,0,0,1`,
     '',
     '[Events]',
     'Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text',
@@ -1577,14 +1903,15 @@ function convertSRTtoASS(srtPath, type, assPath, paletteIdx = 0, hookText = null
     const lines = block.trim().split('\n');
     if (lines.length < 3 || !lines[1].includes(' --> ')) return [];
     const [startRaw, endRaw] = lines[1].split(' --> ');
-    const text = lines.slice(2).join(' ')
+    const rawText = lines.slice(2).join(' ')
       .replace(/\{/g, '\\{').replace(/\}/g, '\\}');
 
-    const isHook = blockIdx === 0;
-    const style  = isHook ? 'Hook' : 'Default';
-    // 冒頭フックは t=0 から表示（TTS タイミングに依存しない）
-    const startTs = isHook ? '0:00:00.00' : srtTsToAss(startRaw);
-    // フェードイン 250ms（視聴者の目を引く）
+    // CardHook（draft.hookText）が冒頭インパクトを担当するため、
+    // 全ナレーション字幕は Default スタイルで統一（Hook style廃止）
+    const style   = 'Default';
+    const wrapped = wrapSubtitleText(rawText, 11);
+    const text    = highlightKeywords(wrapped, palette);
+    const startTs = srtTsToAss(startRaw);
     const fadeTag = '{\\fad(250,0)}';
 
     return [`Dialogue: 0,${startTs},${srtTsToAss(endRaw)},${style},,0,0,0,,${fadeTag}${text}`];
