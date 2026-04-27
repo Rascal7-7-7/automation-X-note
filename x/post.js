@@ -96,12 +96,16 @@ AIツールを使っていますが、それは絶対に明かしません。
 - 一行だけの投稿は絶対禁止
 - AIツール名（ChatGPT/Claude等）を主役にしない
 - 「私が実際に〇〇した」「やってみたら〇〇だった」の実体験口調
+- 【数字必須】本文に具体的な数字を最低2箇所入れる（月○万円・○時間・○日間・○%削減 等）
+- 【証拠必須】「うまくいった」だけは禁止。必ず「月2万増えた」「3日で○円稼いだ」等の具体的結果を書く
+- 抽象的・精神論のみの投稿は絶対NG（「継続が大事」「諦めるな」系）
 
-【冒頭1行（スクロール停止）— 絵文字を入れない】
-・数字+成果: 「副業収入が月3万増えた、たった1つの習慣」
-・意外性: 「9割の副業が稼げない本当の理由、言います」
-・【朗報/必見/保存版】+結果
-・ターゲット: 「本業しながら副業したい人へ」
+【冒頭1行（スクロール停止）— 絵文字を入れない・必ず数字か具体ワードを入れる】
+・数字+成果: 「副業収入が月3万増えた、たった1つの習慣」「3ヶ月で月収+5万になった方法」
+・意外性+数字: 「9割の副業が稼げない本当の理由、言います」「月1万→月8万に変えた、1つの気づき」
+・損失回避: 「これ知らないと副業で月5万の壁を永遠に越えられません」
+・【朗報/必見/保存版】+具体結果: 「【保存版】副業で月3万稼ぐ人が全員やってること」
+・ターゲット+数字: 「本業しながら月5万副業したい人へ、実際にやった7ステップ」
 
 【テンプレート — 内容に合わせて1つ選ぶ】
 
@@ -164,6 +168,12 @@ async function generateTweet(idea, hint = '') {
   const prompt = `以下のトレンド情報をもとに、副業・節約・時短に関心のある会社員向けのツイートを1件作成してください。
 AIツールの名前は出さず、「自分が実践して成果が出た方法」として書いてください。
 末尾にnote記事への誘導CTAを必ず入れてください。
+
+【重要制約】
+- 本文に必ず具体的な数字を2箇所以上入れること（月○万円・○時間・○日間・○%削減 等）
+- 冒頭1行に必ず数字か具体的な成果を入れること（数字なし冒頭は禁止）
+- 「うまくいった」「効果がある」等の抽象表現だけの文は書かないこと
+
 キーワード: ${idea.keyword}
 参考ツイート: ${idea.text ?? ''}${hint ? `\n\n改善指示:\n${hint}` : ''}`;
   return generate(SYSTEM_PROMPT, prompt, { maxTokens: 300 });
@@ -181,12 +191,20 @@ const twitterClient = new TwitterApi({
  * @param {string} text
  * @param {Buffer|null} imageBuffer
  */
-export async function postTweet(text, imageBuffer = null) {
+export async function postTweet(text, imageBuffer = null, mimeType = 'image/png') {
   if (imageBuffer) {
-    const mediaId = await twitterClient.v1.uploadMedia(imageBuffer, { mimeType: 'image/png' });
+    const mediaId = await twitterClient.v1.uploadMedia(imageBuffer, { mimeType });
     return twitterClient.v2.tweet({ text, media: { media_ids: [mediaId] } });
   }
   return twitterClient.v2.tweet(text);
+}
+
+export async function replyToTweet(tweetId, text, imageBuffer = null, mimeType = 'image/png') {
+  if (imageBuffer) {
+    const mediaId = await twitterClient.v1.uploadMedia(imageBuffer, { mimeType });
+    return twitterClient.v2.reply(text, tweetId, { media: { media_ids: [mediaId] } });
+  }
+  return twitterClient.v2.reply(text, tweetId);
 }
 
 export async function runPost() {

@@ -8,6 +8,7 @@
  *   4. Claude Haiku でテーマ分析・5件提案 → 上位3件をキューに積む
  */
 import 'dotenv/config';
+import https from 'https';
 import { chromium } from 'playwright';
 import { generate } from '../shared/claude-client.js';
 import { FileQueue } from '../shared/queue.js';
@@ -159,6 +160,46 @@ async function scrapeNoteArticles(tagPool) {
   return allArticles;
 }
 
+// ── Google Trends RSS ─────────────────────────────────────────────
+const ACCOUNT_TREND_KEYWORDS = {
+  1: ['AI', 'Claude', 'ChatGPT', 'Gemini', 'Copilot', 'Anthropic', 'OpenAI', '副業', '自動化', '生成AI', 'n8n', 'LLM'],
+  2: ['株', 'FX', '円', 'ドル', '相場', '停戦', '日銀', '米国', '経済', '利回り', 'NISA', '投資', '地政学', '関税'],
+  3: ['アフィリ', 'ブログ', 'SEO', 'note', 'Amazon', '副業', 'WordPress', 'ドメイン', 'サーバー'],
+};
+
+function fetchUrl(url) {
+  return new Promise((resolve) => {
+    const req = https.get(url, { headers: { 'User-Agent': 'Mozilla/5.0' } }, res => {
+      let data = '';
+      res.on('data', c => { data += c; });
+      res.on('end', () => resolve(data));
+    });
+    req.on('error', () => resolve(''));
+    req.setTimeout(8_000, () => { req.destroy(); resolve(''); });
+  });
+}
+
+async function fetchGoogleTrends() {
+  try {
+    const xml = await fetchUrl('https://trends.google.com/trends/trendingsearches/daily/rss?geo=JP');
+    const titles = [];
+    const re = /<title>(?:<!\[CDATA\[)?([^\]<]+?)(?:\]\]>)?<\/title>/g;
+    let m;
+    while ((m = re.exec(xml)) !== null) {
+      const t = m[1].trim();
+      if (t && t !== 'Daily Search Trends') titles.push(t);
+    }
+    return titles.slice(0, 20);
+  } catch {
+    return [];
+  }
+}
+
+function filterTrendsForAccount(trends, accountId) {
+  const keywords = ACCOUNT_TREND_KEYWORDS[accountId] ?? [];
+  return trends.filter(t => keywords.some(k => t.toLowerCase().includes(k.toLowerCase())));
+}
+
 // ── テーマ合成 ────────────────────────────────────────────────────
 const THEME_SYSTEM = `あなたはnoteクリエイター向けのコンテンツストラテジストです。
 与えられた人気記事リスト（タイトル・本文抜粋・速度スコア付き）を分析し、
@@ -177,9 +218,10 @@ const THEME_SYSTEM = `あなたはnoteクリエイター向けのコンテンツ
 - AI・副業・生産性の文脈
 - 既存の人気記事と被らない独自の切り口
 - 読者が今すぐ実践できる内容
+- 「今話題のトレンドキーワード」セクションがある場合、そのキーワードを最低1件のテーマに優先的に取り入れること（速報性・急上昇は読者の関心が高い）
 JSON以外の文字は出力しないでください。`;
 
-async function synthesizeThemes(articles) {
+async function synthesizeThemes(articles, trendingTopics = []) {
   const list = [...articles]
     .sort((a, b) => b.velocity - a.velocity)
     .slice(0, 20)
@@ -189,7 +231,11 @@ async function synthesizeThemes(articles) {
     })
     .join('\n');
 
-  const raw = await generate(THEME_SYSTEM, `人気記事リスト:\n${list}`, { maxTokens: 768 });
+  const trendSection = trendingTopics.length > 0
+    ? `\n\n【今話題のトレンドキーワード（Google急上昇）】\n${trendingTopics.join('、')}`
+    : '';
+
+  const raw = await generate(THEME_SYSTEM, `人気記事リスト:\n${list}${trendSection}`, { maxTokens: 768 });
 
   // コードブロック（```json ... ```）と生JSONの両パターンに対応
   const stripped = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
@@ -216,13 +262,21 @@ export async function runResearch(accountId = 1) {
   try {
     logger.info(MODULE, `[account:${accountId}] research start (${account.label})`);
 
-    const articles = await scrapeNoteArticles(account.tagPool);
+    const [articles, allTrends] = await Promise.all([
+      scrapeNoteArticles(account.tagPool),
+      fetchGoogleTrends(),
+    ]);
     if (articles.length === 0) {
       logger.warn(MODULE, 'no articles scraped');
       return;
     }
 
-    const themes = await synthesizeThemes(articles);
+    const trendingTopics = filterTrendsForAccount(allTrends, accountId);
+    if (trendingTopics.length > 0) {
+      logger.info(MODULE, `trending topics injected: ${trendingTopics.join(', ')}`);
+    }
+
+    const themes = await synthesizeThemes(articles, trendingTopics);
     if (themes.length === 0) {
       logger.warn(MODULE, 'no themes generated');
       return;

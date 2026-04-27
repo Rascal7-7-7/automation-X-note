@@ -35,8 +35,11 @@ import { runCheckExpiry as runInstaCheckExpiry } from '../instagram/check-expiry
 import { runAIToolsResearch } from '../shared/ai-tools-researcher.js';
 import { runDailyResearch }  from '../analytics/daily-research.js';
 import { runAINews }          from '../x/ai-news.js';
+import { runSelfReply }      from '../x/self-reply.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
+import { runCommunityPost as runYtCommunityPost } from '../youtube/community-post.js';
+import { runPostCommunity as runYtPostCommunity } from '../youtube/post-community.js';
 import { runResearch as runGhostResearch }     from '../ghost/research.js';
 import { runGenerate as runGhostGenerate }     from '../ghost/generate.js';
 import { runPost     as runGhostPost }         from '../ghost/post.js';
@@ -74,6 +77,9 @@ const HANDLERS = {
   'instagram:check-expiry':  ()     => runInstaCheckExpiry(),
 
   // YouTube
+  'youtube:generate:breaking-short': (task) => runYtGenerate({ type: task.type }),
+  'youtube:render:breaking-short':   (task) => runYtRender({ type: 'short' }),
+  'youtube:upload:breaking-short':   (task) => runYtUpload({ type: 'short' }),
   'youtube:generate:short':  (task) => runYtGenerate({ type: task.type }),
   'youtube:render:short':    (task) => runYtRender({ type: task.type }),
   'youtube:upload:short':    (task) => runYtUpload({ type: task.type }),
@@ -87,6 +93,8 @@ const HANDLERS = {
   'youtube:render:anime-short':        (task) => runYtRender({ type: task.type }),
   'youtube:upload:anime-short':        (task) => runYtUpload({ type: task.type }),
   'youtube:plan':                     ()     => runYtPlan(),
+  'youtube:community-post':           ()     => runYtCommunityPost(),
+  'youtube:post-community':           ()     => runYtPostCommunity(),
 
   'ghost:research': () => runGhostResearch(),
   'ghost:generate': () => runGhostGenerate(),
@@ -99,6 +107,7 @@ const HANDLERS = {
   'youtube:upload:reddit-short':      (task) => runYtUpload({ type: task.type }),
   'research:ai-tools':               ()     => runAIToolsResearch(),
   'analytics:daily-research':        ()     => runDailyResearch(),
+  'x:self-reply':   () => runSelfReply(),
   'x:ai-news':                       async () => {
     await runAINews();
     await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
@@ -145,7 +154,11 @@ function runProd() {
     }
 
     // account付きユニークキー → 同名タスク（note:research×3等）を別ジョブとして管理
-    const jobKey = task.account != null ? `${task.name}:${task.account}` : task.name;
+    const jobKey = task.account != null
+      ? `${task.name}:${task.account}`
+      : task.slot != null
+        ? `${task.name}:${task.slot}`
+        : task.name;
 
     // 既存ジョブを停止してから再登録（多重登録防止）
     if (_scheduledJobs.has(jobKey)) {
