@@ -13,6 +13,7 @@ import { chromium } from 'playwright';
 import { logger } from '../shared/logger.js';
 import { logNotePosted } from '../analytics/logger.js';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFile } from 'child_process';
@@ -55,9 +56,7 @@ function markPosted(filePath, noteUrl) {
     noteUrl,
     promoPosted:  false,   // x:note-promo が参照するフラグ
   };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
 }
 
 function notifyPublishReady(title, noteUrl) {

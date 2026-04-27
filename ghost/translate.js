@@ -6,6 +6,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
@@ -49,9 +50,7 @@ function findLatestPostedNote() {
 function markTranslated(filePath) {
   const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const updated = { ...draft, ghostTranslated: true, ghostTranslatedAt: new Date().toISOString() };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
 }
 
 export async function runTranslate(opts = {}) {

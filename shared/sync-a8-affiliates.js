@@ -7,6 +7,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from './file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
@@ -20,17 +21,15 @@ const CAMPAIGN_FILES = [
   path.join(__dirname, '../instagram/asp-campaigns.json'),
 ];
 
-const A8_LOGIN_URL = 'https://www.a8.net/a8v2/login.html';
-const A8_PROGRAMS_URL = 'https://www.a8.net/a8v2/asMyProgramList.html';
+const A8_LOGIN_URL = 'https://pub.a8.net/a8v2/asLoginAction.do';
+const A8_PROGRAMS_URL = 'https://pub.a8.net/a8v2/media/partnerProgramListAction.do?act=search&viewPage=';
 
 function loadCampaignFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
 function saveCampaignFile(filePath, data) {
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, data);
 }
 
 function normalizeProductName(name) {
@@ -56,30 +55,21 @@ async function getAttrSafe(locator, attr) {
 }
 
 async function fetchApprovedPrograms(page) {
-  await page.goto(A8_PROGRAMS_URL, { waitUntil: 'domcontentloaded' });
+  await page.goto(A8_PROGRAMS_URL, { waitUntil: 'networkidle' });
   const programs = [];
-  let hasNext = true;
 
-  while (hasNext) {
-    // 各行を取得（A8.netのHTML構造に合わせてセレクタ調整が必要な場合あり）
-    const rows = page.locator('table tr').filter({ hasText: '提携中' });
-    const count = await rows.count();
+  // Rows with linkAction.do links are the program rows (skip header rows)
+  const rows = await page.locator('table tr').all();
+  for (const row of rows) {
+    const linkEl = row.locator('a[href*="linkAction.do"]').first();
+    if (await linkEl.count() === 0) continue;
 
-    for (let i = 0; i < count; i++) {
-      const row = rows.nth(i);
-      const name = await getTextSafe(row.locator('td').nth(1));
-      const detailLink = row.locator('a').first();
-      const detailUrl = await getAttrSafe(detailLink, 'href');
-      if (name) programs.push({ name, detailUrl });
-    }
-
-    const nextBtn = page.locator('a.next, .pagination a[rel="next"]').first();
-    if (await nextBtn.count() > 0 && await nextBtn.isEnabled()) {
-      await nextBtn.click();
-      await page.waitForLoadState('domcontentloaded');
-    } else {
-      hasNext = false;
-    }
+    const detailUrl = await getAttrSafe(linkEl, 'href');
+    const rowText = (await row.textContent().catch(() => '')) ?? '';
+    // Extract program name from "プログラム名 [name](YY-MMDD)" pattern
+    const nameMatch = rowText.match(/プログラム名\s+(.+?)\s*\(\d{2}-\d{4}\)/);
+    const name = nameMatch ? nameMatch[1].trim() : rowText.slice(0, 60).trim();
+    if (name) programs.push({ name, detailUrl });
   }
 
   return programs;
@@ -88,23 +78,16 @@ async function fetchApprovedPrograms(page) {
 async function extractAffiliateUrl(page, detailUrl) {
   if (!detailUrl) return null;
   try {
-    const fullUrl = detailUrl.startsWith('http') ? detailUrl : `https://www.a8.net${detailUrl}`;
-    await page.goto(fullUrl, { waitUntil: 'domcontentloaded' });
+    const fullUrl = detailUrl.startsWith('http') ? detailUrl : `https://pub.a8.net${detailUrl}`;
+    await page.goto(fullUrl, { waitUntil: 'networkidle' });
 
-    // px.a8.net 形式のURLをinput or linkから取得
-    const inputLocator = page.locator('input').filter({ hasText: '' }).first();
-    const linkLocator = page.locator('a[href*="px.a8.net"]').first();
-
-    if (await linkLocator.count() > 0) {
-      return await getAttrSafe(linkLocator, 'href');
-    }
-
-    // inputのvalueを取得（PlaywrightはinputValue()を使う）
-    const inputs = page.locator('input[type="text"]');
-    const inputCount = await inputs.count();
-    for (let i = 0; i < inputCount; i++) {
-      const val = await inputs.nth(i).inputValue().catch(() => '');
-      if (val.includes('px.a8.net')) return val;
+    // px.a8.net URLs are in textareas as plain text or HTML snippet
+    const textareas = page.locator('textarea');
+    const count = await textareas.count();
+    for (let i = 0; i < count; i++) {
+      const val = await textareas.nth(i).inputValue().catch(() => '');
+      const match = val.match(/https:\/\/px\.a8\.net\/[^\s"<]+/);
+      if (match) return match[0];
     }
 
     return null;
@@ -114,9 +97,9 @@ async function extractAffiliateUrl(page, detailUrl) {
 }
 
 export async function syncA8Affiliates(opts = {}) {
-  const email = process.env.A8_EMAIL;
+  const email = process.env.A8_LOGIN_ID ?? process.env.A8_EMAIL;
   const password = process.env.A8_PASSWORD;
-  if (!email || !password) throw new Error('A8_EMAIL and A8_PASSWORD required in .env');
+  if (!email || !password) throw new Error('A8_LOGIN_ID (ログインID) and A8_PASSWORD required in .env');
 
   logger.info(MODULE, 'launching browser');
   const browser = await chromium.launch({ headless: opts.headless ?? true });
@@ -129,13 +112,13 @@ export async function syncA8Affiliates(opts = {}) {
   try {
     logger.info(MODULE, 'logging in to A8.net');
     await page.goto(A8_LOGIN_URL, { waitUntil: 'domcontentloaded' });
-    await page.locator('input[name="login_id"], input[type="email"]').first().fill(email);
-    await page.locator('input[name="password"], input[type="password"]').first().fill(password);
-    await page.locator('button[type="submit"], input[type="submit"]').first().click();
-    await page.waitForLoadState('domcontentloaded');
+    await page.locator('input[name="login"]').first().fill(email);
+    await page.locator('input[name="passwd"]').first().fill(password);
+    await page.locator('input[type="submit"]').first().click();
+    await page.waitForLoadState('networkidle');
 
-    if (await page.locator('text=ログインIDまたはパスワード').count() > 0) {
-      throw new Error('A8.net login failed — check A8_EMAIL / A8_PASSWORD in .env');
+    if (await page.locator('text=IDやパスワードが違います').count() > 0) {
+      throw new Error('A8.net login failed — check A8_LOGIN_ID (ログインID, not email) / A8_PASSWORD in .env');
     }
     logger.info(MODULE, 'login success');
 

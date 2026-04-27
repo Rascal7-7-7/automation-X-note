@@ -21,6 +21,7 @@ import OpenAI from 'openai';
 import { execFileSync } from 'child_process';
 import https from 'https';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { logger } from '../shared/logger.js';
@@ -158,9 +159,7 @@ export async function runImage({ account = 1 } = {}) {
     logger.info(MODULE, `GitHub upload done: ${imageUrl}`);
 
     const updated = { ...draft, imageUrl };
-    const tmp     = draftPath + '.tmp';
-    fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-    fs.renameSync(tmp, draftPath);
+    saveJSON(draftPath, updated);
     logger.info(MODULE, `draft updated with imageUrl → ${draftPath}`);
   } catch (err) {
     logger.error(MODULE, 'image generation/upload failed', { message: err.message });

@@ -6,6 +6,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import GhostAdminAPI from '@tryghost/admin-api';
@@ -53,9 +54,7 @@ function findOldestDraft() {
 function markPosted(filePath, ghostUrl) {
   const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const updated = { ...draft, status: 'posted', postedAt: new Date().toISOString(), ghostUrl };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
 }
 
 export async function runPost(opts = {}) {

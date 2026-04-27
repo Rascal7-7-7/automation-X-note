@@ -10,6 +10,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
@@ -89,9 +90,7 @@ function markRepromo(filePath, wave) {
   const tsKey = wave === '30d' ? 'repromo30dAt' : 'repromo7dAt';
   const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const updated = { ...draft, [flag]: true, [tsKey]: new Date().toISOString() };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
 }
 
 async function generateRepromoTweet(draft, angle) {

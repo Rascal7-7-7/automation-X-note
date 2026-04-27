@@ -23,6 +23,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
@@ -97,9 +98,7 @@ function findPromoTarget() {
 function markPromoPosted(filePath) {
   const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const updated = { ...draft, promoPosted: true, promoPostedAt: new Date().toISOString() };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
 }
 
 // ── ツイート生成 ─────────────────────────────────────────────────────

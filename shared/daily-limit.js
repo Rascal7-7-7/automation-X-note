@@ -4,6 +4,7 @@
  * - logs/daily-limit.json で状態を永続化
  */
 import fs from 'fs';
+import { saveJSON } from './file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -24,9 +25,7 @@ function loadState() {
 function saveState(state) {
   const dir = path.dirname(LIMIT_FILE);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = LIMIT_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(state));
-  fs.renameSync(tmp, LIMIT_FILE);
+  saveJSON(LIMIT_FILE, state, { pretty: false });
 }
 
 /**

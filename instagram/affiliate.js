@@ -12,6 +12,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
@@ -49,9 +50,7 @@ function loadCampaigns() {
 function saveCampaigns(campaigns) {
   const raw      = JSON.parse(fs.readFileSync(CAMPAIGNS_FILE, 'utf8'));
   const updated  = { ...raw, campaigns };
-  const tmp      = CAMPAIGNS_FILE + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, CAMPAIGNS_FILE);
+  saveJSON(CAMPAIGNS_FILE, updated);
 }
 
 /** ラウンドロビン + クールダウンで次の案件を選択 */

@@ -9,6 +9,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
@@ -98,66 +99,161 @@ async function fetchReddit(subreddit) {
   }
 }
 
-// ── Claude でトピック提案生成 ──────────────────────────────────────
+// ── X 競合アカウント監視 (Playwright) ────────────────────────────────
 
-const SUGGEST_SYSTEM = `あなたはAI副業・生産性をテーマにXで発信するアカウントの中の人です。
-今日のAIトレンドニュースを元に、Xで日本語バズりやすいツイートトピックを3件提案してください。
-
-出力形式（JSON配列）:
-[
-  {"topic": "トピック説明（50字以内）", "angle": "切り口（数値実績型/速報型/How-to型）", "hook": "冒頭フック案（30字以内）"},
-  ...
-]`;
-
-async function generateTopicSuggestions(items) {
-  const digest = items.slice(0, 10).map(i => `- [${i.source}] ${i.title}`).join('\n');
-  const prompt = `今日のAIトレンド:\n${digest}\n\nXツイート用トピック3件をJSONで提案してください。`;
+async function fetchXCompetitors() {
+  const results = [];
   try {
-    const raw = await generate(SUGGEST_SYSTEM, prompt, { maxTokens: 400, model: 'claude-haiku-4-5-20251001' });
-    const match = raw.match(/\[[\s\S]*\]/);
-    return match ? JSON.parse(match[0]) : [];
+    const { getXBrowser } = await import('../x/browser-client.js');
+    const { browser, page } = await getXBrowser({ headless: true });
+
+    for (const handle of COMPETITORS) {
+      try {
+        await page.goto(`https://x.com/${handle}`, { waitUntil: 'domcontentloaded', timeout: 20_000 });
+        await page.waitForSelector('[data-testid="tweetText"]', { timeout: 10_000 }).catch(() => {});
+        await page.waitForTimeout(1_500);
+
+        const tweetEls = await page.locator('[data-testid="tweetText"]').all();
+        const posts = [];
+        for (const el of tweetEls.slice(0, 3)) {
+          const text = (await el.textContent().catch(() => '')) ?? '';
+          if (text.trim().length > 10) posts.push(text.trim().slice(0, 200));
+        }
+        if (posts.length > 0) {
+          results.push({ source: `x/@${handle}`, handle, posts });
+          logger.info(MODULE, `@${handle}: ${posts.length} posts captured`);
+        }
+      } catch (err) {
+        logger.warn(MODULE, `@${handle} skipped — ${err.message}`);
+      }
+    }
+
+    await browser.close();
+  } catch (err) {
+    logger.warn(MODULE, `x competitor fetch skipped — ${err.message}`);
+  }
+  return results;
+}
+
+// ── Claude Haiku でトピック提案生成 ──────────────────────────────────
+
+const SUGGEST_SYSTEM = `あなたはAI副業・自動化をテーマにXで発信する日本語アカウントの担当者です。
+今日の海外AIトレンドを日本語副業層に刺さるXツイートトピックに変換してください。
+
+必ずJSON配列のみを出力してください（説明文・マークダウン不要）:
+[
+  {
+    "topic": "テーマ（40字以内）",
+    "angle": "数値実績型",
+    "hook": "冒頭フック（30字以内）",
+    "tweetDraft": "ツイート草稿（270字以内・日本語・note誘導CTA付き）",
+    "buzzScore": 8,
+    "source": "github"
+  }
+]
+
+3件出力。選定基準: 副業層が保存・RTしたい内容、数字・比較・実績を含む。`;
+
+async function generateTopicSuggestions(allItems, competitors) {
+  const lines = [];
+
+  lines.push('## GitHub Trending');
+  for (const i of allItems.filter(i => i.source === 'github').slice(0, 6)) {
+    lines.push(`- ${i.title} ★${i.stars}: ${i.desc}`);
+  }
+  lines.push('\n## Hacker News TOP');
+  for (const i of allItems.filter(i => i.source === 'hackernews').slice(0, 6)) {
+    lines.push(`- "${i.title}" ↑${i.score}`);
+  }
+  lines.push('\n## Reddit day top');
+  for (const i of allItems.filter(i => i.source.startsWith('reddit')).slice(0, 6)) {
+    lines.push(`- [${i.source}] "${i.title}" ↑${i.score}`);
+  }
+  if (competitors.length > 0) {
+    lines.push('\n## X 競合アカウント最新投稿');
+    for (const c of competitors) {
+      lines.push(`@${c.handle}:`);
+      for (const p of c.posts) lines.push(`  "${p}"`);
+    }
+  }
+
+  try {
+    const raw = await generate(SUGGEST_SYSTEM, lines.join('\n'), {
+      maxTokens: 1000,
+      model: 'claude-haiku-4-5-20251001',
+    });
+    // handle both bare array and ```json ... ``` wrapping
+    const match = raw.match(/```(?:json)?\s*(\[[\s\S]*?\])\s*```/) ?? raw.match(/(\[[\s\S]*\])/);
+    if (!match) {
+      logger.warn(MODULE, `raw haiku response: ${raw.slice(0, 200)}`);
+      throw new Error('no JSON array in response');
+    }
+    return JSON.parse(match[1]).slice(0, 3);
   } catch (err) {
     logger.warn(MODULE, `topic suggestion failed: ${err.message}`);
     return [];
   }
 }
 
+// ── prompt-hints.json に todayTopics を書き込む ────────────────────
+
+function updatePromptHints(topics) {
+  let hints = {};
+  try { hints = JSON.parse(fs.readFileSync(HINTS_FILE, 'utf8')); } catch { /* first run */ }
+  hints.todayTopics = topics.map(t => ({
+    topic: t.topic, angle: t.angle, hook: t.hook,
+    tweetDraft: t.tweetDraft, buzzScore: t.buzzScore,
+  }));
+  hints.todayTopicsUpdatedAt = new Date().toISOString();
+  saveJSON(HINTS_FILE, hints);
+}
+
 // ── メイン ────────────────────────────────────────────────────────
 
 export async function runDailyResearch() {
   logger.info(MODULE, 'starting daily AI research');
+  if (!fs.existsSync(REPORTS)) fs.mkdirSync(REPORTS, { recursive: true });
 
-  const [github, hn, reddit1, reddit2, reddit3] = await Promise.all([
+  const [github, hn, reddit1, reddit2, reddit3, competitors] = await Promise.all([
     fetchGithub(),
     fetchHN(),
     fetchReddit('singularity'),
     fetchReddit('ChatGPT'),
     fetchReddit('ClaudeAI'),
+    fetchXCompetitors(),
   ]);
 
   const allItems = [...github, ...hn, ...reddit1, ...reddit2, ...reddit3]
     .sort((a, b) => (b.score ?? b.stars ?? 0) - (a.score ?? a.stars ?? 0));
 
-  const topicSuggestions = await generateTopicSuggestions(allItems);
+  logger.info(MODULE,
+    `collected: github=${github.length} hn=${hn.length} reddit=${reddit1.length + reddit2.length + reddit3.length} competitors=${competitors.length}`
+  );
+
+  const topicSuggestions = await generateTopicSuggestions(allItems, competitors);
 
   const report = {
     date:        new Date().toISOString().slice(0, 10),
     generatedAt: new Date().toISOString(),
+    competitors: COMPETITORS,
     itemCount:   allItems.length,
     items:       allItems,
+    xCompetitors: competitors,
     topicSuggestions,
     bySource: {
-      github:    github.length,
+      github:     github.length,
       hackernews: hn.length,
-      reddit:    reddit1.length + reddit2.length + reddit3.length,
+      reddit:     reddit1.length + reddit2.length + reddit3.length,
+      xCompetitors: competitors.length,
     },
   };
 
-  if (!fs.existsSync(REPORTS)) fs.mkdirSync(REPORTS, { recursive: true });
-  const outPath = path.join(REPORTS, `daily-ai-trends-${report.date}.json`);
-  fs.writeFileSync(outPath, JSON.stringify(report, null, 2));
+  const filename = `daily-ai-trends-${report.date}.json`;
+  saveJSON(path.join(REPORTS, filename), report);
 
-  logger.info(MODULE, `daily research done. ${allItems.length} items, ${topicSuggestions.length} topics → ${outPath}`);
+  updatePromptHints(topicSuggestions);
+
+  logger.info(MODULE, `done: ${allItems.length} items, ${topicSuggestions.length} topics → ${filename}`);
   return { date: report.date, itemCount: allItems.length, topicSuggestions };
 }
 

@@ -8,6 +8,7 @@
  *   analytics/reports/prompt-hints.json  ← generate.js / pipeline.js が参照
  */
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { readLog } from './logger.js';
@@ -22,9 +23,7 @@ if (!fs.existsSync(REPORTS_DIR)) {
 }
 
 function writeReport(filename, data) {
-  const tmp = path.join(REPORTS_DIR, filename + '.tmp');
-  fs.writeFileSync(tmp, JSON.stringify(data, null, 2));
-  fs.renameSync(tmp, path.join(REPORTS_DIR, filename));
+  saveJSON(path.join(REPORTS_DIR, filename), data);
 }
 
 // ── X分析 ──────────────────────────────────────────────────────────

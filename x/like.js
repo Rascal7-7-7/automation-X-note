@@ -11,6 +11,7 @@ import 'dotenv/config';
 import { getBraveBrowser } from './browser-client.js';
 import { logger } from '../shared/logger.js';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -32,9 +33,7 @@ function loadLiked() {
 function saveLiked(set) {
   const dir = path.dirname(LIKED_LOG);
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  const tmp = LIKED_LOG + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify([...set]));
-  fs.renameSync(tmp, LIKED_LOG);
+  saveJSON(LIKED_LOG, [...set], { pretty: false });
 }
 
 // ── Playwright でキーワード検索 → { id, score }[] を返す ─────────

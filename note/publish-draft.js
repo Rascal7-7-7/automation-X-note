@@ -11,6 +11,7 @@
  */
 import 'dotenv/config';
 import fs from 'fs';
+import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { chromium } from 'playwright';
@@ -66,9 +67,7 @@ function findDraft(draftsDir, noteKey, allowPosted = false) {
 function updateDraftUrl(filePath, noteUrl) {
   const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
   const updated = { ...draft, noteUrl };
-  const tmp = filePath + '.tmp';
-  fs.writeFileSync(tmp, JSON.stringify(updated, null, 2));
-  fs.renameSync(tmp, filePath);
+  saveJSON(filePath, updated);
   console.log(`  updated noteUrl → ${noteUrl}`);
 }
 
@@ -79,35 +78,115 @@ async function screenshot(page, name, accountId) {
   console.log(`  screenshot: ${p}`);
 }
 
-async function uploadCoverImage(page, imagePath, accountId) {
-  if (!imagePath || !fs.existsSync(imagePath)) return;
+async function dismissCropModal(page, accountId) {
+  await page.waitForTimeout(1_000);
+  const cropModal = page.locator('[class*="CropModal"], [class*="cropModal"]').first();
+  if (await cropModal.count() === 0) return;
+  const saveBtn = page.locator('.ReactModal__Content button').filter({ hasText: /保存|完了|OK|確認/ }).first();
+  const lastBtn = page.locator('.ReactModal__Content button').last();
+  const btn = (await saveBtn.count() > 0) ? saveBtn : lastBtn;
+  try {
+    await btn.click({ force: true, timeout: 5_000 });
+    await page.waitForTimeout(2_000);
+    console.log('  crop modal confirmed — reloading editor');
+    await page.reload({ waitUntil: 'networkidle', timeout: 30_000 });
+    await page.waitForTimeout(2_000);
+  } catch {
+    await screenshot(page, 'crop-modal-fail', accountId);
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(1_000);
+  }
+}
 
-  // Skip if cover image already set (button disappears when image exists)
-  const alreadyHasCover = await page.evaluate(() => {
-    const imgs = document.querySelectorAll('[class*="eyecatch"] img, [class*="headerImage"] img, [class*="HeaderImage"] img');
-    return imgs.length > 0;
-  });
-  if (alreadyHasCover) {
-    console.log('  cover image already set — skipping upload');
-    return;
+async function uploadOrReplaceCover(page, imagePath, accountId) {
+  // Upload new image and handle crop modal
+  async function doUpload(triggerFn) {
+    try {
+      const [fc] = await Promise.all([
+        page.waitForEvent('filechooser', { timeout: 4_000 }),
+        triggerFn(),
+      ]);
+      await fc.setFiles(imagePath);
+      await page.waitForTimeout(2_500);
+      await dismissCropModal(page, accountId);
+      return true;
+    } catch { return false; }
   }
 
-  console.log('  uploading cover image...');
+  // Try submenu options after a button click that opens a menu
+  async function trySubmenu() {
+    await page.waitForTimeout(600);
+    for (const sel of ['button:has-text("画像をアップロード")', 'button:has-text("ローカル")', 'button:has-text("ファイルを選択")']) {
+      const item = page.locator(sel).first();
+      if (await item.count() > 0) {
+        const ok = await doUpload(() => item.click());
+        if (ok) { console.log(`  uploaded via submenu: ${sel}`); return true; }
+      }
+    }
+    await page.keyboard.press('Escape');
+    return false;
+  }
 
-  // Approach 1: hidden file input (works when note.com exposes it directly)
+  // Detect existing cover: look for img in top 500px of page with meaningful size
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(400);
+  const coverCoords = await page.evaluate(() => {
+    const img = Array.from(document.querySelectorAll('img')).find(el => {
+      const r = el.getBoundingClientRect();
+      return r.top >= 0 && r.top < 500 && r.width > 150 && r.height > 50;
+    });
+    if (!img) return null;
+    const r = img.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  });
+
+  if (coverCoords) {
+    console.log('  cover exists — replacing...');
+    await page.mouse.move(coverCoords.x, coverCoords.y);
+    await page.waitForTimeout(800);
+
+    // Try hover-revealed "変更" button
+    for (const sel of ['button:has-text("変更")', 'button:has-text("画像を変更")', '[aria-label*="変更"]']) {
+      const btn = page.locator(sel).first();
+      if (await btn.count() > 0) {
+        const ok = await doUpload(() => btn.click());
+        if (ok) { console.log('  cover replaced via 変更 button'); return; }
+        if (await trySubmenu()) return;
+      }
+    }
+
+    // Delete then re-upload
+    const delBtn = page.locator('[aria-label="削除"], button:has-text("×"), button:has-text("✕")').first();
+    if (await delBtn.count() > 0) {
+      await delBtn.scrollIntoViewIfNeeded();
+      await delBtn.click({ force: true });
+      await page.waitForTimeout(1_000);
+      console.log('  existing cover deleted — re-uploading');
+      await page.evaluate(() => window.scrollTo(0, 0));
+      await page.waitForTimeout(400);
+      // Fall through to fresh upload below
+    } else {
+      console.log('  ⚠ replace failed — could not find 変更/削除 button');
+      await screenshot(page, `cover-img-fail-a${accountId}`, accountId);
+      return;
+    }
+  }
+
+  // Fresh upload (no cover, or just deleted)
+  console.log('  uploading fresh cover...');
+
   const fileInput = page.locator('input[type="file"][accept*="image"]').first();
   if (await fileInput.count() > 0) {
     await fileInput.setInputFiles(imagePath);
     await page.waitForTimeout(2_000);
-    console.log('  cover image uploaded via hidden input');
+    await dismissCropModal(page, accountId);
+    console.log('  cover uploaded via hidden input');
     return;
   }
 
-  // Approach 2: button[aria-label="画像を追加"] at top of page = header image button
-  // Pick the topmost one (smallest y = above title = cover image, not in-article)
   const coverBtn = await page.evaluate(() => {
     const btns = Array.from(document.querySelectorAll('button[aria-label="画像を追加"]'));
-    if (btns.length === 0) return null;
+    if (!btns.length) return null;
     btns.sort((a, b) => a.getBoundingClientRect().top - b.getBoundingClientRect().top);
     btns[0].scrollIntoView({ behavior: 'instant', block: 'center' });
     const r = btns[0].getBoundingClientRect();
@@ -115,45 +194,18 @@ async function uploadCoverImage(page, imagePath, accountId) {
   });
 
   if (coverBtn) {
-    // Try direct filechooser
-    try {
-      const [fc] = await Promise.all([
-        page.waitForEvent('filechooser', { timeout: 3_000 }),
-        page.mouse.click(coverBtn.x, coverBtn.y),
-      ]);
-      await fc.setFiles(imagePath);
-      await page.waitForTimeout(2_500);
-      console.log('  cover image uploaded via top 画像を追加 button');
-      return;
-    } catch { /* submenu appeared — try submenu options */ }
-
-    await page.waitForTimeout(600);
-    const submenuOptions = [
-      'button:has-text("画像をアップロード")',
-      ':has-text("画像をアップロード")',
-      'button:has-text("ローカル")',
-      'button:has-text("ファイルを選択")',
-    ];
-    for (const ss of submenuOptions) {
-      const item = page.locator(ss).first();
-      if (await item.count() > 0) {
-        try {
-          const [fc] = await Promise.all([
-            page.waitForEvent('filechooser', { timeout: 4_000 }),
-            item.click(),
-          ]);
-          await fc.setFiles(imagePath);
-          await page.waitForTimeout(2_500);
-          console.log(`  cover image uploaded via submenu: ${ss}`);
-          return;
-        } catch { /* try next */ }
-      }
-    }
-    await page.keyboard.press('Escape');
+    const ok = await doUpload(() => page.mouse.click(coverBtn.x, coverBtn.y));
+    if (ok) { console.log('  cover uploaded via 画像を追加 button'); return; }
+    if (await trySubmenu()) return;
   }
 
   console.log('  ⚠ cover image upload failed — set manually in editor');
   await screenshot(page, `cover-img-fail-a${accountId}`, accountId);
+}
+
+async function uploadCoverImage(page, imagePath, accountId) {
+  if (!imagePath || !fs.existsSync(imagePath)) return;
+  await uploadOrReplaceCover(page, imagePath, accountId);
 }
 
 async function setHashtags(page, tags) {
@@ -241,27 +293,6 @@ async function runPublishFlow(page, draft, username, accountId) {
   // Upload cover image while in editor (before going to publish page)
   const imgPath = draft.headerImage ?? draft.imagePath ?? null;
   await uploadCoverImage(page, imgPath, accountId);
-
-  // Dismiss CropModal if it appeared after image upload
-  const cropModal = page.locator('[class*="CropModal"], [class*="cropModal"]').first();
-  if (await cropModal.count() > 0) {
-    // Click 保存 in crop modal — use force:true to bypass ReactModal__Overlay interception
-    const saveBtn = page.locator('.ReactModal__Content button').filter({ hasText: /保存|完了|OK|確認/ }).first();
-    const lastBtn = page.locator('.ReactModal__Content button').last();
-    const targetBtn = (await saveBtn.count() > 0) ? saveBtn : lastBtn;
-    try {
-      await targetBtn.click({ force: true, timeout: 5_000 });
-      await page.waitForTimeout(2_000);
-      console.log('  crop modal confirmed — reloading editor to restore content');
-      // Reload the editor page so note.com re-hydrates ProseMirror from the auto-saved server state
-      await page.reload({ waitUntil: 'networkidle', timeout: 30_000 });
-      await page.waitForTimeout(2_000);
-    } catch {
-      await screenshot(page, 'crop-modal-fail', accountId);
-      await page.keyboard.press('Escape');
-      await page.waitForTimeout(1_000);
-    }
-  }
 
   if (imgPath && fs.existsSync(imgPath)) await page.waitForTimeout(500);
 

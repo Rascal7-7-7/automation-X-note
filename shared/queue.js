@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { saveFile } from './file-utils.js';
 import path from 'path';
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -45,11 +46,17 @@ export class FileQueue {
     try { fs.unlinkSync(this.lockPath); } catch { /* already gone */ }
   }
 
-  async push(item) {
+  async push(item, { dedupKey } = {}) {
     const entry = JSON.stringify({ ...item, enqueuedAt: new Date().toISOString() });
     await this.acquireLock();
     try {
+      if (dedupKey) {
+        const lines = fs.readFileSync(this.filePath, 'utf8').split('\n').filter(Boolean);
+        const isDup = lines.some(l => { try { return JSON.parse(l)[dedupKey] === item[dedupKey]; } catch { return false; } });
+        if (isDup) return false;
+      }
       fs.appendFileSync(this.filePath, entry + '\n');
+      return true;
     } finally {
       this.releaseLock();
     }
@@ -62,9 +69,7 @@ export class FileQueue {
       if (lines.length === 0) return null;
 
       const item = JSON.parse(lines[0]);
-      const tmp = this.filePath + '.tmp';
-      fs.writeFileSync(tmp, lines.slice(1).join('\n') + (lines.length > 1 ? '\n' : ''));
-      fs.renameSync(tmp, this.filePath);
+      saveFile(this.filePath, lines.slice(1).join('\n') + (lines.length > 1 ? '\n' : ''));
       return item;
     } finally {
       this.releaseLock();
