@@ -5,6 +5,11 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from 'recharts';
+import XTab      from './tabs/XTab';
+import NoteTab   from './tabs/NoteTab';
+import InstaTab  from './tabs/InstaTab';
+import YTTab     from './tabs/YTTab';
+import GhostTab  from './tabs/GhostTab';
 
 // ── types ─────────────────────────────────────────────────
 
@@ -322,11 +327,11 @@ export default function Dashboard() {
     if (loading) return <div className="py-16 text-center text-xs text-neutral-500">読み込み中...</div>;
     switch (tab) {
       case 'Overview': return <OverviewTab data={overview} posts={posts} alerts={alerts} />;
-      case 'X': return <PlatformTab platform="x" posts={posts} />;
-      case 'note': return <PlatformTab platform="note" posts={posts} />;
-      case 'Instagram': return <PlatformTab platform="instagram" posts={posts} />;
-      case 'YouTube': return <PlatformTab platform="youtube" posts={posts} />;
-      case 'Ghost': return <PlatformTab platform="ghost" posts={posts} />;
+      case 'X': return <XTab />;
+      case 'note': return <NoteTab />;
+      case 'Instagram': return <InstaTab />;
+      case 'YouTube': return <YTTab />;
+      case 'Ghost': return <GhostTab />;
       case 'インフラ': return <InfraTab data={overview} alerts={alerts} />;
       case 'スケジューラー': return <PlatformTab platform="system" posts={posts} />;
       case '分析': return <AnalyticsTab metrics={metrics} />;

@@ -152,11 +152,121 @@ function tabToPlatform(tab) {
   return 'system';
 }
 
+// ── sns_metrics ───────────────────────────────────────────
+
+async function pushSnsMetrics() {
+  let inserted = 0;
+
+  // quality-feedback.json → instagram avgScore per account
+  const qf = await safeJson(join(ROOT, 'analytics/quality-feedback.json'));
+  if (qf) {
+    for (const [key, entries] of Object.entries(qf)) {
+      if (!Array.isArray(entries)) continue;
+      const platform = key.includes('instagram') ? 'instagram' : key.includes('x') ? 'x' : key.split('-')[0];
+      const account  = key.includes('-') ? key.split('-').slice(1).join('-') : 'default';
+      for (const e of entries) {
+        if (e?.avgScore == null) continue;
+        await sql`
+          INSERT INTO sns_metrics (platform, account, metric_key, value, recorded_at)
+          VALUES (
+            ${platform}, ${account}, 'avgScore',
+            ${Math.round(e.avgScore * 100)},
+            ${e.ts ? new Date(e.ts) : new Date()}
+          )
+          ON CONFLICT (platform, account, metric_key, recorded_date)
+          DO NOTHING`;
+        inserted++;
+      }
+    }
+  }
+
+  // x-summary → promoAvgER / normalAvgER for account 'rascal_ai'
+  const xs = await safeJson(join(ROOT, 'analytics/reports/x-summary.json'));
+  if (xs?.promoVsNormal) {
+    const { promoAvg, normalAvg } = xs.promoVsNormal;
+    if (promoAvg != null) {
+      await sql`
+        INSERT INTO sns_metrics (platform, account, metric_key, value)
+        VALUES ('x', 'rascal_ai', 'promoAvgER', ${Math.round(promoAvg * 100)})
+        ON CONFLICT (platform, account, metric_key, recorded_date)
+        DO NOTHING`;
+      inserted++;
+    }
+    if (normalAvg != null) {
+      await sql`
+        INSERT INTO sns_metrics (platform, account, metric_key, value)
+        VALUES ('x', 'rascal_ai', 'normalAvgER', ${Math.round(normalAvg * 100)})
+        ON CONFLICT (platform, account, metric_key, recorded_date)
+        DO NOTHING`;
+      inserted++;
+    }
+  }
+
+  // note-summary → sampleSize as proxy for note acct1
+  const ns = await safeJson(join(ROOT, 'analytics/reports/note-summary.json'));
+  if (ns?.sampleSize != null) {
+    await sql`
+      INSERT INTO sns_metrics (platform, account, metric_key, value)
+      VALUES ('note', 'acct1', 'sampleSize', ${ns.sampleSize})
+      ON CONFLICT (platform, account, metric_key, recorded_date)
+      DO NOTHING`;
+    inserted++;
+  }
+
+  console.log(`sns_metrics: ${inserted} rows processed`);
+}
+
+// ── post_metrics ──────────────────────────────────────────
+
+async function pushPostMetrics() {
+  let inserted = 0;
+
+  // note drafts → likes proxy (price > 0 = paid, treat as engagement signal)
+  const noteDir = join(ROOT, 'note/drafts');
+  const noteFiles = (await safeDir(noteDir)).filter(f => f.endsWith('.json'));
+  for (const f of noteFiles) {
+    const d = await safeJson(join(noteDir, f));
+    if (!d?.title || !d?.createdAt) continue;
+    const postId = f.replace('.json', '').slice(0, 64);
+    if (d.price != null) {
+      await sql`
+        INSERT INTO post_metrics (platform, post_id, account, metric_key, value, snapshot_at)
+        VALUES ('note', ${postId}, 'acct1', 'price', ${d.price ?? 0}, 'total')
+        ON CONFLICT (platform, post_id, metric_key, snapshot_at)
+        DO NOTHING`;
+      inserted++;
+    }
+  }
+
+  // instagram drafts → status as proxy metric
+  for (const acct of ['account1', 'account2']) {
+    const baseDir = join(ROOT, 'instagram/drafts', acct);
+    const dateDirs = await safeDir(baseDir);
+    for (const dd of dateDirs) {
+      const files = (await safeDir(join(baseDir, dd))).filter(f => f.endsWith('.json'));
+      for (const f of files) {
+        const d = await safeJson(join(baseDir, dd, f));
+        if (!d) continue;
+        const postId = f.replace('.json', '').slice(0, 64);
+        const val = d.status === 'posted' ? 1 : 0;
+        await sql`
+          INSERT INTO post_metrics (platform, post_id, account, metric_key, value, snapshot_at)
+          VALUES ('instagram', ${postId}, ${acct}, 'posted', ${val}, 'total')
+          ON CONFLICT (platform, post_id, metric_key, snapshot_at)
+          DO NOTHING`;
+        inserted++;
+      }
+    }
+  }
+
+  console.log(`post_metrics: ${inserted} rows processed`);
+}
+
 // ── main ─────────────────────────────────────────────────
 
 async function main() {
   console.log(`[push-to-neon] ${new Date().toISOString()}`);
-  await Promise.all([pushAlerts(), pushMetrics(), pushPosts()]);
+  await Promise.all([pushAlerts(), pushMetrics(), pushPosts(), pushSnsMetrics(), pushPostMetrics()]);
   console.log('[push-to-neon] done');
 }
 
