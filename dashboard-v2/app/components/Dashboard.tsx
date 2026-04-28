@@ -5,11 +5,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
 } from 'recharts';
-import XTab      from './tabs/XTab';
-import NoteTab   from './tabs/NoteTab';
-import InstaTab  from './tabs/InstaTab';
-import YTTab     from './tabs/YTTab';
-import GhostTab  from './tabs/GhostTab';
+import XTab          from './tabs/XTab';
+import NoteTab       from './tabs/NoteTab';
+import InstaTab      from './tabs/InstaTab';
+import YTTab         from './tabs/YTTab';
+import GhostTab      from './tabs/GhostTab';
+import PreviewModal  from './PreviewModal';
 
 // ── types ─────────────────────────────────────────────────
 
@@ -41,6 +42,10 @@ interface Metric {
 
 const TABS = ['Overview','X','note','Instagram','YouTube','Ghost','インフラ','スケジューラー','分析'] as const;
 type Tab = typeof TABS[number];
+
+const TAB_TO_PLATFORM: Partial<Record<Tab, string>> = {
+  X: 'x', note: 'note', Instagram: 'instagram', YouTube: 'youtube', Ghost: 'ghost',
+};
 const PIE_COLORS = ['#22c55e','#f59e0b','#7c6ff7','#ef4444','#3b82f6'];
 const CHART_STYLE = { fontSize: 11 };
 
@@ -294,13 +299,15 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
 // ── main Dashboard ────────────────────────────────────────
 
 export default function Dashboard() {
-  const [tab, setTab] = useState<Tab>('Overview');
-  const [overview, setOverview] = useState<OverviewData>({});
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [metrics, setMetrics] = useState<Metric[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [tab, setTab]               = useState<Tab>('Overview');
+  const [overview, setOverview]     = useState<OverviewData>({});
+  const [posts, setPosts]           = useState<Post[]>([]);
+  const [metrics, setMetrics]       = useState<Metric[]>([]);
+  const [alerts, setAlerts]         = useState<Alert[]>([]);
   const [lastUpdated, setLastUpdated] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading]       = useState(true);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
 
   const fetchAll = useCallback(async () => {
     const [ov, po, me, al] = await Promise.allSettled([
@@ -313,6 +320,10 @@ export default function Dashboard() {
     if (po.status === 'fulfilled') setPosts(po.value.posts ?? []);
     if (me.status === 'fulfilled') setMetrics(me.value.metrics ?? []);
     if (al.status === 'fulfilled') setAlerts(al.value.alerts ?? []);
+    // pending count for approval badge
+    fetch('/api/preview?limit=200').then(r => r.json())
+      .then(d => setPendingCount((d.drafts ?? []).length))
+      .catch(() => {});
     setLastUpdated(new Date().toLocaleTimeString('ja-JP'));
     setLoading(false);
   }, []);
@@ -355,6 +366,17 @@ export default function Dashboard() {
         </div>
         <div className="ml-auto flex items-center gap-3">
           {lastUpdated && <span className="text-xs text-neutral-500">更新: {lastUpdated}</span>}
+          <button
+            onClick={() => setPreviewOpen(true)}
+            className="relative text-xs px-3 py-1 rounded font-semibold"
+            style={{ background: '#1a1040', border: '1px solid #7c6ff750', color: '#a78bfa' }}
+          >
+            📋 承認キュー
+            {pendingCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 min-w-4 h-4 px-1 rounded-full text-[9px] flex items-center justify-center font-bold"
+                style={{ background: '#ef4444', color: '#fff' }}>{pendingCount}</span>
+            )}
+          </button>
           <button onClick={fetchAll}
             className="text-xs px-2 py-1 rounded text-neutral-400 hover:text-neutral-200"
             style={{ background: '#1f1f1f' }}>↻</button>
@@ -381,6 +403,13 @@ export default function Dashboard() {
       <div className="p-4 max-w-screen-2xl mx-auto">
         {renderTab()}
       </div>
+
+      {previewOpen && (
+        <PreviewModal
+          platform={TAB_TO_PLATFORM[tab]}
+          onClose={() => { setPreviewOpen(false); fetchAll(); }}
+        />
+      )}
     </div>
   );
 }
