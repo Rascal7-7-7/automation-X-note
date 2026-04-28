@@ -1,0 +1,25 @@
+{
+  "name": "dashboard-v2",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "push-data": "node scripts/push-to-neon.js"
+  },
+  "dependencies": {
+    "next": "15",
+    "@neondatabase/serverless": "latest",
+    "recharts": "latest",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
+  }
+}

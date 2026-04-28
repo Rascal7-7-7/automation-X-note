@@ -1,0 +1,381 @@
+'use client';
+
+import { useState, useEffect, useCallback } from 'react';
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, LineChart, Line, Legend,
+} from 'recharts';
+
+// ── types ─────────────────────────────────────────────────
+
+interface OverviewData {
+  bridge?: { ok: boolean; ts: string | null };
+  alerts?: { byLevel: Record<string, number>; totalUnresolved: number };
+  metrics?: Array<{ key: string; value: number; meta: unknown; recorded_at: string }>;
+  posts?: { byPlatform: Record<string, number> };
+  ts?: string;
+}
+
+interface Post {
+  id: number; platform: string; account: string | null;
+  content: string | null; status: string; error_msg: string | null;
+  created_at: string;
+}
+
+interface Alert {
+  id: number; severity: string; source: string | null;
+  message: string; resolved: boolean; created_at: string;
+}
+
+interface Metric {
+  id: number; key: string; value: number;
+  meta: unknown; recorded_at: string;
+}
+
+// ── constants ─────────────────────────────────────────────
+
+const TABS = ['Overview','X','note','Instagram','YouTube','Ghost','インフラ','スケジューラー','分析'] as const;
+type Tab = typeof TABS[number];
+const PIE_COLORS = ['#22c55e','#f59e0b','#7c6ff7','#ef4444','#3b82f6'];
+const CHART_STYLE = { fontSize: 11 };
+
+// ── helpers ───────────────────────────────────────────────
+
+function fmtTs(iso: string | null | undefined) {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('ja-JP', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+function StatusBadge({ ok, label }: { ok: boolean | null; label: string }) {
+  const cls = ok === null ? 'bg-neutral-800 text-neutral-400 border-neutral-600'
+    : ok ? 'bg-green-950 text-green-400 border-green-800'
+    : 'bg-red-950 text-red-400 border-red-800';
+  return (
+    <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold border ${cls}`}>
+      {label}: {ok === null ? 'N/A' : ok ? 'UP' : 'DOWN'}
+    </span>
+  );
+}
+
+function SeverityBadge({ level }: { level: string }) {
+  const cls = level === 'ERROR' ? 'bg-red-950 text-red-400 border-red-800'
+    : level === 'WARN' ? 'bg-amber-950 text-amber-400 border-amber-800'
+    : 'bg-neutral-800 text-neutral-400 border-neutral-600';
+  return <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold border ${cls}`}>{level}</span>;
+}
+
+function Card({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return (
+    <div className={`rounded-lg p-4 ${className}`} style={{ background: '#161616', border: '1px solid #262626' }}>
+      {children}
+    </div>
+  );
+}
+
+function KpiGrid({ items }: { items: Array<[string | number, string, string?]> }) {
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+      {items.map(([val, label, cls = '']) => (
+        <Card key={label}>
+          <div className={`text-2xl font-bold text-gray-100 ${cls}`}>{val}</div>
+          <div className="text-[11px] text-neutral-500 mt-1">{label}</div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function Section({ title, children, defaultOpen = true }: {
+  title: string; children: React.ReactNode; defaultOpen?: boolean;
+}) {
+  return (
+    <details open={defaultOpen} className="mb-3">
+      <summary className="cursor-pointer text-sm font-semibold mb-3 py-2 px-4 rounded-lg select-none"
+        style={{ background: '#161616', border: '1px solid #262626', color: '#a78bfa' }}>
+        {title}
+      </summary>
+      <div className="px-1 pb-2">{children}</div>
+    </details>
+  );
+}
+
+function PostsTable({ posts }: { posts: Post[] }) {
+  if (!posts.length) return <p className="text-xs text-neutral-500">データなし</p>;
+  return (
+    <div className="overflow-x-auto" style={{ maxHeight: 280, overflowY: 'auto' }}>
+      <table className="w-full text-xs border-collapse">
+        <thead><tr>
+          {['プラットフォーム','アカウント','内容','ステータス','日時'].map(h =>
+            <th key={h} className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b" style={{ borderColor: '#262626' }}>{h}</th>
+          )}
+        </tr></thead>
+        <tbody>{posts.map(p => (
+          <tr key={p.id} className="hover:bg-neutral-800/30">
+            <td className="py-1 px-2 text-neutral-300">{p.platform}</td>
+            <td className="py-1 px-2 text-neutral-400">{p.account ?? '—'}</td>
+            <td className="py-1 px-2 text-neutral-300 max-w-xs truncate">{p.content?.slice(0, 60) ?? '—'}</td>
+            <td className="py-1 px-2">
+              <span className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                p.status === 'success' || p.status === 'done'
+                  ? 'bg-green-950 text-green-400 border-green-800'
+                  : p.status === 'failed'
+                  ? 'bg-red-950 text-red-400 border-red-800'
+                  : 'bg-neutral-800 text-neutral-400 border-neutral-600'
+              }`}>{p.status}</span>
+            </td>
+            <td className="py-1 px-2 text-neutral-500">{fmtTs(p.created_at)}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+function AlertsTable({ alerts }: { alerts: Alert[] }) {
+  if (!alerts.length) return <p className="text-xs text-neutral-500">アラートなし</p>;
+  return (
+    <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+      {alerts.map(a => (
+        <div key={a.id} className="flex gap-3 py-1.5 border-b items-start" style={{ borderColor: '#1f1f1f' }}>
+          <span className="text-[11px] text-neutral-500 shrink-0 w-28">{fmtTs(a.created_at)}</span>
+          <SeverityBadge level={a.severity} />
+          <span className="text-xs text-neutral-300 truncate">{a.source ?? ''} {a.message.slice(0, 100)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── tab content ───────────────────────────────────────────
+
+function OverviewTab({ data, posts, alerts }: { data: OverviewData; posts: Post[]; alerts: Alert[] }) {
+  const platformData = Object.entries(data.posts?.byPlatform ?? {}).map(([name, cnt]) => ({ name, cnt }));
+  return (
+    <>
+      <KpiGrid items={[
+        [data.alerts?.totalUnresolved ?? '—', '未解決アラート', data.alerts?.totalUnresolved ? 'text-red-400' : ''],
+        [data.posts?.byPlatform ? Object.values(data.posts.byPlatform).reduce((s, v) => s + v, 0) : '—', '総投稿数(DB)'],
+        [data.metrics?.length ?? '—', 'メトリクスキー数'],
+        [posts.filter(p => p.status === 'done').length, '本日 done'],
+      ]} />
+      <div className="grid grid-cols-2 gap-4">
+        <Section title="プラットフォーム別投稿数">
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={platformData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <YAxis tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }} />
+              <Bar dataKey="cnt" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
+            </BarChart>
+          </ResponsiveContainer>
+        </Section>
+        <Section title="直近アラート">
+          <AlertsTable alerts={alerts.slice(0, 8)} />
+        </Section>
+      </div>
+    </>
+  );
+}
+
+function PlatformTab({ platform, posts }: { platform: string; posts: Post[] }) {
+  const filtered = posts.filter(p => p.platform === platform);
+  const byStatus = filtered.reduce<Record<string, number>>((a, p) => ({ ...a, [p.status]: (a[p.status] ?? 0) + 1 }), {});
+  const pieData = Object.entries(byStatus).map(([name, value]) => ({ name, value }));
+  return (
+    <>
+      <KpiGrid items={[
+        [filtered.length, `${platform} 投稿数(DB)`],
+        [byStatus.done ?? byStatus.success ?? 0, '成功'],
+        [byStatus.failed ?? 0, '失敗', byStatus.failed ? 'text-red-400' : ''],
+        [filtered[0] ? fmtTs(filtered[0].created_at) : '—', '最終投稿'],
+      ]} />
+      <div className="grid grid-cols-2 gap-4">
+        <Section title="ステータス分布">
+          <ResponsiveContainer width="100%" height={160}>
+            <PieChart>
+              <Pie data={pieData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={60} innerRadius={30}>
+                {pieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+            </PieChart>
+          </ResponsiveContainer>
+        </Section>
+        <Section title="直近投稿">
+          <PostsTable posts={filtered.slice(0, 10)} />
+        </Section>
+      </div>
+    </>
+  );
+}
+
+function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
+  const errorAlerts = alerts.filter(a => a.severity === 'ERROR');
+  const warnAlerts = alerts.filter(a => a.severity === 'WARN');
+  return (
+    <>
+      <KpiGrid items={[
+        [data.bridge?.ok ? '● UP' : '● DOWN', 'Bridge Server :3001', data.bridge?.ok ? 'text-green-400' : 'text-red-400'],
+        [errorAlerts.length, 'ERROR'],
+        [warnAlerts.length, 'WARN'],
+        [alerts.length, '総アラート(未解決)'],
+      ]} />
+      <Section title="Bridge Server">
+        <div className="flex gap-3 items-center">
+          <StatusBadge ok={data.bridge?.ok ?? null} label="Bridge :3001" />
+          <span className="text-xs text-neutral-500">確認: {fmtTs(data.bridge?.ts ?? null)}</span>
+        </div>
+      </Section>
+      <Section title="ERROR アラート">
+        <AlertsTable alerts={errorAlerts.slice(0, 20)} />
+      </Section>
+      <Section title="WARN アラート" defaultOpen={false}>
+        <AlertsTable alerts={warnAlerts.slice(0, 20)} />
+      </Section>
+    </>
+  );
+}
+
+function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
+  const latestByKey = metrics.reduce<Record<string, Metric>>((acc, m) => {
+    if (!acc[m.key] || new Date(m.recorded_at) > new Date(acc[m.key].recorded_at)) acc[m.key] = m;
+    return acc;
+  }, {});
+  const keyList = Object.keys(latestByKey);
+  const barData = keyList.map(k => ({ name: k.split('.')[1] ?? k, value: Number(latestByKey[k].value) }));
+
+  return (
+    <>
+      <KpiGrid items={[
+        [keyList.length, 'ユニークメトリクス'],
+        [metrics.length, '総レコード数'],
+        [latestByKey['x.sampleSize']?.value ?? '—', 'X サンプル数'],
+        [latestByKey['note.sampleSize']?.value ?? '—', 'note サンプル数'],
+      ]} />
+      <Section title="最新メトリクス一覧">
+        <ResponsiveContainer width="100%" height={200}>
+          <BarChart data={barData} layout="vertical">
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+            <XAxis type="number" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+            <YAxis type="category" dataKey="name" width={100} tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+            <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }} />
+            <Bar dataKey="value" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
+          </BarChart>
+        </ResponsiveContainer>
+      </Section>
+      <Section title="全メトリクス" defaultOpen={false}>
+        <div className="overflow-x-auto" style={{ maxHeight: 240, overflowY: 'auto' }}>
+          <table className="w-full text-xs border-collapse">
+            <thead><tr>
+              {['key','value','記録日時'].map(h =>
+                <th key={h} className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b" style={{ borderColor: '#262626' }}>{h}</th>
+              )}
+            </tr></thead>
+            <tbody>{Object.values(latestByKey).map(m => (
+              <tr key={m.id} className="hover:bg-neutral-800/30">
+                <td className="py-1 px-2 text-neutral-300">{m.key}</td>
+                <td className="py-1 px-2 text-neutral-300">{m.value}</td>
+                <td className="py-1 px-2 text-neutral-500">{fmtTs(m.recorded_at)}</td>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      </Section>
+    </>
+  );
+}
+
+// ── main Dashboard ────────────────────────────────────────
+
+export default function Dashboard() {
+  const [tab, setTab] = useState<Tab>('Overview');
+  const [overview, setOverview] = useState<OverviewData>({});
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [metrics, setMetrics] = useState<Metric[]>([]);
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [lastUpdated, setLastUpdated] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const fetchAll = useCallback(async () => {
+    const [ov, po, me, al] = await Promise.allSettled([
+      fetch('/api/overview').then(r => r.json()),
+      fetch('/api/posts?limit=100').then(r => r.json()),
+      fetch('/api/metrics?limit=200').then(r => r.json()),
+      fetch('/api/alerts?limit=100').then(r => r.json()),
+    ]);
+    if (ov.status === 'fulfilled') setOverview(ov.value);
+    if (po.status === 'fulfilled') setPosts(po.value.posts ?? []);
+    if (me.status === 'fulfilled') setMetrics(me.value.metrics ?? []);
+    if (al.status === 'fulfilled') setAlerts(al.value.alerts ?? []);
+    setLastUpdated(new Date().toLocaleTimeString('ja-JP'));
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    fetchAll();
+    const id = setInterval(fetchAll, 30000);
+    return () => clearInterval(id);
+  }, [fetchAll]);
+
+  function renderTab() {
+    if (loading) return <div className="py-16 text-center text-xs text-neutral-500">読み込み中...</div>;
+    switch (tab) {
+      case 'Overview': return <OverviewTab data={overview} posts={posts} alerts={alerts} />;
+      case 'X': return <PlatformTab platform="x" posts={posts} />;
+      case 'note': return <PlatformTab platform="note" posts={posts} />;
+      case 'Instagram': return <PlatformTab platform="instagram" posts={posts} />;
+      case 'YouTube': return <PlatformTab platform="youtube" posts={posts} />;
+      case 'Ghost': return <PlatformTab platform="ghost" posts={posts} />;
+      case 'インフラ': return <InfraTab data={overview} alerts={alerts} />;
+      case 'スケジューラー': return <PlatformTab platform="system" posts={posts} />;
+      case '分析': return <AnalyticsTab metrics={metrics} />;
+      default: return null;
+    }
+  }
+
+  return (
+    <div className="min-h-screen font-mono text-sm" style={{ background: '#0d0d0d' }}>
+      {/* header */}
+      <div className="sticky top-0 z-50 flex items-center gap-3 px-4 py-2"
+        style={{ background: '#0a0a0a', borderBottom: '1px solid #262626' }}>
+        <span className="font-bold text-sm" style={{ color: '#7c6ff7' }}>SNS AUTO v2</span>
+        <div className="flex gap-2 ml-1">
+          <StatusBadge ok={overview.bridge?.ok ?? null} label="Bridge" />
+          {overview.alerts?.totalUnresolved ? (
+            <span className="inline-block px-2 py-0.5 rounded text-[11px] font-semibold border bg-red-950 text-red-400 border-red-800">
+              alerts: {overview.alerts.totalUnresolved}
+            </span>
+          ) : null}
+        </div>
+        <div className="ml-auto flex items-center gap-3">
+          {lastUpdated && <span className="text-xs text-neutral-500">更新: {lastUpdated}</span>}
+          <button onClick={fetchAll}
+            className="text-xs px-2 py-1 rounded text-neutral-400 hover:text-neutral-200"
+            style={{ background: '#1f1f1f' }}>↻</button>
+        </div>
+      </div>
+
+      {/* tabs */}
+      <div className="flex gap-1 px-4 overflow-x-auto"
+        style={{ background: '#0a0a0a', borderBottom: '1px solid #262626' }}>
+        {TABS.map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-3.5 py-2 rounded-t text-xs whitespace-nowrap transition-colors ${
+              tab === t
+                ? 'text-gray-100 bg-neutral-800'
+                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'
+            }`}
+            style={tab === t ? { borderBottom: '2px solid #7c6ff7' } : {}}>
+            {t}
+          </button>
+        ))}
+      </div>
+
+      {/* content */}
+      <div className="p-4 max-w-screen-2xl mx-auto">
+        {renderTab()}
+      </div>
+    </div>
+  );
+}

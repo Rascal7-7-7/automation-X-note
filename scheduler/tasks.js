@@ -185,4 +185,10 @@ export const TASKS = [
   // ── X 自己リプライ返信（朝投稿・昼投稿へのフォローアップ） ──────
   { name: 'x:self-reply', slot: 'morning', cron: '30 8 * * *' },  // 毎日 08:30 JST — 朝投稿へのリプライ返信
   { name: 'x:self-reply', slot: 'noon',    cron: '0 13 * * *'  }, // 毎日 13:00 JST — 昼投稿へのリプライ返信
+
+  // ── ダッシュボード Neon 同期（毎時） ────────────────────────────
+  {
+    name: 'dashboard:push-to-neon',
+    cron: '0 * * * *',             // 毎時 00分 — ダッシュボードデータを Neon DB へ push
+  },
 ];

@@ -43,6 +43,7 @@ import { runPostCommunity as runYtPostCommunity } from '../youtube/post-communit
 import { runResearch as runGhostResearch }     from '../ghost/research.js';
 import { runGenerate as runGhostGenerate }     from '../ghost/generate.js';
 import { runPost     as runGhostPost }         from '../ghost/post.js';
+import { spawn } from 'child_process';
 
 const MODULE = 'scheduler';
 const MODE   = process.env.MODE ?? 'dev';
@@ -112,6 +113,11 @@ const HANDLERS = {
     await runAINews();
     await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
   },
+
+  'dashboard:push-to-neon': () => new Promise((resolve, reject) => {
+    const proc = spawn('node', ['/Users/Rascal/work/automation/dashboard-v2/scripts/push-to-neon.js'], { stdio: 'inherit' });
+    proc.on('close', code => code === 0 ? resolve() : reject(new Error(`exit ${code}`)));
+  }),
 };
 
 // ── DEV MODE ──────────────────────────────────────────────────────
