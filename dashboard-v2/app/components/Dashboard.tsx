@@ -10,6 +10,7 @@ import NoteTab       from './tabs/NoteTab';
 import InstaTab      from './tabs/InstaTab';
 import YTTab         from './tabs/YTTab';
 import GhostTab      from './tabs/GhostTab';
+import SchedulerTab  from './tabs/SchedulerTab';
 import PreviewModal   from './PreviewModal';
 import DryRunToggle  from './DryRunToggle';
 
@@ -248,13 +249,71 @@ function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
   );
 }
 
+interface SnsMini { platform: string; metric_key: string; value: number; recorded_date: string; recorded_at: string; }
+interface PostMini { post_id: string; platform: string; account: string | null; metric_key: string; value: number; }
+
+function isoWeek(iso: string) {
+  const d = new Date(iso);
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  return Math.ceil(((d.getTime() - jan4.getTime()) / 86400000 + jan4.getDay() + 1) / 7);
+}
+
 function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
+  const [snsAll, setSnsAll]   = useState<SnsMini[]>([]);
+  const [postAll, setPostAll] = useState<PostMini[]>([]);
+
+  useEffect(() => {
+    fetch('/api/sns-metrics?days=14').then(r => r.json())
+      .then(d => setSnsAll(d.metrics ?? [])).catch(() => {});
+    fetch('/api/post-metrics?limit=300').then(r => r.json())
+      .then(d => setPostAll(d.metrics ?? [])).catch(() => {});
+  }, []);
+
   const latestByKey = metrics.reduce<Record<string, Metric>>((acc, m) => {
     if (!acc[m.key] || new Date(m.recorded_at) > new Date(acc[m.key].recorded_at)) acc[m.key] = m;
     return acc;
   }, {});
   const keyList = Object.keys(latestByKey);
   const barData = keyList.map(k => ({ name: k.split('.')[1] ?? k, value: Number(latestByKey[k].value) }));
+
+  // weekly follower growth rate per platform
+  const followerRows = snsAll.filter(m => m.metric_key === 'followers');
+  const weeklyByPlatform: Record<string, Record<number, number>> = {};
+  followerRows.forEach(m => {
+    const w = isoWeek(m.recorded_date ?? m.recorded_at);
+    if (!weeklyByPlatform[m.platform]) weeklyByPlatform[m.platform] = {};
+    weeklyByPlatform[m.platform][w] = Math.max(weeklyByPlatform[m.platform][w] ?? 0, m.value);
+  });
+  const allWeeks = [...new Set(followerRows.map(m => isoWeek(m.recorded_date ?? m.recorded_at)))].sort();
+  const growthData = allWeeks.length >= 2
+    ? Object.keys(weeklyByPlatform).map(p => {
+        const [prevW, currW] = allWeeks.slice(-2);
+        const prev = weeklyByPlatform[p][prevW] ?? 0;
+        const curr = weeklyByPlatform[p][currW] ?? 0;
+        return { platform: p, growth: prev > 0 ? parseFloat(((curr - prev) / prev * 100).toFixed(1)) : 0 };
+      })
+    : [];
+
+  // buzz ranking: top posts by summed engagement signals
+  const engScores: Record<string, number> = {};
+  const engMeta: Record<string, { account: string; platform: string }> = {};
+  postAll
+    .filter(m => ['impressions', 'likes', 'saves', 'reactions', 'bookmarks'].includes(m.metric_key))
+    .forEach(m => {
+      engScores[m.post_id] = (engScores[m.post_id] ?? 0) + m.value;
+      engMeta[m.post_id] = { account: m.account ?? '—', platform: m.platform };
+    });
+  const buzzRanking = Object.entries(engScores)
+    .sort(([, a], [, b]) => b - a).slice(0, 10)
+    .map(([post_id, score]) => ({ post_id, score, ...engMeta[post_id] }));
+
+  const TH2 = ({ children }: { children: React.ReactNode }) => (
+    <th className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b text-[11px]"
+      style={{ borderColor: '#262626' }}>{children}</th>
+  );
+  const TD2 = ({ children, cls = '' }: { children: React.ReactNode; cls?: string }) => (
+    <td className={`py-1 px-2 text-neutral-300 text-xs ${cls}`}>{children}</td>
+  );
 
   return (
     <>
@@ -264,6 +323,47 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
         [latestByKey['x.sampleSize']?.value ?? '—', 'X サンプル数'],
         [latestByKey['note.sampleSize']?.value ?? '—', 'note サンプル数'],
       ]} />
+
+      <div className="grid grid-cols-2 gap-4">
+        <Section title="週次フォロワー成長率">
+          {growthData.length ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={growthData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="platform" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip
+                  contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }}
+                  formatter={(v: unknown) => [`${v}%`, '成長率']}
+                />
+                <Bar dataKey="growth" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} radius={[2, 2, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <p className="text-xs py-6 text-center text-neutral-500">sns_metrics 2週分蓄積後に表示</p>}
+        </Section>
+
+        <Section title="バズ投稿 Top10（エンゲージメント合計）">
+          {buzzRanking.length ? (
+            <div style={{ maxHeight: 200, overflowY: 'auto' }}>
+              <table className="w-full border-collapse">
+                <thead><tr>
+                  <TH2>#</TH2><TH2>post_id</TH2><TH2>SNS</TH2><TH2>Acct</TH2><TH2>Score</TH2>
+                </tr></thead>
+                <tbody>{buzzRanking.map((r, i) => (
+                  <tr key={r.post_id} className="hover:bg-neutral-800/30">
+                    <TD2 cls="text-neutral-500">{i + 1}</TD2>
+                    <TD2 cls="font-mono">{r.post_id.slice(0, 16)}</TD2>
+                    <TD2>{r.platform}</TD2>
+                    <TD2>{r.account}</TD2>
+                    <TD2 cls="font-bold text-violet-400">{r.score.toLocaleString()}</TD2>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          ) : <p className="text-xs py-6 text-center text-neutral-500">post_metrics 収集後に表示</p>}
+        </Section>
+      </div>
+
       <Section title="最新メトリクス一覧">
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={barData} layout="vertical">
@@ -275,12 +375,14 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
           </BarChart>
         </ResponsiveContainer>
       </Section>
+
       <Section title="全メトリクス" defaultOpen={false}>
         <div className="overflow-x-auto" style={{ maxHeight: 240, overflowY: 'auto' }}>
           <table className="w-full text-xs border-collapse">
             <thead><tr>
-              {['key','value','記録日時'].map(h =>
-                <th key={h} className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b" style={{ borderColor: '#262626' }}>{h}</th>
+              {['key', 'value', '記録日時'].map(h =>
+                <th key={h} className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b"
+                  style={{ borderColor: '#262626' }}>{h}</th>
               )}
             </tr></thead>
             <tbody>{Object.values(latestByKey).map(m => (
@@ -310,6 +412,7 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen]   = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [dryRun, setDryRun]             = useState(true);
+  const [creditWarn, setCreditWarn]     = useState(false);
 
   const fetchAll = useCallback(async () => {
     const [ov, po, me, al] = await Promise.allSettled([
@@ -321,7 +424,16 @@ export default function Dashboard() {
     if (ov.status === 'fulfilled') setOverview(ov.value);
     if (po.status === 'fulfilled') setPosts(po.value.posts ?? []);
     if (me.status === 'fulfilled') setMetrics(me.value.metrics ?? []);
-    if (al.status === 'fulfilled') setAlerts(al.value.alerts ?? []);
+    if (al.status === 'fulfilled') {
+      const alertList: Alert[] = al.value.alerts ?? [];
+      setAlerts(alertList);
+      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+      setCreditWarn(alertList.some(a =>
+        a.message.includes('credit balance too low') &&
+        new Date(a.created_at).getTime() > cutoff
+      ));
+    }
+    fetch('/api/credits').catch(() => {});
     // pending count for approval badge
     fetch('/api/preview?limit=200').then(r => r.json())
       .then(d => setPendingCount((d.drafts ?? []).length))
@@ -346,7 +458,7 @@ export default function Dashboard() {
       case 'YouTube': return <YTTab />;
       case 'Ghost': return <GhostTab />;
       case 'インフラ': return <InfraTab data={overview} alerts={alerts} />;
-      case 'スケジューラー': return <PlatformTab platform="system" posts={posts} />;
+      case 'スケジューラー': return <SchedulerTab />;
       case '分析': return <AnalyticsTab metrics={metrics} />;
       default: return null;
     }
@@ -385,6 +497,13 @@ export default function Dashboard() {
             style={{ background: '#1f1f1f' }}>↻</button>
         </div>
       </div>
+
+      {creditWarn && (
+        <div className="px-4 py-2 text-xs font-semibold flex items-center gap-2"
+          style={{ background: '#451a03', borderBottom: '1px solid #92400e', color: '#fcd34d' }}>
+          ⚠ API クレジット残高不足 — Anthropic のクレジット補充が必要です（直近24hエラー検出）
+        </div>
+      )}
 
       {/* tabs */}
       <div className="flex gap-1 px-4 overflow-x-auto"
