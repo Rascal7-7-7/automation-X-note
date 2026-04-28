@@ -15,6 +15,19 @@ if (!process.env.DATABASE_URL) {
 }
 const sql = neon(process.env.DATABASE_URL);
 
+// ── settings table ────────────────────────────────────────
+await sql`
+  CREATE TABLE IF NOT EXISTS settings (
+    key        TEXT PRIMARY KEY,
+    value      JSONB NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+  )`;
+await sql`
+  INSERT INTO settings (key, value)
+  VALUES ('dry_run', 'true')
+  ON CONFLICT (key) DO NOTHING`;
+console.log('settings: table ready');
+
 // ── posts: add new columns (idempotent) ───────────────────
 await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS media_url    TEXT`;
 await sql`ALTER TABLE posts ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMPTZ`;

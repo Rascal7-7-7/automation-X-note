@@ -26,6 +26,7 @@ export interface Draft {
 
 interface PreviewModalProps {
   platform?: string;
+  dryRun?: boolean;
   onClose: () => void;
 }
 
@@ -178,7 +179,7 @@ function MetaRow({ label, children }: { label: string; children: React.ReactNode
 
 // ── modal ─────────────────────────────────────────────────
 
-export default function PreviewModal({ platform, onClose }: PreviewModalProps) {
+export default function PreviewModal({ platform, dryRun = false, onClose }: PreviewModalProps) {
   const [drafts, setDrafts]   = useState<Draft[]>([]);
   const [idx, setIdx]         = useState(0);
   const [loading, setLoading] = useState(true);
@@ -199,8 +200,16 @@ export default function PreviewModal({ platform, onClose }: PreviewModalProps) {
   async function act(action: 'approved' | 'rejected') {
     const draft = drafts[idx];
     if (!draft || acting) return;
-    setActing(true);
 
+    // dry run: log intent, don't touch DB
+    if (dryRun) {
+      const preview = (draft.content ?? '').slice(0, 60);
+      setToast(`[DRY RUN] ${action === 'approved' ? '承認' : '却下'} → ${draft.platform}: ${preview}…`);
+      setTimeout(() => setToast(''), 4000);
+      return;
+    }
+
+    setActing(true);
     const res = await fetch(`/api/posts/${draft.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -319,13 +328,17 @@ export default function PreviewModal({ platform, onClose }: PreviewModalProps) {
           <div className="flex gap-2 px-5 py-4 shrink-0" style={{ borderTop: '1px solid #262626' }}>
             <button onClick={() => act('approved')} disabled={acting}
               className="flex-1 py-2.5 rounded-lg text-sm font-bold disabled:opacity-50"
-              style={{ background: '#16a34a', color: '#fff' }}>
-              {acting ? '処理中...' : '✓ 承認して投稿'}
+              style={dryRun
+                ? { background: '#451a03', border: '1px solid #92400e', color: '#fbbf24' }
+                : { background: '#16a34a', color: '#fff' }}>
+              {acting ? '処理中...' : dryRun ? '🔸 [DRY RUN] 承認ログ' : '✓ 承認して投稿'}
             </button>
             <button onClick={() => act('rejected')} disabled={acting}
               className="px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
-              style={{ background: '#450a0a', color: '#fca5a5', border: '1px solid #7f1d1d' }}>
-              ✕ 却下
+              style={dryRun
+                ? { background: '#1c1917', border: '1px solid #44403c', color: '#a8a29e' }
+                : { background: '#450a0a', color: '#fca5a5', border: '1px solid #7f1d1d' }}>
+              {dryRun ? '[DRY] 却下' : '✕ 却下'}
             </button>
             <button onClick={skip} disabled={acting}
               className="px-5 py-2.5 rounded-lg text-sm disabled:opacity-30"

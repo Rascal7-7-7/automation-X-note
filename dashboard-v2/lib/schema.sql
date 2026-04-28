@@ -65,6 +65,14 @@ CREATE TABLE IF NOT EXISTS post_metrics (
   UNIQUE (platform, post_id, metric_key, snapshot_at)
 );
 
+-- Global settings (dry_run, feature flags, etc.)
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      JSONB NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+INSERT INTO settings (key, value) VALUES ('dry_run', 'true') ON CONFLICT (key) DO NOTHING;
+
 CREATE INDEX IF NOT EXISTS idx_posts_platform_status   ON posts(platform, status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_posts_pending           ON posts(status, created_at DESC) WHERE status = 'pending';
 CREATE INDEX IF NOT EXISTS idx_metrics_key_recorded    ON metrics(key, recorded_at DESC);

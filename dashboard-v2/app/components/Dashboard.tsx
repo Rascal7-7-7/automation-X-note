@@ -10,7 +10,8 @@ import NoteTab       from './tabs/NoteTab';
 import InstaTab      from './tabs/InstaTab';
 import YTTab         from './tabs/YTTab';
 import GhostTab      from './tabs/GhostTab';
-import PreviewModal  from './PreviewModal';
+import PreviewModal   from './PreviewModal';
+import DryRunToggle  from './DryRunToggle';
 
 // ── types ─────────────────────────────────────────────────
 
@@ -306,8 +307,9 @@ export default function Dashboard() {
   const [alerts, setAlerts]         = useState<Alert[]>([]);
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading]       = useState(true);
-  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewOpen, setPreviewOpen]   = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
+  const [dryRun, setDryRun]             = useState(true);
 
   const fetchAll = useCallback(async () => {
     const [ov, po, me, al] = await Promise.allSettled([
@@ -365,6 +367,7 @@ export default function Dashboard() {
           ) : null}
         </div>
         <div className="ml-auto flex items-center gap-3">
+          <DryRunToggle onToggle={setDryRun} />
           {lastUpdated && <span className="text-xs text-neutral-500">更新: {lastUpdated}</span>}
           <button
             onClick={() => setPreviewOpen(true)}
@@ -407,6 +410,7 @@ export default function Dashboard() {
       {previewOpen && (
         <PreviewModal
           platform={TAB_TO_PLATFORM[tab]}
+          dryRun={dryRun}
           onClose={() => { setPreviewOpen(false); fetchAll(); }}
         />
       )}
