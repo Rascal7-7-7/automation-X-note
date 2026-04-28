@@ -9,6 +9,10 @@ const envLocal = join(__dir, '..', '.env.local');
 const envFile  = join(__dir, '..', '.env');
 config({ path: existsSync(envLocal) ? envLocal : envFile });
 
+if (!process.env.DATABASE_URL) {
+  console.error('DATABASE_URL not set');
+  process.exit(1);
+}
 const sql = neon(process.env.DATABASE_URL);
 
 // Drop and recreate cleanly (tables are new, no data loss)

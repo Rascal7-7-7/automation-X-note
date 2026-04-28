@@ -9,6 +9,7 @@ export interface SnsMetric {
   metric_key: string;
   value: number;
   recorded_at: string;
+  recorded_date: string;
 }
 
 export interface PostMetric {
@@ -43,7 +44,7 @@ export function pivotByAccount(metrics: SnsMetric[], metricKey: string) {
   metrics
     .filter(m => m.metric_key === metricKey)
     .forEach(m => {
-      const date = fmtDate(m.recorded_at);
+      const date = m.recorded_date?.slice(5, 10) ?? fmtDate(m.recorded_at);
       byDate[date] = { ...(byDate[date] ?? {}), [m.account]: m.value };
       accounts.add(m.account);
     });
