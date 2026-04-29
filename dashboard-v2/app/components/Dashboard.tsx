@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -294,27 +294,23 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportMd, setReportMd]       = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
-  const [weights, setWeights] = useState({ ...DEFAULT_WEIGHTS });
-  const weightsMounted = useRef(false);
-
-  useEffect(() => {
+  const [weights, setWeights] = useState<typeof DEFAULT_WEIGHTS>(() => {
     try {
-      const s = localStorage.getItem(BUZZ_LS_KEY);
-      if (s) {
-        const parsed = JSON.parse(s) as Record<string, unknown>;
-        const safe: Partial<typeof DEFAULT_WEIGHTS> = {};
-        for (const k of Object.keys(DEFAULT_WEIGHTS) as Array<keyof typeof DEFAULT_WEIGHTS>) {
-          const v = parsed[k];
-          if (typeof v === 'number' && isFinite(v) && v >= 0 && v <= 5) safe[k] = v;
-        }
-        setWeights(prev => ({ ...prev, ...safe }));
+      const s = typeof window !== 'undefined' ? localStorage.getItem(BUZZ_LS_KEY) : null;
+      if (!s) return { ...DEFAULT_WEIGHTS };
+      const parsed = JSON.parse(s) as Record<string, unknown>;
+      const safe: Partial<typeof DEFAULT_WEIGHTS> = {};
+      for (const k of Object.keys(DEFAULT_WEIGHTS) as Array<keyof typeof DEFAULT_WEIGHTS>) {
+        const v = parsed[k];
+        if (typeof v === 'number' && isFinite(v) && v >= 0 && v <= 5) safe[k] = v;
       }
-    } catch {}
-    weightsMounted.current = true;
-  }, []);
+      return { ...DEFAULT_WEIGHTS, ...safe };
+    } catch {
+      return { ...DEFAULT_WEIGHTS };
+    }
+  });
 
   useEffect(() => {
-    if (!weightsMounted.current) return;
     try { localStorage.setItem(BUZZ_LS_KEY, JSON.stringify(weights)); } catch {}
   }, [weights]);
 
@@ -383,7 +379,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
     const scores: Record<string, number> = {};
     const meta: Record<string, { account: string; platform: string }> = {};
     postAll
-      .filter(m => m.metric_key in WEIGHT_KEYS)
+      .filter(m => m.metric_key in WEIGHT_KEYS && Number.isFinite(m.value))
       .forEach(m => {
         const w = weights[WEIGHT_KEYS[m.metric_key]];
         scores[m.post_id] = (scores[m.post_id] ?? 0) + m.value * w;
@@ -397,7 +393,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   // WoW / MoM follower delta per platform (using 60-day snsAll)
   const NOW_MS = Date.now();
   const DAY_MS = 86_400_000;
-  const platforms = [...new Set(followerRows.map(m => m.platform))];
+  const platforms = [...new Set(followerRows.map(m => m.platform).filter((p): p is string => Boolean(p)))];
   const wowMomBadges = platforms.map(pf => {
     const rows = followerRows
       .filter(m => m.platform === pf)
@@ -429,7 +425,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       new Date(m.recorded_date ?? m.recorded_at).getTime() >= cutoff14,
     );
     const dates14 = [...new Set(follower14.map(m => (m.recorded_date ?? m.recorded_at).slice(0, 10)))].sort();
-    const platforms14 = [...new Set(follower14.map(m => m.platform))];
+    const platforms14 = [...new Set(follower14.map(m => m.platform).filter((p): p is string => Boolean(p)))];
     const trend14 = dates14.map(date => {
       const row: Record<string, number | string> = { date: date.slice(5) };
       platforms14.forEach(pf => {
@@ -448,13 +444,14 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       )
       .forEach(m => {
         if (!erMap[m.platform]) erMap[m.platform] = [];
-        erMap[m.platform].push(m.value);
+        if (Number.isFinite(m.value)) erMap[m.platform].push(m.value);
       });
     const erData = Object.entries(erMap)
       .map(([platform, vals]) => ({
         platform,
-        er: parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2)),
+        er: vals.length > 0 ? parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2)) : 0,
       }))
+      .filter(e => Number.isFinite(e.er))
       .sort((a, b) => b.er - a.er);
 
     return { followerTrend14: trend14, pf14: platforms14, erBarData: erData };
