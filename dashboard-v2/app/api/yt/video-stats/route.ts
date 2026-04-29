@@ -37,8 +37,7 @@ export async function GET(req: Request) {
             AND (account = pv.account OR account IS NULL)
             AND (
               media_url LIKE '%' || pv.post_id || '%'
-              OR created_at BETWEEN pv.first_recorded - INTERVAL '7 days'
-                                AND pv.first_recorded + INTERVAL '1 day'
+              OR ABS(EXTRACT(EPOCH FROM (created_at - pv.first_recorded))) < 3600
             )
           ORDER BY
             CASE WHEN media_url LIKE '%' || pv.post_id || '%' THEN 0 ELSE 1 END,

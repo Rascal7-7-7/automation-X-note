@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment, useState, useEffect, useCallback } from 'react';
-import { Section, KpiGrid, EmptyState, TH, TD, fmtTs } from '../ui';
+import { Section, KpiGrid, EmptyState, Spinner, TH, TD, fmtTs } from '../ui';
 import { apiFetch } from '@/lib/apiFetch';
 
 interface Workflow {
@@ -158,7 +158,7 @@ export default function SchedulerTab() {
   const failed  = data.executions.filter(e => e.status === 'error').length;
   const running = data.executions.filter(e => e.status === 'running').length;
 
-  if (loading) return <EmptyState msg="読み込み中..." />;
+  if (loading) return <Spinner />;
 
   return (
     <>

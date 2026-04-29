@@ -113,6 +113,14 @@ export function EmptyState({ msg = 'データなし' }: { msg?: string }) {
   return <p className="text-xs py-6 text-center text-neutral-500">{msg}</p>;
 }
 
+export function Spinner() {
+  return (
+    <div className="flex justify-center py-8">
+      <div className="w-5 h-5 rounded-full border-2 border-neutral-700 border-t-violet-400 animate-spin" />
+    </div>
+  );
+}
+
 export function TH({ children }: { children: React.ReactNode }) {
   return (
     <th className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b text-[11px]"

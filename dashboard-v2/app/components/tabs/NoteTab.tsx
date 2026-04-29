@@ -7,7 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  Section, KpiGrid, EmptyState, TH, TD,
+  Section, KpiGrid, EmptyState, Spinner, TH, TD,
   SnsMetric, PostMetric,
   pivotByAccount, latestByAccount,
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
@@ -56,9 +56,10 @@ function extractNoteKey(url: string | null): string | null {
 }
 
 function classifyNoteTitle(title: string): string {
-  if (/AI|Claude|自動化/.test(title))              return 'AI系';
-  if (/副業|収益|稼ぐ/.test(title))                return '副業系';
-  if (/サーバー|ドメイン|WordPress/.test(title))   return 'インフラ系';
+  const t = title.normalize('NFKC');
+  if (/AI|Claude|自動化/.test(t))              return 'AI系';
+  if (/副業|収益|稼ぐ/.test(t))                return '副業系';
+  if (/サーバー|ドメイン|WordPress/.test(t))   return 'インフラ系';
   return 'その他';
 }
 
@@ -170,7 +171,7 @@ export default function NoteTab() {
     }))
     .sort((a, b) => b.avg_likes - a.avg_likes);
 
-  if (loading) return <EmptyState msg="読み込み中..." />;
+  if (loading) return <Spinner />;
 
   return (
     <>

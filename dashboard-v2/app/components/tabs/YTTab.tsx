@@ -7,7 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  Section, KpiGrid, EmptyState, TH, TD,
+  Section, KpiGrid, EmptyState, Spinner, TH, TD,
   SnsMetric, PostMetric,
   pivotByAccount, latestByAccount,
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
@@ -79,14 +79,17 @@ function avgOf(nums: (number | null)[]): number {
 }
 
 export default function YTTab() {
-  const [sns, setSns]           = useState<SnsMetric[]>([]);
-  const [pm, setPm]             = useState<PostMetric[]>([]);
-  const [pipeline, setPipeline] = useState<PipelineData>({ pipeline: [], byStatus: {} });
-  const [videos, setVideos]     = useState<VideoStat[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [error, setError]       = useState<string | null>(null);
+  const [sns, setSns]             = useState<SnsMetric[]>([]);
+  const [pm, setPm]               = useState<PostMetric[]>([]);
+  const [pipeline, setPipeline]   = useState<PipelineData>({ pipeline: [], byStatus: {} });
+  const [videos, setVideos]       = useState<VideoStat[]>([]);
+  const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     const ctrl = new AbortController();
 
     const safeFetch = (url: string) =>
@@ -102,6 +105,11 @@ export default function YTTab() {
       safeFetch('/api/yt/video-stats'),
     ]).then(([s, p, pl, v]) => {
       if (ctrl.signal.aborted) return;
+      if ([s, p, pl, v].every(r => r.status === 'rejected')) {
+        setError('データの読み込みに失敗しました');
+        setLoading(false);
+        return;
+      }
       if (s.status  === 'fulfilled') setSns(s.value.metrics ?? []);
       if (p.status  === 'fulfilled') setPm(p.value.metrics ?? []);
       if (pl.status === 'fulfilled') setPipeline(pl.value);
@@ -110,7 +118,7 @@ export default function YTTab() {
       setLoading(false);
     });
     return () => ctrl.abort();
-  }, []);
+  }, [retryCount]);
 
   const { data: subData, accounts } = pivotByAccount(sns, 'subscribers');
   const latestSubs = latestByAccount(sns, 'subscribers');
@@ -174,8 +182,18 @@ export default function YTTab() {
     平均CTR:   parseFloat(t.avg_ctr.toFixed(2)),
   }));
 
-  if (error) return <EmptyState msg={error} />;
-  if (loading) return <EmptyState msg="読み込み中..." />;
+  if (error) return (
+    <div className="flex flex-col items-center py-8 gap-3">
+      <p className="text-xs text-red-400">{error}</p>
+      <button
+        onClick={() => setRetryCount(c => c + 1)}
+        className="px-3 py-1.5 text-xs rounded border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+      >
+        再試行
+      </button>
+    </div>
+  );
+  if (loading) return <Spinner />;
 
   return (
     <>

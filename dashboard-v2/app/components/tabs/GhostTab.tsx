@@ -7,7 +7,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  Section, KpiGrid, EmptyState, TH, TD,
+  Section, KpiGrid, EmptyState, Spinner, TH, TD,
   SnsMetric, PostMetric,
   pivotByAccount,
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
@@ -59,13 +59,16 @@ const AFF_CLICK_KEYS = new Set(['affiliate_clicks', 'link_clicks']);
 const PV_KEYS        = new Set(['pv', 'pageviews']);
 
 export default function GhostTab() {
-  const [sns, setSns]             = useState<SnsMetric[]>([]);
-  const [pm, setPm]               = useState<PostMetric[]>([]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [error, setError]         = useState<string | null>(null);
+  const [sns, setSns]               = useState<SnsMetric[]>([]);
+  const [pm, setPm]                 = useState<PostMetric[]>([]);
+  const [campaigns, setCampaigns]   = useState<Campaign[]>([]);
+  const [loading, setLoading]       = useState(true);
+  const [error, setError]           = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    setLoading(true);
+    setError(null);
     const ctrl = new AbortController();
 
     const safeFetch = (url: string) =>
@@ -80,21 +83,19 @@ export default function GhostTab() {
       safeFetch('/api/ghost-campaigns'),
     ]).then(([s, p, gc]) => {
       if (ctrl.signal.aborted) return;
+      if ([s, p, gc].every(r => r.status === 'rejected')) {
+        setError('データの読み込みに失敗しました');
+        setLoading(false);
+        return;
+      }
       if (s.status  === 'fulfilled') setSns(s.value.metrics ?? []);
       if (p.status  === 'fulfilled') setPm(p.value.metrics ?? []);
       if (gc.status === 'fulfilled') setCampaigns(gc.value.campaigns ?? []);
       else console.error('[GhostTab/campaigns]', gc.status === 'rejected' ? gc.reason : '');
       setLoading(false);
-    }).catch(e => {
-      const isAbort = e instanceof DOMException && e.name === 'AbortError';
-      if (!isAbort) {
-        console.error('[GhostTab]', e);
-        setError('データの読み込みに失敗しました');
-        setLoading(false);
-      }
     });
     return () => ctrl.abort();
-  }, []);
+  }, [retryCount]);
 
   const { data: pvData, accounts } = pivotByAccount(sns, 'pageviews');
 
@@ -140,8 +141,18 @@ export default function GhostTab() {
     .sort((a, b) => b.ctr - a.ctr)
     .slice(0, 15);
 
-  if (error) return <EmptyState msg={error} />;
-  if (loading) return <EmptyState msg="読み込み中..." />;
+  if (error) return (
+    <div className="flex flex-col items-center py-8 gap-3">
+      <p className="text-xs text-red-400">{error}</p>
+      <button
+        onClick={() => setRetryCount(c => c + 1)}
+        className="px-3 py-1.5 text-xs rounded border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+      >
+        再試行
+      </button>
+    </div>
+  );
+  if (loading) return <Spinner />;
 
   return (
     <>

@@ -34,16 +34,15 @@ export async function POST(
     return NextResponse.json({ error: `unknown account: ${body.account}` }, { status: 400 });
   }
 
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), 300_000); // 5 min — Playwright is slow
   try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 300_000); // 5 min — Playwright is slow
     const r = await fetch(`${BRIDGE}/api/note/publish`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ draftId: id, accountId }),
       signal: ctrl.signal,
     });
-    clearTimeout(tid);
 
     const data = await r.json() as { ok?: boolean; publishedUrl?: string; error?: string };
     if (!r.ok || !data.ok) {
@@ -59,5 +58,7 @@ export async function POST(
       return NextResponse.json({ error: 'publish timed out (5 min)' }, { status: 504 });
     }
     return NextResponse.json({ error: 'bridge unreachable' }, { status: 503 });
+  } finally {
+    clearTimeout(tid);
   }
 }
