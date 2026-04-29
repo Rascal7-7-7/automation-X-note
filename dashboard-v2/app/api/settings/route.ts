@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { checkAuth } from '@/lib/auth';
 
-export async function GET() {
+export async function GET(req: Request) {
+  const authErr = checkAuth(req);
+  if (authErr) return authErr;
+
   try {
     const rows = await sql`SELECT value FROM settings WHERE key = 'dry_run'`;
     const raw = rows[0]?.value;
@@ -14,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
+  const authErr = checkAuth(req);
+  if (authErr) return authErr;
+
   let body: { dryRun?: unknown };
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: 'invalid JSON' }, { status: 400 }); }

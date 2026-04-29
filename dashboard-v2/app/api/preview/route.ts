@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { checkAuth } from '@/lib/auth';
 
 export async function GET(req: Request) {
+  const authErr = checkAuth(req);
+  if (authErr) return authErr;
+
   const { searchParams } = new URL(req.url);
   const platform = searchParams.get('platform');
   const limit    = Math.min(parseInt(searchParams.get('limit') ?? '50') || 50, 200);

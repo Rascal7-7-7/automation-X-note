@@ -221,9 +221,11 @@ export default function PreviewModal({ platform, dryRun = false, onClose }: Prev
       const msg = action === 'approved' ? '✓ 承認済み — schedulerが投稿します' : '✕ 却下済み';
       setToast(msg);
       setTimeout(() => setToast(''), 3000);
-      const next = drafts.filter((_, i) => i !== idx);
-      setDrafts(next);
-      setIdx(Math.min(idx, Math.max(0, next.length - 1)));
+      setDrafts(prev => {
+        const next = prev.filter((_, i) => i !== idx);
+        setIdx(cur => Math.min(cur, Math.max(0, next.length - 1)));
+        return next;
+      });
     }
   }
 

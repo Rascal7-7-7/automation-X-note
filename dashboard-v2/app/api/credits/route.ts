@@ -16,15 +16,21 @@ async function safeGet(url: string) {
   }
 }
 
+interface ProviderCredit { remaining?: number; total?: number }
+
 export async function GET(req: Request) {
   const authErr = checkAuth(req);
   if (authErr) return authErr;
 
   const status = await safeGet(`${BRIDGE}/api/analytics/status`);
+  const anthropic = (status?.anthropic ?? null) as ProviderCredit | null;
+  const remaining = typeof anthropic?.remaining === 'number' ? anthropic.remaining : null;
+
   return NextResponse.json({
-    anthropic: status?.anthropic ?? null,
-    fal:       status?.fal ?? null,
-    openai:    status?.openai ?? null,
-    ts: new Date().toISOString(),
+    anthropic,
+    fal:    status?.fal    ?? null,
+    openai: status?.openai ?? null,
+    ts:     new Date().toISOString(),
+    warnLow: remaining !== null && remaining < 1000,
   });
 }

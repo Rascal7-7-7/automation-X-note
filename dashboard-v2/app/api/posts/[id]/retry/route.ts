@@ -12,7 +12,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const numId = parseInt(id, 10);
   if (isNaN(numId)) return NextResponse.json({ error: 'invalid id' }, { status: 400 });
 
-  const rows = await sql`SELECT * FROM posts WHERE id = ${numId} LIMIT 1`;
+  const rows = await sql`SELECT id, platform, account, content, status FROM posts WHERE id = ${numId} LIMIT 1`;
   if (!rows.length) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
   const post = rows[0] as {
@@ -40,11 +40,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   await sql`UPDATE posts SET status = 'retrying', updated_at = NOW() WHERE id = ${numId}`;
 
   try {
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 10_000);
     const r = await fetch(`${BRIDGE}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ account: post.account, content: post.content, retryPostId: numId }),
+      signal: ctrl.signal,
     });
+    clearTimeout(tid);
     if (!r.ok) {
       await sql`UPDATE posts SET status = 'error', updated_at = NOW() WHERE id = ${numId}`;
       return NextResponse.json({ error: 'bridge error' }, { status: 502 });

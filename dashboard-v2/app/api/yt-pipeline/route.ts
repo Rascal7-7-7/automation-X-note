@@ -23,10 +23,10 @@ export async function GET(req: Request) {
     created: r.created_at,
   }));
 
-  const byStatus = pipeline.reduce<Record<string, number>>((a, p) => {
-    a[p.status] = (a[p.status] ?? 0) + 1;
-    return a;
-  }, {});
+  const byStatus = pipeline.reduce<Record<string, number>>((a, p) => ({
+    ...a,
+    [p.status]: (a[p.status] ?? 0) + 1,
+  }), {});
 
   return NextResponse.json({ pipeline, byStatus });
 }

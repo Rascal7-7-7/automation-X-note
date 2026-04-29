@@ -41,8 +41,11 @@ interface Metric {
 }
 
 interface CreditData {
-  remaining?: number;
-  total?: number;
+  anthropic: unknown;
+  fal: unknown;
+  openai: unknown;
+  ts: string;
+  warnLow?: boolean;
 }
 
 // ── constants ─────────────────────────────────────────────
@@ -268,10 +271,12 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [postAll, setPostAll] = useState<PostMini[]>([]);
 
   useEffect(() => {
-    fetch('/api/sns-metrics?days=14').then(r => r.json())
+    const ctrl = new AbortController();
+    fetch('/api/sns-metrics?days=14', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setSnsAll(d.metrics ?? [])).catch(() => {});
-    fetch('/api/post-metrics?limit=300').then(r => r.json())
+    fetch('/api/post-metrics?limit=300', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setPostAll(d.metrics ?? [])).catch(() => {});
+    return () => ctrl.abort();
   }, []);
 
   const latestByKey = metrics.reduce<Record<string, Metric>>((acc, m) => {
@@ -433,9 +438,7 @@ export default function Dashboard() {
       setAlerts(al.value.alerts ?? []);
     }
     fetch('/api/credits').then(r => r.json())
-      .then((d: CreditData) => {
-        setCreditWarn((d.remaining ?? Infinity) < 1000);
-      })
+      .then((d: CreditData) => { setCreditWarn(d.warnLow ?? false); })
       .catch(() => {});
     // pending count for approval badge
     fetch('/api/preview?limit=200').then(r => r.json())

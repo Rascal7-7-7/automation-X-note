@@ -9,6 +9,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (authErr) return authErr;
 
   const { id } = await params;
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) && !/^\d+$/.test(id)) {
+    return NextResponse.json({ error: 'invalid workflow id' }, { status: 400 });
+  }
   try {
     const r = await fetch(`${N8N}/api/v1/workflows/${id}/run`, {
       method: 'POST',

@@ -22,7 +22,7 @@ export async function safeBridgeFetch(
 
   if (dry) {
     const body = options?.body ? String(options.body).slice(0, 200) : '';
-    console.log(`[DRY RUN] would POST ${url} — ${body}`);
+    if (process.env.NODE_ENV !== 'production') console.log(`[DRY RUN] would POST ${url} — ${body}`);
     return { ok: true, dryRun: true };
   }
 

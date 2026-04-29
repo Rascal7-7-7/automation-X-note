@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
+import { checkAuth } from '@/lib/auth';
 
 const ALLOWED_STATUSES = ['pending', 'approved', 'rejected', 'done', 'failed'] as const;
 type AllowedStatus = typeof ALLOWED_STATUSES[number];
@@ -8,6 +9,9 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authErr = checkAuth(req);
+  if (authErr) return authErr;
+
   const { id } = await params;
   const numId = Number(id);
   if (!Number.isInteger(numId) || numId <= 0) {
@@ -45,9 +49,12 @@ export async function PATCH(
 }
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const authErr = checkAuth(req);
+  if (authErr) return authErr;
+
   const { id } = await params;
   const numId = Number(id);
   if (!Number.isInteger(numId) || numId <= 0) {
