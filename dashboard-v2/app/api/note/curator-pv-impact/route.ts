@@ -48,6 +48,7 @@ export async function GET(req: Request) {
 
     const avgPv = (centerDate: string, offsetDays: number, windowDays: number): number | null => {
       const center = new Date(centerDate).getTime();
+      if (!Number.isFinite(center)) return null;
       const vals: number[] = [];
       for (let i = 0; i < windowDays; i++) {
         const d = new Date(center + (offsetDays + i) * 86_400_000).toISOString().slice(0, 10);
