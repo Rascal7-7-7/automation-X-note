@@ -63,6 +63,161 @@ function classifyNoteTitle(title: string): string {
   return 'その他';
 }
 
+// ── NoteSalesSection ──────────────────────────────────────
+
+interface SalesDraft {
+  title: string;
+  price: number;
+  sales_count: number;
+  revenue: number;
+  status: string;
+  accountId: number;
+  noteUrl: string | null;
+}
+
+interface SalesResponse {
+  articles: SalesDraft[];
+  summary: { paid_count: number; total_revenue: number; avg_price: number };
+}
+
+function NoteSalesSection() {
+  const [data, setData]   = useState<SalesResponse | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/note-sales')
+      .then(r => r.json())
+      .then((d: SalesResponse) => setData(d))
+      .catch(() => setError(true));
+  }, []);
+
+  if (error) return <EmptyState msg="売上データの取得に失敗しました" />;
+  if (!data)  return <Spinner />;
+
+  const { articles, summary } = data;
+
+  if (!articles.length) {
+    return (
+      <p className="text-xs text-center text-neutral-500 py-6">
+        売上データはまだありません（note決済連携後に表示）
+      </p>
+    );
+  }
+
+  return (
+    <>
+      <KpiGrid items={[
+        [summary.paid_count,                              '有料記事数'],
+        [`¥${summary.total_revenue.toLocaleString()}`,    '総売上'],
+        [`¥${summary.avg_price.toLocaleString()}`,        '平均単価'],
+      ]} />
+      <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+        <table className="w-full border-collapse mt-2">
+          <thead><tr>
+            <TH>タイトル</TH><TH>価格</TH><TH>販売数</TH><TH>売上</TH><TH>状態</TH>
+          </tr></thead>
+          <tbody>{articles.map((a, i) => (
+            <tr key={i} className={`hover:bg-neutral-800/30 ${a.revenue === 0 ? 'opacity-40' : ''}`}>
+              <TD className="max-w-[200px]">
+                {safeUrl(a.noteUrl) ? (
+                  <a href={safeUrl(a.noteUrl)!} target="_blank" rel="noopener noreferrer"
+                    className="text-violet-400 hover:underline truncate block">
+                    {a.title.slice(0, 35)}
+                  </a>
+                ) : (
+                  <span className="truncate block">{a.title.slice(0, 35)}</span>
+                )}
+              </TD>
+              <TD className="font-mono">¥{a.price.toLocaleString()}</TD>
+              <TD className="text-center font-bold">{a.sales_count}</TD>
+              <TD className="font-mono text-green-400">
+                {a.revenue > 0 ? `¥${a.revenue.toLocaleString()}` : '—'}
+              </TD>
+              <TD>
+                <span className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                  a.status === 'posted' || a.status === 'published'
+                    ? 'bg-green-950 text-green-400 border-green-800'
+                    : 'bg-neutral-800 text-neutral-400 border-neutral-600'
+                }`}>{a.status}</span>
+              </TD>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+// ── NoteReferrerSection ───────────────────────────────────
+
+function NoteReferrerSection({ pm }: { pm: PostMetric[] }) {
+  const referrerMetrics = pm.filter(m => m.metric_key.startsWith('referrer_'));
+
+  if (!referrerMetrics.length) {
+    return (
+      <p className="text-xs text-center text-neutral-500 py-6">
+        流入元データなし（note Analytics連携後に表示）
+      </p>
+    );
+  }
+
+  const agg: Record<string, number> = {};
+  referrerMetrics.forEach(m => {
+    const k = m.metric_key.replace('referrer_', '');
+    agg[k] = (agg[k] ?? 0) + m.value;
+  });
+
+  const chartData = Object.entries(agg)
+    .map(([name, value]) => ({ name, value }))
+    .sort((a, b) => b.value - a.value);
+
+  const postIds = [...new Set(referrerMetrics.map(m => m.post_id))];
+  const refKeys = [...new Set(referrerMetrics.map(m => m.metric_key.replace('referrer_', '')))];
+
+  type ArticleRow = { postId: string; breakdown: Record<string, number>; total: number };
+  const articleRows: ArticleRow[] = postIds
+    .map(postId => {
+      const rows = referrerMetrics.filter(m => m.post_id === postId);
+      const breakdown: Record<string, number> = {};
+      rows.forEach(r => { breakdown[r.metric_key.replace('referrer_', '')] = r.value; });
+      return { postId, breakdown, total: rows.reduce((s, r) => s + r.value, 0) };
+    })
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={Math.max(120, chartData.length * 32)}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+          <XAxis type="number" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+          <YAxis type="category" dataKey="name" width={80} tick={{ ...CHART_STYLE, fill: '#9ca3af' }} />
+          <Tooltip {...TOOLTIP_STYLE} />
+          <Bar dataKey="value" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} radius={[0, 2, 2, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      {articleRows.length > 0 && (
+        <div className="mt-3 overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead><tr>
+              <TH>記事ID</TH>
+              {refKeys.map(k => <TH key={k}>{k}</TH>)}
+              <TH>合計</TH>
+            </tr></thead>
+            <tbody>{articleRows.map((a, i) => (
+              <tr key={i} className="hover:bg-neutral-800/30">
+                <TD className="font-mono text-[10px]">{a.postId.slice(0, 20)}</TD>
+                {refKeys.map(k => <TD key={k}>{a.breakdown[k] ?? 0}</TD>)}
+                <TD className="font-bold">{a.total}</TD>
+              </tr>
+            ))}</tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+
 // ── NoteTab ────────────────────────────────────────────────
 
 export default function NoteTab() {
@@ -385,6 +540,16 @@ export default function NoteTab() {
             </table>
           </div>
         ) : <EmptyState msg="掲載履歴はまだありません" />}
+      </Section>
+
+      {/* ── Sales tracking ────────────────────────────── */}
+      <Section title="有料記事売上トラッキング">
+        <NoteSalesSection />
+      </Section>
+
+      {/* ── Referrer breakdown ────────────────────────── */}
+      <Section title="記事別流入元">
+        <NoteReferrerSection pm={pm} />
       </Section>
 
       {/* ── Publish confirm modal ─────────────────────── */}
