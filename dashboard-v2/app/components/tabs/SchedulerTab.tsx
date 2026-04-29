@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import { Section, KpiGrid, EmptyState, TH, TD, fmtTs } from '../ui';
+import { apiFetch } from '@/lib/apiFetch';
 
 interface Workflow {
   id: string;
@@ -60,7 +61,7 @@ export default function SchedulerTab() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const r = await fetch('/api/scheduler');
+      const r = await apiFetch('/api/scheduler');
       const d = await r.json() as SchedulerData;
       setData(d);
     } catch (e) {
@@ -71,7 +72,7 @@ export default function SchedulerTab() {
 
   useEffect(() => {
     const ctrl = new AbortController();
-    fetch('/api/scheduler', { signal: ctrl.signal })
+    apiFetch('/api/scheduler', { signal: ctrl.signal })
       .then(r => r.json() as Promise<SchedulerData>)
       .then(d => {
         if (ctrl.signal.aborted) return;
@@ -79,7 +80,8 @@ export default function SchedulerTab() {
         setLoading(false);
       })
       .catch(e => {
-        if (e.name !== 'AbortError') {
+        const isAbort = e instanceof DOMException && e.name === 'AbortError';
+        if (!isAbort) {
           setError('スケジューラーデータの読み込みに失敗しました');
           setLoading(false);
         }
@@ -91,9 +93,8 @@ export default function SchedulerTab() {
     setToggling(wf.id);
     setError(null);
     try {
-      const r = await fetch(`/api/scheduler/${wf.id}/toggle`, {
+      const r = await apiFetch(`/api/scheduler/${wf.id}/toggle`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ active: !wf.active }),
       });
       if (!r.ok) setError('ワークフロー切替失敗');
@@ -109,7 +110,7 @@ export default function SchedulerTab() {
     setTriggering(wf.id);
     setError(null);
     try {
-      const r = await fetch(`/api/scheduler/${wf.id}/trigger`, { method: 'POST' });
+      const r = await apiFetch(`/api/scheduler/${wf.id}/trigger`, { method: 'POST' });
       if (!r.ok) setError('ワークフロー実行失敗');
       else setTimeout(load, 1500);
     } catch (e) {
@@ -131,7 +132,7 @@ export default function SchedulerTab() {
 
     if (details[ex.id] !== undefined) return;
     try {
-      const r = await fetch(`/api/scheduler/${ex.id}/execution`);
+      const r = await apiFetch(`/api/scheduler/${ex.id}/execution`);
       const d = await r.json() as { execution?: ExecDetail };
       setDetails(prev => ({ ...prev, [ex.id]: d.execution ?? null }));
     } catch {
@@ -143,7 +144,7 @@ export default function SchedulerTab() {
     setRetrying(ex.id);
     setError(null);
     try {
-      const r = await fetch(`/api/scheduler/${ex.workflowId}/trigger`, { method: 'POST' });
+      const r = await apiFetch(`/api/scheduler/${ex.workflowId}/trigger`, { method: 'POST' });
       if (!r.ok) setError('再実行失敗');
       else setTimeout(load, 1500);
     } catch (e) {
@@ -274,9 +275,8 @@ export default function SchedulerTab() {
                     : null;
 
                   return (
-                    <>
+                    <Fragment key={ex.id}>
                       <tr
-                        key={ex.id}
                         onClick={isErr ? () => toggleExpand(ex) : undefined}
                         className={`${isErr ? 'cursor-pointer' : ''} ${
                           isOpen
@@ -346,7 +346,7 @@ export default function SchedulerTab() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </Fragment>
                   );
                 })}
               </tbody>

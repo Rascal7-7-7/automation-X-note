@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -80,10 +81,10 @@ export default function NoteTab() {
   useEffect(() => {
     const ctrl = new AbortController();
     Promise.all([
-      fetch('/api/sns-metrics?platform=note&days=30', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/post-metrics?platform=note&limit=200', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/note-drafts', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/note-curator-history', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/sns-metrics?platform=note&days=30', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/post-metrics?platform=note&limit=200', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/note-drafts', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/note-curator-history', { signal: ctrl.signal }).then(r => r.json()),
     ]).then(([s, p, nd, ch]) => {
       if (ctrl.signal.aborted) return;
       setSns(s.metrics ?? []);
@@ -93,7 +94,8 @@ export default function NoteTab() {
       setCuratorHistory(ch.history ?? []);
       setLoading(false);
     }).catch(e => {
-      if (e.name !== 'AbortError') {
+      const isAbort = e instanceof DOMException && e.name === 'AbortError';
+      if (!isAbort) {
         console.error('[NoteTab] initial load failed', e);
         setLoading(false);
       }
@@ -107,9 +109,8 @@ export default function NoteTab() {
     setPublishing(d.id);
     setPublishError(null);
     try {
-      const r = await fetch(`/api/note-drafts/${encodeURIComponent(d.id)}/publish`, {
+      const r = await apiFetch(`/api/note-drafts/${encodeURIComponent(d.id)}/publish`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ account: d.account }),
       });
       const data = await r.json() as { ok?: boolean; publishedUrl?: string; error?: string };
@@ -118,7 +119,7 @@ export default function NoteTab() {
       } else {
         setPublishSuccess(prev => ({ ...prev, [d.id]: data.publishedUrl ?? '' }));
         setConfirmDraft(null);
-        fetch('/api/note-drafts').then(res => res.json())
+        apiFetch('/api/note-drafts').then(res => res.json())
           .then(nd => {
             setDrafts(nd.drafts ?? []);
             setDraftStats(nd.stats ?? { total: 0, noCover: 0, published: 0, draft: 0 });

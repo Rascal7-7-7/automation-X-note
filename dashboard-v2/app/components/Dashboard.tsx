@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
@@ -273,6 +274,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [postAll, setPostAll]     = useState<PostMini[]>([]);
   const [heatCells, setHeatCells] = useState<HeatCell[]>([]);
   const [heatMax, setHeatMax]     = useState(0);
+  const [heatError, setHeatError] = useState(false);
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportMd, setReportMd]       = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -280,19 +282,27 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   useEffect(() => {
     const ctrl = new AbortController();
     // 60 days for monthly comparison
-    fetch('/api/sns-metrics?days=60', { signal: ctrl.signal }).then(r => r.json())
+    apiFetch('/api/sns-metrics?days=60', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setSnsAll(d.metrics ?? [])).catch(() => {});
-    fetch('/api/post-metrics?limit=300', { signal: ctrl.signal }).then(r => r.json())
+    apiFetch('/api/post-metrics?limit=300', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setPostAll(d.metrics ?? [])).catch(() => {});
-    fetch('/api/post-metrics/heatmap', { signal: ctrl.signal }).then(r => r.json())
-      .then(d => { setHeatCells(d.cells ?? []); setHeatMax(d.max ?? 0); }).catch(() => {});
+    apiFetch('/api/post-metrics/heatmap', { signal: ctrl.signal })
+      .then(r => {
+        if (!r.ok) { setHeatError(true); return null; }
+        return r.json();
+      })
+      .then(d => { if (d) { setHeatCells(d.cells ?? []); setHeatMax(d.max ?? 0); } })
+      .catch(e => {
+        const isAbort = e instanceof DOMException && e.name === 'AbortError';
+        if (!isAbort) setHeatError(true);
+      });
     return () => ctrl.abort();
   }, []);
 
   async function generateReport() {
     setReportLoading(true);
     try {
-      const r = await fetch('/api/report/weekly', { method: 'POST' });
+      const r = await apiFetch('/api/report/weekly', { method: 'POST' });
       const d = await r.json() as { markdown?: string };
       setReportMd(d.markdown ?? '生成失敗');
       setReportOpen(true);
@@ -352,11 +362,13 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       .map(m => ({ ...m, ts: new Date(m.recorded_date ?? m.recorded_at).getTime() }))
       .sort((a, b) => b.ts - a.ts);
     const curr = rows[0]?.value ?? null;
-    const closest = (daysAgo: number) =>
-      rows.reduce<{ value: number; ts: number } | null>((best, r) => {
-        const target = NOW_MS - daysAgo * DAY_MS;
+    const closest = (daysAgo: number) => {
+      const target = NOW_MS - daysAgo * DAY_MS;
+      // skip rows[0] (current) so 1-point platforms return null instead of a misleading delta of 0
+      return rows.slice(1).reduce<{ value: number; ts: number } | null>((best, r) => {
         return !best || Math.abs(r.ts - target) < Math.abs(best.ts - target) ? r : best;
       }, null);
+    };
     const w7  = closest(7);
     const w30 = closest(30);
     return {
@@ -401,7 +413,9 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
 
       {/* ── Posting heatmap ──────────────────────────────── */}
       <Section title="投稿時間帯ヒートマップ（直近90日）">
-        {heatCells.length > 0 ? (
+        {heatError ? (
+          <p className="text-xs py-6 text-center text-red-400">ヒートマップ取得失敗 — DB接続を確認してください</p>
+        ) : heatCells.length > 0 ? (
           <div className="overflow-x-auto">
             <div style={{ display: 'grid', gridTemplateColumns: '24px repeat(24, 1fr)', gap: 2, minWidth: 560 }}>
               <div />
@@ -600,25 +614,26 @@ export default function Dashboard() {
   const [pendingCount, setPendingCount] = useState(0);
   const [dryRun, setDryRun]             = useState(true);
   const [creditWarn, setCreditWarn]     = useState(false);
+  const [fetchError, setFetchError]     = useState(false);
 
   const fetchAll = useCallback(async () => {
     const [ov, po, me, al] = await Promise.allSettled([
-      fetch('/api/overview').then(r => r.json()),
-      fetch('/api/posts?limit=100').then(r => r.json()),
-      fetch('/api/metrics?limit=200').then(r => r.json()),
-      fetch('/api/alerts?limit=100').then(r => r.json()),
+      apiFetch('/api/overview').then(r => r.json()),
+      apiFetch('/api/posts?limit=100').then(r => r.json()),
+      apiFetch('/api/metrics?limit=200').then(r => r.json()),
+      apiFetch('/api/alerts?limit=100').then(r => r.json()),
     ]);
+    const allFailed = [ov, po, me, al].every(r => r.status === 'rejected');
+    setFetchError(allFailed);
     if (ov.status === 'fulfilled') setOverview(ov.value);
     if (po.status === 'fulfilled') setPosts(po.value.posts ?? []);
     if (me.status === 'fulfilled') setMetrics(me.value.metrics ?? []);
-    if (al.status === 'fulfilled') {
-      setAlerts(al.value.alerts ?? []);
-    }
-    fetch('/api/credits').then(r => r.json())
+    if (al.status === 'fulfilled') setAlerts(al.value.alerts ?? []);
+    apiFetch('/api/credits').then(r => r.json())
       .then((d: CreditData) => { setCreditWarn(d.warnLow ?? false); })
       .catch(() => {});
     // pending count for approval badge
-    fetch('/api/preview?limit=200').then(r => r.json())
+    apiFetch('/api/preview?limit=200').then(r => r.json())
       .then(d => setPendingCount((d.drafts ?? []).length))
       .catch(() => {});
     setLastUpdated(new Date().toLocaleTimeString('ja-JP'));
@@ -680,6 +695,14 @@ export default function Dashboard() {
             style={{ background: '#1f1f1f' }}>↻</button>
         </div>
       </div>
+
+      {fetchError && (
+        <div className="px-4 py-2 text-xs font-semibold flex items-center gap-2"
+          style={{ background: '#450a0a', borderBottom: '1px solid #7f1d1d', color: '#fca5a5' }}>
+          ✗ データ取得失敗 — APIサーバーに接続できません。ネットワークまたはサーバー状態を確認してください
+          <button onClick={fetchAll} className="ml-2 underline opacity-80 hover:opacity-100">再読み込み</button>
+        </div>
+      )}
 
       {creditWarn && (
         <div className="px-4 py-2 text-xs font-semibold flex items-center gap-2"

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -43,9 +44,9 @@ export default function InstaTab() {
   useEffect(() => {
     const ctrl = new AbortController();
     Promise.all([
-      fetch('/api/sns-metrics?platform=instagram&days=30', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/post-metrics?platform=instagram&limit=300', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/insta-token', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/sns-metrics?platform=instagram&days=30', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/post-metrics?platform=instagram&limit=300', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/insta-token', { signal: ctrl.signal }).then(r => r.json()),
     ]).then(([s, p, t]) => {
       if (ctrl.signal.aborted) return;
       setSns(s.metrics ?? []);
@@ -53,7 +54,8 @@ export default function InstaTab() {
       setTokens(t.tokens ?? []);
       setLoading(false);
     }).catch(e => {
-      if (e.name !== 'AbortError') {
+      const isAbort = e instanceof DOMException && e.name === 'AbortError';
+      if (!isAbort) {
         console.error('[InstaTab]', e);
         setError('データの読み込みに失敗しました');
         setLoading(false);
@@ -66,10 +68,13 @@ export default function InstaTab() {
   useEffect(() => {
     const ctrl = new AbortController();
     const param = acctFilter !== 'all' ? `?account=${encodeURIComponent(acctFilter)}` : '';
-    fetch(`/api/insta/content-type${param}`, { signal: ctrl.signal })
+    apiFetch(`/api/insta/content-type${param}`, { signal: ctrl.signal })
       .then(r => r.json())
       .then(c => { if (!ctrl.signal.aborted) setContentTypes(c.data ?? []); })
-      .catch(e => { if (e.name !== 'AbortError') console.error('[InstaTab/content-type]', e); });
+      .catch(e => {
+        const isAbort = e instanceof DOMException && e.name === 'AbortError';
+        if (!isAbort) console.error('[InstaTab/content-type]', e);
+      });
     return () => ctrl.abort();
   }, [acctFilter]);
 

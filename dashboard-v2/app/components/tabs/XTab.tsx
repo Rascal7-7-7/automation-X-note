@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -45,7 +46,7 @@ function ContentTypeChart({ account }: { account: AcctFilter }) {
     const url = account !== 'all'
       ? `/api/x/content-type?account=${encodeURIComponent(account)}`
       : '/api/x/content-type';
-    fetch(url).then(r => r.json())
+    apiFetch(url).then(r => r.json())
       .then(d => setData((d.data as ContentTypeStat[]) ?? []))
       .catch(e => { console.error('[ContentTypeChart] fetch failed', e); setError(true); });
   }, [account]);
@@ -105,7 +106,7 @@ export default function XTab() {
   const [loading, setLoading]       = useState(true);
 
   const loadPosts = useCallback(() =>
-    fetch('/api/posts?platform=x&limit=30').then(r => r.json())
+    apiFetch('/api/posts?platform=x&limit=30').then(r => r.json())
       .then(d => setXPosts(d.posts ?? []))
       .catch(() => {}),
   []);
@@ -113,9 +114,9 @@ export default function XTab() {
   useEffect(() => {
     const ctrl = new AbortController();
     Promise.all([
-      fetch('/api/sns-metrics?platform=x&days=30', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/post-metrics?platform=x&limit=100', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/posts?platform=x&limit=30', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/sns-metrics?platform=x&days=30', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/post-metrics?platform=x&limit=100', { signal: ctrl.signal }).then(r => r.json()),
+      apiFetch('/api/posts?platform=x&limit=30', { signal: ctrl.signal }).then(r => r.json()),
     ]).then(([s, p, xp]) => {
       if (ctrl.signal.aborted) return;
       setSns(s.metrics ?? []);
@@ -123,7 +124,8 @@ export default function XTab() {
       setXPosts(xp.posts ?? []);
       setLoading(false);
     }).catch(e => {
-      if (e.name !== 'AbortError') {
+      const isAbort = e instanceof DOMException && e.name === 'AbortError';
+      if (!isAbort) {
         console.error('[XTab] initial load failed', e);
         setLoading(false);
       }
@@ -164,7 +166,7 @@ export default function XTab() {
     setRetrying(id);
     setRetryError(null);
     try {
-      const r = await fetch(`/api/posts/${id}/retry`, { method: 'POST' });
+      const r = await apiFetch(`/api/posts/${id}/retry`, { method: 'POST' });
       if (!r.ok) {
         const d = await r.json().catch(() => ({})) as { error?: string };
         setRetryError(d.error ?? `HTTP ${r.status}`);

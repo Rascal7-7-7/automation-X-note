@@ -27,7 +27,8 @@ export async function GET(req: Request) {
 
     const max = cells.reduce((m, c) => Math.max(m, c.value), 0);
     return NextResponse.json({ cells, max });
-  } catch {
-    return NextResponse.json({ cells: [], max: 0 });
+  } catch (err) {
+    console.error('[post-metrics/heatmap]', err);
+    return NextResponse.json({ error: 'database error' }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 
 // ── types ─────────────────────────────────────────────────
 
@@ -189,7 +190,7 @@ export default function PreviewModal({ platform, dryRun = false, onClose }: Prev
   const load = useCallback(async () => {
     setLoading(true);
     const qs  = platform ? `?platform=${encodeURIComponent(platform)}` : '';
-    const res = await fetch(`/api/preview${qs}`).then(r => r.json()).catch(() => ({ drafts: [] }));
+    const res = await apiFetch(`/api/preview${qs}`).then(r => r.json()).catch(() => ({ drafts: [] }));
     setDrafts(res.drafts ?? []);
     setIdx(0);
     setLoading(false);
@@ -210,9 +211,8 @@ export default function PreviewModal({ platform, dryRun = false, onClose }: Prev
     }
 
     setActing(true);
-    const res = await fetch(`/api/posts/${draft.id}`, {
+    const res = await apiFetch(`/api/posts/${draft.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: action }),
     }).then(r => r.json()).catch(() => ({ ok: false }));
 

@@ -97,6 +97,7 @@ export async function POST(req: Request) {
       generatedAt: new Date().toISOString(),
     });
   } catch (err) {
-    return NextResponse.json({ error: 'report generation failed', detail: String(err) }, { status: 503 });
+    console.error('[report/weekly]', err);
+    return NextResponse.json({ error: 'report generation failed' }, { status: 500 });
   }
 }

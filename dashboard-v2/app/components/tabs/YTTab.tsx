@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -89,7 +90,7 @@ export default function YTTab() {
     const ctrl = new AbortController();
 
     const safeFetch = (url: string) =>
-      fetch(url, { signal: ctrl.signal }).then(r => {
+      apiFetch(url, { signal: ctrl.signal }).then(r => {
         if (!r.ok) throw new Error(`${url} ${r.status}`);
         return r.json();
       });

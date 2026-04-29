@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 
 interface DryRunToggleProps {
   onToggle?: (dryRun: boolean) => void;
@@ -11,7 +12,7 @@ export default function DryRunToggle({ onToggle }: DryRunToggleProps) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetch('/api/settings')
+    apiFetch('/api/settings')
       .then(r => r.json())
       .then(d => setDryRun(d.dryRun ?? true))
       .catch(() => setDryRun(true));
@@ -21,9 +22,8 @@ export default function DryRunToggle({ onToggle }: DryRunToggleProps) {
     if (loading || dryRun === null) return;
     setLoading(true);
     const next = !dryRun;
-    const res = await fetch('/api/settings', {
+    const res = await apiFetch('/api/settings', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ dryRun: next }),
     }).then(r => r.json()).catch(() => ({ ok: false }));
 

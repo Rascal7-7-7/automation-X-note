@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { apiFetch } from '@/lib/apiFetch';
 import {
   LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
@@ -68,7 +69,7 @@ export default function GhostTab() {
     const ctrl = new AbortController();
 
     const safeFetch = (url: string) =>
-      fetch(url, { signal: ctrl.signal }).then(r => {
+      apiFetch(url, { signal: ctrl.signal }).then(r => {
         if (!r.ok) throw new Error(`${url} ${r.status}`);
         return r.json();
       });
@@ -85,7 +86,8 @@ export default function GhostTab() {
       else console.error('[GhostTab/campaigns]', gc.status === 'rejected' ? gc.reason : '');
       setLoading(false);
     }).catch(e => {
-      if (e.name !== 'AbortError') {
+      const isAbort = e instanceof DOMException && e.name === 'AbortError';
+      if (!isAbort) {
         console.error('[GhostTab]', e);
         setError('データの読み込みに失敗しました');
         setLoading(false);

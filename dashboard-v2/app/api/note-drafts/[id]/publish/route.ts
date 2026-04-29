@@ -7,10 +7,11 @@ const BRIDGE = process.env.BRIDGE_URL ?? 'http://localhost:3001';
 const DRAFT_ID_RE = /^[\w　-鿿！-￮-]+$/u;
 
 // account → n8n accountId mapping (mirrors note/post.js getAccountPaths)
-function accountToId(account: string): number {
+function accountToId(account: string): number | null {
+  if (account === 'account1') return 1;
   if (account === 'account2') return 2;
   if (account === 'account3') return 3;
-  return 1;
+  return null;
 }
 
 export async function POST(
@@ -29,6 +30,9 @@ export async function POST(
   try { body = await req.json(); } catch { /* no body */ }
 
   const accountId = accountToId(body.account ?? 'account1');
+  if (accountId === null) {
+    return NextResponse.json({ error: `unknown account: ${body.account}` }, { status: 400 });
+  }
 
   try {
     const ctrl = new AbortController();
@@ -50,8 +54,8 @@ export async function POST(
     }
     return NextResponse.json({ ok: true, publishedUrl: data.publishedUrl ?? null });
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    if (msg.includes('aborted') || msg.includes('abort')) {
+    const isAbort = err instanceof DOMException && err.name === 'AbortError';
+    if (isAbort) {
       return NextResponse.json({ error: 'publish timed out (5 min)' }, { status: 504 });
     }
     return NextResponse.json({ error: 'bridge unreachable' }, { status: 503 });
