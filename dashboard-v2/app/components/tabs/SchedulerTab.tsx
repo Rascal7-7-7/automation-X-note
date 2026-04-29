@@ -161,8 +161,10 @@ export default function SchedulerTab() {
   const successRateMap: Record<string, { total: number; success: number }> = {};
   data.executions.forEach(ex => {
     if (!successRateMap[ex.workflowId]) successRateMap[ex.workflowId] = { total: 0, success: 0 };
+    const isTerminal = ex.status !== 'running' && ex.status !== 'waiting';
+    if (!isTerminal) return; // exclude in-progress executions from rate calculation
     successRateMap[ex.workflowId].total++;
-    if (ex.stoppedAt && !isErrorStatus(ex.status)) successRateMap[ex.workflowId].success++;
+    if (!isErrorStatus(ex.status)) successRateMap[ex.workflowId].success++;
   });
 
   if (loading) return <Spinner />;
