@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -269,6 +269,22 @@ function isoWeek(iso: string) {
 
 interface HeatCell { day: number; hour: number; value: number }
 
+const DEFAULT_WEIGHTS = { saves: 3, shares: 2, likes: 1, impressions: 0.1 };
+const BUZZ_LS_KEY = 'buzz-weights-v1';
+const WEIGHT_KEYS: Record<string, keyof typeof DEFAULT_WEIGHTS> = {
+  saves: 'saves', bookmarks: 'saves',
+  shares: 'shares',
+  reactions: 'likes', likes: 'likes',
+  impressions: 'impressions',
+};
+const PLATFORM_COLORS: Record<string, string> = {
+  x: '#3b82f6', twitter: '#3b82f6',
+  note: '#22c55e',
+  instagram: '#ec4899',
+  youtube: '#ef4444',
+  ghost: '#9ca3af',
+};
+
 function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [snsAll, setSnsAll]       = useState<SnsMini[]>([]);
   const [postAll, setPostAll]     = useState<PostMini[]>([]);
@@ -278,6 +294,29 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportMd, setReportMd]       = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
+  const [weights, setWeights] = useState({ ...DEFAULT_WEIGHTS });
+  const weightsMounted = useRef(false);
+
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem(BUZZ_LS_KEY);
+      if (s) {
+        const parsed = JSON.parse(s) as Record<string, unknown>;
+        const safe: Partial<typeof DEFAULT_WEIGHTS> = {};
+        for (const k of Object.keys(DEFAULT_WEIGHTS) as Array<keyof typeof DEFAULT_WEIGHTS>) {
+          const v = parsed[k];
+          if (typeof v === 'number' && isFinite(v) && v >= 0 && v <= 5) safe[k] = v;
+        }
+        setWeights(prev => ({ ...prev, ...safe }));
+      }
+    } catch {}
+    weightsMounted.current = true;
+  }, []);
+
+  useEffect(() => {
+    if (!weightsMounted.current) return;
+    try { localStorage.setItem(BUZZ_LS_KEY, JSON.stringify(weights)); } catch {}
+  }, [weights]);
 
   useEffect(() => {
     const ctrl = new AbortController();
@@ -339,18 +378,21 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       })
     : [];
 
-  // buzz ranking: top posts by summed engagement signals
-  const engScores: Record<string, number> = {};
-  const engMeta: Record<string, { account: string; platform: string }> = {};
-  postAll
-    .filter(m => ['impressions', 'likes', 'saves', 'reactions', 'bookmarks'].includes(m.metric_key))
-    .forEach(m => {
-      engScores[m.post_id] = (engScores[m.post_id] ?? 0) + m.value;
-      engMeta[m.post_id] = { account: m.account ?? '—', platform: m.platform };
-    });
-  const buzzRanking = Object.entries(engScores)
-    .sort(([, a], [, b]) => b - a).slice(0, 10)
-    .map(([post_id, score]) => ({ post_id, score, ...engMeta[post_id] }));
+  // buzz ranking: weighted by user-configurable sliders
+  const buzzRanking = useMemo(() => {
+    const scores: Record<string, number> = {};
+    const meta: Record<string, { account: string; platform: string }> = {};
+    postAll
+      .filter(m => m.metric_key in WEIGHT_KEYS)
+      .forEach(m => {
+        const w = weights[WEIGHT_KEYS[m.metric_key]];
+        scores[m.post_id] = (scores[m.post_id] ?? 0) + m.value * w;
+        meta[m.post_id] = { account: m.account ?? '—', platform: m.platform };
+      });
+    return Object.entries(scores)
+      .sort(([, a], [, b]) => b - a).slice(0, 10)
+      .map(([post_id, score]) => ({ post_id, score: Math.round(score), ...meta[post_id] }));
+  }, [postAll, weights]);
 
   // WoW / MoM follower delta per platform (using 60-day snsAll)
   const NOW_MS = Date.now();
@@ -378,6 +420,45 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       mom: curr != null && w30 ? curr - w30.value : null,
     };
   });
+
+  // 14-day follower trend + avg ER (cross-platform) — memoized to avoid O(n²) pivot on every render
+  const { followerTrend14, pf14, erBarData } = useMemo(() => {
+    const cutoff14 = Date.now() - 14 * 86400000;
+    const follower14 = snsAll.filter(m =>
+      m.metric_key === 'followers' &&
+      new Date(m.recorded_date ?? m.recorded_at).getTime() >= cutoff14,
+    );
+    const dates14 = [...new Set(follower14.map(m => (m.recorded_date ?? m.recorded_at).slice(0, 10)))].sort();
+    const platforms14 = [...new Set(follower14.map(m => m.platform))];
+    const trend14 = dates14.map(date => {
+      const row: Record<string, number | string> = { date: date.slice(5) };
+      platforms14.forEach(pf => {
+        const found = follower14.find(r => (r.recorded_date ?? r.recorded_at).slice(0, 10) === date && r.platform === pf);
+        if (found) row[pf] = found.value;
+      });
+      return row;
+    });
+
+    const cutoff7 = Date.now() - 7 * 86400000;
+    const erMap: Record<string, number[]> = {};
+    snsAll
+      .filter(m =>
+        (m.metric_key === 'engagement_rate' || m.metric_key === 'er') &&
+        new Date(m.recorded_date ?? m.recorded_at).getTime() >= cutoff7,
+      )
+      .forEach(m => {
+        if (!erMap[m.platform]) erMap[m.platform] = [];
+        erMap[m.platform].push(m.value);
+      });
+    const erData = Object.entries(erMap)
+      .map(([platform, vals]) => ({
+        platform,
+        er: parseFloat((vals.reduce((s, v) => s + v, 0) / vals.length).toFixed(2)),
+      }))
+      .sort((a, b) => b.er - a.er);
+
+    return { followerTrend14: trend14, pf14: platforms14, erBarData: erData };
+  }, [snsAll]);
 
   const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
   const heatMap: Record<string, number> = {};
@@ -483,6 +564,103 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
         </Section>
       )}
 
+      {/* ── Cross-platform engagement comparison ────────── */}
+      <Section title="プラットフォーム横断エンゲージメント比較">
+        {/* KPI row: this-week follower gains */}
+        {wowMomBadges.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {wowMomBadges.map(b => {
+              const wow = b.wow;
+              const cls = wow === null ? 'text-neutral-500' : wow > 0 ? 'text-green-400' : wow < 0 ? 'text-red-400' : 'text-neutral-400';
+              const label = wow === null ? '—' : wow >= 0 ? `+${wow.toLocaleString()}` : wow.toLocaleString();
+              const color = PLATFORM_COLORS[b.platform] ?? '#9ca3af';
+              return (
+                <div key={b.platform} className="flex flex-col gap-0.5 px-3 py-1.5 rounded border" style={{ background: '#111', borderColor: color + '44', minWidth: 90 }}>
+                  <span className="text-[10px] font-semibold" style={{ color }}>{b.platform}</span>
+                  <span className={`text-sm font-bold font-mono ${cls}`}>{label}</span>
+                  <span className="text-[9px] text-neutral-500">今週増加</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* 14-day follower trend line chart */}
+        {followerTrend14.length > 1 ? (
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={followerTrend14}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis dataKey="date" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <YAxis tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }} />
+              <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+              {pf14.map(pf => (
+                <Line key={pf} type="monotone" dataKey={pf}
+                  stroke={PLATFORM_COLORS[pf] ?? '#9ca3af'} dot={false} strokeWidth={2} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-xs py-4 text-center text-neutral-500">sns_metrics 14日分蓄積後に表示</p>
+        )}
+
+        {/* Avg ER bar chart */}
+        {erBarData.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[10px] text-neutral-500 mb-1">直近7日 平均エンゲージメント率</p>
+            <ResponsiveContainer width="100%" height={erBarData.length * 32 + 20}>
+              <BarChart data={erBarData} layout="vertical" margin={{ left: 0, right: 16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis type="number" unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis type="category" dataKey="platform" width={72} tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }}
+                  formatter={(v: unknown) => [`${v}%`, 'ER']} />
+                <Bar dataKey="er" radius={[0, 2, 2, 0]}>
+                  {erBarData.map(r => (
+                    <Cell key={r.platform}
+                      fill={(PLATFORM_COLORS[r.platform] ?? '#6b7280') + '66'}
+                      stroke={PLATFORM_COLORS[r.platform] ?? '#6b7280'}
+                      strokeWidth={1} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </Section>
+
+      {/* ── Buzz score weight settings ───────────────────── */}
+      <Section title="バズスコア設定" defaultOpen={false}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-1">
+          {([
+            ['saves',       '保存数の重み'],
+            ['shares',      'シェア数の重み'],
+            ['likes',       'いいね数の重み'],
+            ['impressions', 'インプレッション重み'],
+          ] as const).map(([key, label]) => (
+            <div key={key} className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-neutral-400">{label}</span>
+                <span className="text-[10px] font-mono text-violet-400 w-8 text-right">{weights[key]}</span>
+              </div>
+              <input
+                type="range" min={0} max={5} step={0.1}
+                value={weights[key]}
+                onChange={e => setWeights(w => ({ ...w, [key]: parseFloat(e.target.value) }))}
+                className="w-full accent-violet-500"
+              />
+            </div>
+          ))}
+        </div>
+        <button
+          onClick={() => setWeights({ ...DEFAULT_WEIGHTS })}
+          className="mt-2 text-[10px] text-neutral-500 hover:text-neutral-300 underline"
+        >
+          デフォルトに戻す
+        </button>
+        <p className="text-[10px] text-neutral-600 mt-1">スコア = 保存×{weights.saves} + シェア×{weights.shares} + いいね×{weights.likes} + IMP×{weights.impressions}</p>
+      </Section>
+
       <div className="grid grid-cols-2 gap-4">
         <Section title="週次フォロワー成長率">
           {growthData.length ? (
@@ -501,7 +679,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
           ) : <p className="text-xs py-6 text-center text-neutral-500">sns_metrics 2週分蓄積後に表示</p>}
         </Section>
 
-        <Section title="バズ投稿 Top10（エンゲージメント合計）">
+        <Section title="バズ投稿 Top10（重み付きスコア）">
           {buzzRanking.length ? (
             <div style={{ maxHeight: 200, overflowY: 'auto' }}>
               <table className="w-full border-collapse">
