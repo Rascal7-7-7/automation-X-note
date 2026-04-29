@@ -158,6 +158,13 @@ export default function SchedulerTab() {
   const failed  = data.executions.filter(e => e.status === 'error').length;
   const running = data.executions.filter(e => e.status === 'running').length;
 
+  const successRateMap: Record<string, { total: number; success: number }> = {};
+  data.executions.forEach(ex => {
+    if (!successRateMap[ex.workflowId]) successRateMap[ex.workflowId] = { total: 0, success: 0 };
+    successRateMap[ex.workflowId].total++;
+    if (ex.stoppedAt && !isErrorStatus(ex.status)) successRateMap[ex.workflowId].success++;
+  });
+
   if (loading) return <Spinner />;
 
   return (
@@ -195,6 +202,7 @@ export default function SchedulerTab() {
               <thead><tr>
                 <TH>名前</TH>
                 <TH>状態</TH>
+                <TH>成功率</TH>
                 <TH>次回実行</TH>
                 <TH>更新日時</TH>
                 <TH>操作</TH>
@@ -211,6 +219,15 @@ export default function SchedulerTab() {
                       }`}>
                         {wf.active ? '● ON' : '○ OFF'}
                       </span>
+                    </TD>
+                    <TD className="font-mono text-[11px]">
+                      {(() => {
+                        const sr = successRateMap[wf.id];
+                        if (!sr || sr.total === 0) return <span className="text-neutral-500">—</span>;
+                        const pct = Math.round(sr.success / sr.total * 100);
+                        const cls = pct >= 80 ? 'text-green-400' : pct >= 50 ? 'text-yellow-400' : 'text-red-400';
+                        return <span className={cls}>{pct}%</span>;
+                      })()}
                     </TD>
                     <TD className="font-mono text-[11px]">
                       {wf.nextRun
