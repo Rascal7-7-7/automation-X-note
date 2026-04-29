@@ -151,7 +151,7 @@ function NoteSalesSection() {
 // ── NoteReferrerSection ───────────────────────────────────
 
 function NoteReferrerSection({ pm }: { pm: PostMetric[] }) {
-  const referrerMetrics = pm.filter(m => m.metric_key.startsWith('referrer_'));
+  const referrerMetrics = pm.filter(m => m.metric_key.startsWith('referrer_') && m.snapshot_at === 'total');
 
   if (!referrerMetrics.length) {
     return (
