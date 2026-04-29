@@ -31,7 +31,8 @@ export async function GET(req: Request) {
     safeJson(`${N8N}/api/v1/executions?limit=30`, { headers: n8nHeaders() }),
   ]);
 
-  const n8nAuthError = wf?.status === 401 || wf?.status === 403;
+  const n8nAuthError = wf?.status === 401 || wf?.status === 403
+                    || ex?.status === 401 || ex?.status === 403;
   const wfData = wf?.data as { data?: unknown[] } | null;
   const exData = ex?.data as { data?: unknown[] } | null;
 

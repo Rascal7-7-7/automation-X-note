@@ -59,14 +59,15 @@ export async function GET(req: Request) {
     for (const entry of entries) {
       if (entry.isDirectory()) {
         const acct = entry.name;
+        if (acct.includes('..')) continue;
         try {
           const subFiles = await readdir(join(DRAFTS_DIR, acct));
-          for (const f of subFiles.filter(f => f.endsWith('.json'))) {
+          for (const f of subFiles.filter(f => f.endsWith('.json') && !f.includes('..'))) {
             const d = await readDraft(join(DRAFTS_DIR, acct, f), acct);
             if (d) drafts.push(d);
           }
         } catch { /* skip */ }
-      } else if (entry.name.endsWith('.json')) {
+      } else if (entry.name.endsWith('.json') && !entry.name.includes('..')) {
         const d = await readDraft(join(DRAFTS_DIR, entry.name), 'account1');
         if (d) drafts.push(d);
       }

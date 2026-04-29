@@ -417,7 +417,6 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen]   = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [dryRun, setDryRun]             = useState(true);
-  const [credits, setCredits]           = useState<CreditData | null>(null);
   const [creditWarn, setCreditWarn]     = useState(false);
 
   const fetchAll = useCallback(async () => {
@@ -435,7 +434,6 @@ export default function Dashboard() {
     }
     fetch('/api/credits').then(r => r.json())
       .then((d: CreditData) => {
-        setCredits(d);
         setCreditWarn((d.remaining ?? Infinity) < 1000);
       })
       .catch(() => {});
