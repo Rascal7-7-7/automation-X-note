@@ -26,6 +26,21 @@ interface PipelineData {
   byStatus: Record<string, number>;
 }
 
+interface VideoStat {
+  post_id: string;
+  account: string | null;
+  title: string;
+  thumbnail_url: string | null;
+  ctr: number | null;
+  impressions: number | null;
+  clicks: number | null;
+  views: number | null;
+  likes: number | null;
+  comments: number | null;
+  duration_sec: number | null;
+  video_type: 'ショート' | '長尺';
+}
+
 function pipelineCls(s: string) {
   if (s === 'done' || s === 'success') return 'bg-green-950 text-green-400 border-green-800';
   if (s === 'failed' || s === 'error') return 'bg-red-950 text-red-400 border-red-800';
@@ -34,25 +49,65 @@ function pipelineCls(s: string) {
   return 'bg-neutral-800 text-neutral-400 border-neutral-600';
 }
 
+// YouTube video IDs are exactly 11 chars [A-Za-z0-9_-]
+const YT_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+
+function resolveThumbnail(post_id: string, stored: string | null): string | null {
+  if (stored) return stored;
+  if (YT_ID_RE.test(post_id)) return `https://i.ytimg.com/vi/${post_id}/hqdefault.jpg`;
+  return null;
+}
+
+function CtrBadge({ ctr }: { ctr: number | null }) {
+  if (ctr === null) return <span className="text-neutral-500">—</span>;
+  const cls = ctr >= 5
+    ? 'bg-green-900 text-green-400 border-green-700'
+    : ctr >= 3
+      ? 'bg-amber-900 text-amber-400 border-amber-700'
+      : 'bg-red-900 text-red-400 border-red-700';
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] border font-mono ${cls}`}>
+      {ctr.toFixed(1)}%
+    </span>
+  );
+}
+
+function avgOf(nums: (number | null)[]): number {
+  const valid = nums.filter((x): x is number => x !== null);
+  return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+}
+
 export default function YTTab() {
   const [sns, setSns]           = useState<SnsMetric[]>([]);
   const [pm, setPm]             = useState<PostMetric[]>([]);
   const [pipeline, setPipeline] = useState<PipelineData>({ pipeline: [], byStatus: {} });
+  const [videos, setVideos]     = useState<VideoStat[]>([]);
   const [loading, setLoading]   = useState(true);
+  const [error, setError]       = useState<string | null>(null);
 
   useEffect(() => {
     const ctrl = new AbortController();
-    Promise.all([
-      fetch('/api/sns-metrics?platform=youtube&days=30', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/post-metrics?platform=youtube&limit=300', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/yt-pipeline', { signal: ctrl.signal }).then(r => r.json()),
-    ]).then(([s, p, pl]) => {
+
+    const safeFetch = (url: string) =>
+      fetch(url, { signal: ctrl.signal }).then(r => {
+        if (!r.ok) throw new Error(`${url} ${r.status}`);
+        return r.json();
+      });
+
+    Promise.allSettled([
+      safeFetch('/api/sns-metrics?platform=youtube&days=30'),
+      safeFetch('/api/post-metrics?platform=youtube&limit=300'),
+      safeFetch('/api/yt-pipeline'),
+      safeFetch('/api/yt/video-stats'),
+    ]).then(([s, p, pl, v]) => {
       if (ctrl.signal.aborted) return;
-      setSns(s.metrics ?? []);
-      setPm(p.metrics ?? []);
-      setPipeline(pl);
+      if (s.status  === 'fulfilled') setSns(s.value.metrics ?? []);
+      if (p.status  === 'fulfilled') setPm(p.value.metrics ?? []);
+      if (pl.status === 'fulfilled') setPipeline(pl.value);
+      if (v.status  === 'fulfilled') setVideos(v.value.videos ?? []);
+      else console.error('[YTTab/video-stats]', v.status === 'rejected' ? v.reason : '');
       setLoading(false);
-    }).catch(e => { if (e.name !== 'AbortError') setLoading(false); });
+    });
     return () => ctrl.abort();
   }, []);
 
@@ -90,6 +145,35 @@ export default function YTTab() {
 
   const failedItems = pipeline.pipeline.filter(p => p.status === 'failed' || p.status === 'error');
 
+  // CTR ranking — sorted desc, top 10
+  const ctrRanking = videos
+    .filter(v => v.ctr !== null)
+    .slice()
+    .sort((a, b) => (b.ctr ?? 0) - (a.ctr ?? 0))
+    .slice(0, 10);
+
+  // Short vs Long comparison
+  const VIDEO_TYPES = ['ショート', '長尺'] as const;
+  const typeStats = VIDEO_TYPES.map(type => {
+    const vids = videos.filter(v => v.video_type === type);
+    return {
+      type,
+      count:         vids.length,
+      avg_views:     avgOf(vids.map(v => v.views)),
+      avg_ctr:       avgOf(vids.map(v => v.ctr)),
+      avg_like_rate: avgOf(vids.map(v =>
+        v.views && v.views > 0 && v.likes !== null ? (v.likes / v.views) * 100 : null,
+      )),
+      avg_comments:  avgOf(vids.map(v => v.comments)),
+    };
+  });
+  const typeCompBarData = typeStats.map(t => ({
+    name:     t.type,
+    平均視聴回数: Math.round(t.avg_views),
+    平均CTR:   parseFloat(t.avg_ctr.toFixed(2)),
+  }));
+
+  if (error) return <EmptyState msg={error} />;
   if (loading) return <EmptyState msg="読み込み中..." />;
 
   return (
@@ -109,6 +193,102 @@ export default function YTTab() {
         [pipeline.byStatus.rendering ?? 0, 'レンダリング中', (pipeline.byStatus.rendering ?? 0) > 0 ? 'text-blue-400' : ''],
         [pipeline.byStatus.failed ?? 0, 'パイプライン失敗', (pipeline.byStatus.failed ?? 0) > 0 ? 'text-red-400' : ''],
       ]} />
+
+      <Section title="サムネイル別CTRランキング TOP10">
+        {ctrRanking.length ? (
+          <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH>#</TH>
+                <TH>サムネイル</TH>
+                <TH>タイトル</TH>
+                <TH>CTR</TH>
+                <TH>インプレッション</TH>
+                <TH>クリック数</TH>
+              </tr></thead>
+              <tbody>
+                {ctrRanking.map((v, i) => {
+                  const thumb = resolveThumbnail(v.post_id, v.thumbnail_url);
+                  return (
+                    <tr key={v.post_id} className="hover:bg-neutral-800/30">
+                      <TD className="text-neutral-500 w-6">{i + 1}</TD>
+                      <TD className="w-12">
+                        {thumb ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={thumb}
+                            alt=""
+                            width={40}
+                            height={40}
+                            className="rounded object-cover"
+                            onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded bg-neutral-700" />
+                        )}
+                      </TD>
+                      <TD className="max-w-[200px] truncate text-xs">{v.title}</TD>
+                      <TD><CtrBadge ctr={v.ctr} /></TD>
+                      <TD className="text-xs">{v.impressions?.toLocaleString() ?? '—'}</TD>
+                      <TD className="text-xs">{v.clicks?.toLocaleString() ?? '—'}</TD>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        ) : <EmptyState />}
+      </Section>
+
+      <Section title="ショート vs 長尺 パフォーマンス比較">
+        {videos.length ? (
+          <>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {typeStats.map(t => (
+                <div key={t.type} className="rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+                  <div className="text-sm font-semibold text-neutral-200 mb-3">
+                    {t.type === 'ショート' ? '⚡ ショート' : '🎬 長尺'}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <div className="text-neutral-500">本数</div>
+                      <div className="text-neutral-100 font-medium">{t.count}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均視聴回数</div>
+                      <div className="text-neutral-100 font-medium">{Math.round(t.avg_views).toLocaleString()}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均CTR</div>
+                      <div className="text-blue-400 font-bold">{t.avg_ctr.toFixed(2)}%</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均高評価率</div>
+                      <div className="text-green-400 font-medium">{t.avg_like_rate.toFixed(2)}%</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均コメント数</div>
+                      <div className="text-neutral-100 font-medium">{t.avg_comments.toFixed(1)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={typeCompBarData} barGap={8}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="left" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+                <Bar yAxisId="left" dataKey="平均視聴回数" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
+                <Bar yAxisId="right" dataKey="平均CTR" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} unit="%" />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        ) : <EmptyState />}
+      </Section>
 
       <Section title="パイプライン進捗（直近30件）">
         {pipeline.pipeline.length ? (
