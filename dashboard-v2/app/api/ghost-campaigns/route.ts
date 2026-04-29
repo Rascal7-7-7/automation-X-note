@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
+import { readFile, stat } from 'fs/promises';
+import { join, resolve } from 'path';
 import { checkAuth } from '@/lib/auth';
 
 interface Campaign {
@@ -24,8 +24,14 @@ export async function GET(req: Request) {
   const ROOT = process.env.AUTOMATION_ROOT;
   if (!ROOT) return NextResponse.json({ error: 'AUTOMATION_ROOT not set' }, { status: 503 });
 
+  const safeBase = resolve(ROOT);
+  const filePath = resolve(join(ROOT, 'ghost', 'asp-campaigns.json'));
+  if (!filePath.startsWith(safeBase + '/')) {
+    return NextResponse.json({ error: 'invalid path' }, { status: 500 });
+  }
+
   try {
-    const raw = await readFile(join(ROOT, 'ghost', 'asp-campaigns.json'), 'utf-8');
+    const raw = await readFile(filePath, 'utf-8');
     const parsed = JSON.parse(raw) as unknown;
     const rawArr = Array.isArray(parsed)
       ? parsed
@@ -67,8 +73,12 @@ export async function GET(req: Request) {
         cvr,
       };
     });
-    return NextResponse.json({ campaigns });
+    const fileStat = await stat(filePath).catch(() => null);
+    const last_sync       = fileStat ? fileStat.mtime.toISOString() : null;
+    const waiting_url_count = campaigns.filter(c => !c.affiliateUrl).length;
+
+    return NextResponse.json({ campaigns, waiting_url_count, last_sync });
   } catch {
-    return NextResponse.json({ campaigns: [] });
+    return NextResponse.json({ campaigns: [], waiting_url_count: 0, last_sync: null });
   }
 }

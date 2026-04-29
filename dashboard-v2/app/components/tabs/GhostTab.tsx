@@ -15,6 +15,30 @@ import {
 
 const PIE_COLORS = ['#7c6ff7', '#22c55e', '#f59e0b', '#3b82f6', '#ef4444'];
 
+interface GhostIdea {
+  id: string;
+  theme: string;
+  keywords: string[];
+  status: 'pending' | 'generated' | 'posted';
+  createdAt: string;
+}
+
+interface QueueStats { pending: number; generated: number; posted: number; total: number; }
+interface QueueData  { ideas: GhostIdea[]; stats: QueueStats; }
+
+function IdeaStatusBadge({ status }: { status: GhostIdea['status'] }) {
+  const cfg = status === 'posted'
+    ? { label: '投稿済み', cls: 'bg-green-900 text-green-400 border-green-700' }
+    : status === 'generated'
+    ? { label: '生成済み', cls: 'bg-amber-900 text-amber-400 border-amber-700' }
+    : { label: '生成待ち', cls: 'bg-blue-900 text-blue-400 border-blue-700' };
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] border font-mono ${cfg.cls}`}>
+      {cfg.label}
+    </span>
+  );
+}
+
 interface Campaign {
   id: string;
   name: string;
@@ -61,10 +85,15 @@ const PV_KEYS        = new Set(['pv', 'pageviews']);
 export default function GhostTab() {
   const [sns, setSns]               = useState<SnsMetric[]>([]);
   const [pm, setPm]                 = useState<PostMetric[]>([]);
-  const [campaigns, setCampaigns]   = useState<Campaign[]>([]);
-  const [loading, setLoading]       = useState(true);
-  const [error, setError]           = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const [campaigns, setCampaigns]       = useState<Campaign[]>([]);
+  const [queue, setQueue]               = useState<QueueData>({ ideas: [], stats: { pending: 0, generated: 0, posted: 0, total: 0 } });
+  const [lastSync, setLastSync]         = useState<string | null>(null);
+  const [waitingUrlCount, setWaitingUrlCount] = useState(0);
+  const [syncing, setSyncing]           = useState(false);
+  const [bridgeDown, setBridgeDown]     = useState(false);
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState<string | null>(null);
+  const [retryCount, setRetryCount]     = useState(0);
 
   useEffect(() => {
     setLoading(true);
@@ -81,17 +110,22 @@ export default function GhostTab() {
       safeFetch('/api/sns-metrics?platform=ghost&days=30'),
       safeFetch('/api/post-metrics?platform=ghost&limit=300'),
       safeFetch('/api/ghost-campaigns'),
-    ]).then(([s, p, gc]) => {
+      safeFetch('/api/ghost-queue'),
+    ]).then(([s, p, gc, gq]) => {
       if (ctrl.signal.aborted) return;
-      if ([s, p, gc].every(r => r.status === 'rejected')) {
+      if ([s, p, gc, gq].every(r => r.status === 'rejected')) {
         setError('データの読み込みに失敗しました');
         setLoading(false);
         return;
       }
       if (s.status  === 'fulfilled') setSns(s.value.metrics ?? []);
       if (p.status  === 'fulfilled') setPm(p.value.metrics ?? []);
-      if (gc.status === 'fulfilled') setCampaigns(gc.value.campaigns ?? []);
-      else console.error('[GhostTab/campaigns]', gc.status === 'rejected' ? gc.reason : '');
+      if (gc.status === 'fulfilled') {
+        setCampaigns(gc.value.campaigns ?? []);
+        setLastSync(gc.value.last_sync ?? null);
+        setWaitingUrlCount(gc.value.waiting_url_count ?? 0);
+      }
+      if (gq.status === 'fulfilled') setQueue(gq.value);
       setLoading(false);
     });
     return () => ctrl.abort();
@@ -141,6 +175,20 @@ export default function GhostTab() {
     .sort((a, b) => b.ctr - a.ctr)
     .slice(0, 15);
 
+  const handleSync = async () => {
+    setSyncing(true);
+    setBridgeDown(false);
+    try {
+      const r = await apiFetch('/api/ghost-campaigns/sync', { method: 'POST' });
+      if (r.status === 503) { setBridgeDown(true); return; }
+      if (r.ok) setRetryCount(c => c + 1);
+    } catch {
+      setBridgeDown(true);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   if (error) return (
     <div className="flex flex-col items-center py-8 gap-3">
       <p className="text-xs text-red-400">{error}</p>
@@ -167,6 +215,29 @@ export default function GhostTab() {
       <Section title="ASP承認ステータス">
         {campaigns.length ? (
           <>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-3">
+                {lastSync && (
+                  <span className="text-[10px] text-neutral-500">最終同期: {fmtTs(lastSync)}</span>
+                )}
+                {(waitingUrlCount > 0 || unsetCount > 0) && (
+                  <span className="px-1.5 py-0.5 rounded text-[10px] border bg-red-900 text-red-400 border-red-700">
+                    URL未設定: {waitingUrlCount || unsetCount}件
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={handleSync}
+                disabled={syncing || bridgeDown}
+                title={bridgeDown ? 'Bridge停止中' : undefined}
+                className="px-2.5 py-1 text-xs rounded border border-neutral-700 bg-neutral-800 text-neutral-300 hover:bg-neutral-700 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {syncing ? '同期中…' : '同期'}
+              </button>
+            </div>
+            {bridgeDown && (
+              <p className="text-[10px] text-red-400 mb-2">Bridge停止中 — 同期できません</p>
+            )}
             {unsetCount > 0 && (
               <div className="mb-3 px-3 py-2 rounded border border-red-800 bg-red-950/30 inline-flex items-center gap-2">
                 <span className="text-red-400 text-xs font-bold">⚠ {unsetCount}件 URL未設定</span>
@@ -221,6 +292,40 @@ export default function GhostTab() {
             </div>
           </>
         ) : <EmptyState msg="案件データなし" />}
+      </Section>
+
+      {/* 記事投稿キュー */}
+      <Section title="記事投稿キュー（ideas.jsonl）">
+        <div className="flex gap-4 mb-3">
+          <span className="text-xs text-blue-400">生成待ち: <b>{queue.stats.pending}</b>件</span>
+          <span className="text-xs text-amber-400">生成済み: <b>{queue.stats.generated}</b>件</span>
+          <span className="text-xs text-green-400">投稿済み: <b>{queue.stats.posted}</b>件</span>
+        </div>
+        {queue.ideas.length ? (
+          <div style={{ maxHeight: 300, overflowY: 'auto' }}>
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH>テーマ</TH>
+                <TH>キーワード</TH>
+                <TH>ステータス</TH>
+                <TH>作成日</TH>
+              </tr></thead>
+              <tbody>
+                {queue.ideas.map(idea => (
+                  <tr
+                    key={idea.id}
+                    className={`hover:bg-neutral-800/30 ${idea.status === 'posted' ? 'opacity-40' : ''}`}
+                  >
+                    <TD className="max-w-[200px] truncate text-xs">{idea.theme}</TD>
+                    <TD className="text-xs">{idea.keywords.slice(0, 3).join(', ') || '—'}</TD>
+                    <TD><IdeaStatusBadge status={idea.status} /></TD>
+                    <TD>{fmtTs(idea.createdAt)}</TD>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <EmptyState msg="キューデータなし（AUTOMATION_ROOT未設定の可能性）" />}
       </Section>
 
       {/* アフィリリンククリック率 */}
