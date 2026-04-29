@@ -58,6 +58,14 @@ type Tab = typeof TABS[number];
 const TAB_TO_PLATFORM: Partial<Record<Tab, string>> = {
   X: 'x', note: 'note', Instagram: 'instagram', YouTube: 'youtube', Ghost: 'ghost',
 };
+
+const TAB_TRIGGER: Partial<Record<Tab, { label: string; bridgePath: string }>> = {
+  X:         { label: '今すぐ投稿',   bridgePath: '/api/x/process' },
+  note:      { label: '今すぐ生成',   bridgePath: '/api/note/generate' },
+  Instagram: { label: '今すぐ生成',   bridgePath: '/api/instagram/generate' },
+  Ghost:     { label: '今すぐ生成',   bridgePath: '/api/ghost/generate' },
+  YouTube:   { label: '今すぐ生成',   bridgePath: '/api/youtube/generate' },
+};
 const PIE_COLORS = ['#22c55e','#f59e0b','#7c6ff7','#ef4444','#3b82f6'];
 const CHART_STYLE = { fontSize: 11 };
 
@@ -930,6 +938,7 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen]       = useState(false);
   const [pendingCount, setPendingCount]     = useState(0);
   const [pendingByPf, setPendingByPf]       = useState<Record<string, number>>({});
+  const [triggerState, setTriggerState]     = useState<Record<string, 'idle'|'running'|'ok'|'error'>>({});
   const [dryRun, setDryRun]             = useState(true);
   const [creditWarn, setCreditWarn]     = useState(false);
   const [fetchError, setFetchError]     = useState(false);
@@ -961,12 +970,32 @@ export default function Dashboard() {
         const drafts: Array<{ platform: string }> = d.drafts ?? [];
         setPendingCount(drafts.length);
         const byPf: Record<string, number> = {};
-        drafts.forEach(dr => { byPf[dr.platform] = (byPf[dr.platform] ?? 0) + 1; });
+        drafts.forEach(dr => {
+          if (typeof dr.platform === 'string' && dr.platform) {
+            byPf[dr.platform] = (byPf[dr.platform] ?? 0) + 1;
+          }
+        });
         setPendingByPf(byPf);
       })
       .catch(() => {});
     setLastUpdated(new Date().toLocaleTimeString('ja-JP'));
     setLoading(false);
+  }, []);
+
+  const triggerAction = useCallback(async (tabName: Tab, bridgePath: string) => {
+    setTriggerState(prev => ({ ...prev, [tabName]: 'running' }));
+    try {
+      const r = await apiFetch('/api/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bridgePath }),
+      });
+      const next = r.ok ? 'ok' : 'error';
+      setTriggerState(prev => ({ ...prev, [tabName]: next }));
+    } catch {
+      setTriggerState(prev => ({ ...prev, [tabName]: 'error' }));
+    }
+    setTimeout(() => setTriggerState(prev => ({ ...prev, [tabName]: 'idle' })), 3000);
   }, []);
 
   useEffect(() => {
@@ -1082,6 +1111,28 @@ export default function Dashboard() {
               <button onClick={() => setPreviewOpen(true)}
                 className="text-xs px-3 py-1 rounded bg-violet-800 text-violet-100 hover:bg-violet-700 transition-colors">
                 確認・承認する
+              </button>
+            </div>
+          );
+        })()}
+        {(() => {
+          const trigger = TAB_TRIGGER[tab];
+          if (!trigger) return null;
+          const ts = triggerState[tab] ?? 'idle';
+          const label = ts === 'running' ? '実行中...'
+                      : ts === 'ok'      ? '✓ 完了'
+                      : ts === 'error'   ? '✗ エラー'
+                      : trigger.label;
+          const cls = ts === 'ok'    ? 'bg-green-800 text-green-100'
+                    : ts === 'error' ? 'bg-red-800 text-red-100'
+                    : 'bg-neutral-700 text-neutral-100 hover:bg-neutral-600';
+          return (
+            <div className="mb-4 flex justify-end">
+              <button
+                onClick={() => triggerAction(tab, trigger.bridgePath)}
+                disabled={ts === 'running'}
+                className={`text-xs px-3 py-1.5 rounded transition-colors disabled:opacity-50 ${cls}`}>
+                {label}
               </button>
             </div>
           );
