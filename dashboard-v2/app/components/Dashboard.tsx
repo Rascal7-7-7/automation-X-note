@@ -1059,8 +1059,10 @@ export default function Dashboard() {
               style={tab === t ? { borderBottom: '2px solid #7c6ff7' } : {}}>
               {t}
               {pendCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white leading-none">
-                  {pendCount}
+                <span
+                  aria-label={`承認待ち ${pendCount}件`}
+                  className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white leading-none">
+                  {pendCount > 99 ? '99+' : pendCount}
                 </span>
               )}
             </button>
