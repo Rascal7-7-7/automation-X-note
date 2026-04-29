@@ -227,6 +227,8 @@ export default function NoteTab() {
   const [draftStats, setDraftStats] = useState<DraftStats>({ total: 0, noCover: 0, published: 0, draft: 0 });
   const [curatorHistory, setCuratorHistory] = useState<CuratorEntry[]>([]);
   const [loading, setLoading]       = useState(true);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<{ month: string; revenue: number }[]>([]);
+  const [curatorImpact, setCuratorImpact]   = useState<Array<CuratorEntry & { pvBefore: number | null; pvAfter: number | null; pvGrowthPct: number | null }>>([]);
 
   // publish flow state
   const [confirmDraft, setConfirmDraft]   = useState<Draft | null>(null);
@@ -236,6 +238,11 @@ export default function NoteTab() {
 
   useEffect(() => {
     const ctrl = new AbortController();
+    apiFetch('/api/note/monthly-revenue', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (Array.isArray(d.series)) setMonthlyRevenue(d.series); }).catch(() => {});
+    apiFetch('/api/note/curator-pv-impact', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (Array.isArray(d.entries)) setCuratorImpact(d.entries); }).catch(() => {});
+
     Promise.all([
       apiFetch('/api/sns-metrics?platform=note&days=30', { signal: ctrl.signal }).then(r => r.json()),
       apiFetch('/api/post-metrics?platform=note&limit=200', { signal: ctrl.signal }).then(r => r.json()),
@@ -550,6 +557,56 @@ export default function NoteTab() {
       {/* ── Referrer breakdown ────────────────────────── */}
       <Section title="記事別流入元">
         <NoteReferrerSection pm={pm} />
+      </Section>
+
+      {/* ── P2: Monthly revenue trend ─────────────────── */}
+      <Section title="月次収益トレンド（有料記事）">
+        {monthlyRevenue.length ? (
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={monthlyRevenue} margin={{ left: 0, right: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis dataKey="month" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <YAxis tick={{ ...CHART_STYLE, fill: '#6b7280' }} unit="¥" />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: unknown) => [`¥${Number(v).toLocaleString()}`, '収益']} />
+              <Bar dataKey="revenue" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} radius={[2, 2, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-xs py-6 text-center text-neutral-500">有料記事の売上発生後に自動表示（price &gt; 0 かつ revenue &gt; 0 のドラフトから集計）</p>
+        )}
+      </Section>
+
+      {/* ── P2: Curator PV impact ─────────────────────── */}
+      <Section title="編集部おすすめ PV影響（±7日平均）">
+        {curatorImpact.length ? (
+          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH>日付</TH><TH>キュレーター</TH><TH>記事タイトル</TH>
+                <TH>前7日PV</TH><TH>後7日PV</TH><TH>変化率</TH>
+              </tr></thead>
+              <tbody>{curatorImpact.map((h, i) => {
+                const pct = h.pvGrowthPct;
+                const pctCls = pct == null ? 'text-neutral-500'
+                  : pct >= 0 ? 'text-green-400' : 'text-red-400';
+                return (
+                  <tr key={i} className="hover:bg-neutral-800/30">
+                    <TD className="font-mono text-[11px]">{h.date}</TD>
+                    <TD className="text-violet-300 font-semibold">{h.curator}</TD>
+                    <TD className="max-w-[180px] truncate text-[11px]">{h.articleTitle}</TD>
+                    <TD className="font-mono">{h.pvBefore != null ? h.pvBefore.toLocaleString() : '—'}</TD>
+                    <TD className="font-mono">{h.pvAfter  != null ? h.pvAfter.toLocaleString()  : '—'}</TD>
+                    <TD className={`font-bold ${pctCls}`}>
+                      {pct != null ? `${pct >= 0 ? '+' : ''}${pct}%` : '—'}
+                    </TD>
+                  </tr>
+                );
+              })}</tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-xs py-6 text-center text-neutral-500">curator-history.json に記録後に表示</p>
+        )}
       </Section>
 
       {/* ── Publish confirm modal ─────────────────────── */}
