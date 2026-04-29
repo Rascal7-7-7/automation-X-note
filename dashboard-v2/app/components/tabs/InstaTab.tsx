@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  Section, KpiGrid, EmptyState,
+  Section, KpiGrid, EmptyState, TH, TD,
   SnsMetric, PostMetric,
   pivotByAccount, latestByAccount,
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
@@ -29,6 +29,148 @@ interface ContentTypeStat {
   avg_reach: number | null;
   avg_saves: number | null;
   avg_save_rate: number | null;
+}
+
+// ── InstaHeatmap ──────────────────────────────────────────
+
+const INSTA_DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const INSTA_DAY_ORDER  = [1, 2, 3, 4, 5, 6, 0]; // Mon→Sun
+
+interface HeatmapCell { day: number; hour: number; value: number; }
+
+function InstaHeatmap({ account }: { account: AcctFilter }) {
+  const [cells, setCells] = useState<HeatmapCell[]>([]);
+  const [max, setMax]     = useState(1);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+    const params = new URLSearchParams({ platform: 'instagram' });
+    if (account !== 'all') params.set('account', account);
+    apiFetch(`/api/post-metrics/heatmap?${params}`)
+      .then(r => r.json())
+      .then((d: { cells?: HeatmapCell[]; max?: number }) => {
+        setCells(d.cells ?? []);
+        setMax(d.max || 1);
+      })
+      .catch(() => setError(true));
+  }, [account]);
+
+  if (error) return <EmptyState msg="ヒートマップデータ取得失敗" />;
+
+  const lookup = new Map<string, number>();
+  cells.forEach(c => lookup.set(`${c.day}_${c.hour}`, c.value));
+  const top3 = [...cells].sort((a, b) => b.value - a.value).slice(0, 3);
+
+  return (
+    <>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto repeat(24, 1fr)', gap: 2, minWidth: 580 }}>
+          <div />
+          {Array.from({ length: 24 }, (_, h) => (
+            <div key={h} style={{ textAlign: 'center', fontSize: 9, color: '#6b7280', lineHeight: 1.2 }}>
+              {h % 6 === 0 ? h : ''}
+            </div>
+          ))}
+          {INSTA_DAY_ORDER.map(day => (
+            <Fragment key={day}>
+              <div style={{ fontSize: 10, color: '#9ca3af', paddingRight: 6, display: 'flex', alignItems: 'center' }}>
+                {INSTA_DAY_LABELS[day]}
+              </div>
+              {Array.from({ length: 24 }, (_, hour) => {
+                const val       = lookup.get(`${day}_${hour}`) ?? 0;
+                const intensity = max > 0 ? val / max : 0;
+                return (
+                  <div
+                    key={hour}
+                    title={`${INSTA_DAY_LABELS[day]}曜 ${hour}時: ${val.toLocaleString()}`}
+                    style={{
+                      height: 18,
+                      borderRadius: 2,
+                      backgroundColor: intensity > 0
+                        ? `rgba(244,63,94,${Math.max(0.12, intensity)})`
+                        : '#1a1a1a',
+                    }}
+                  />
+                );
+              })}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      {top3.length > 0 ? (
+        <p className="mt-2 text-[11px] text-neutral-300">
+          🏆 {top3.map(c => `${INSTA_DAY_LABELS[c.day]}曜 ${c.hour}時`).join('、')}
+        </p>
+      ) : (
+        <EmptyState msg="post_metrics データが溜まると表示されます" />
+      )}
+    </>
+  );
+}
+
+// ── InstaHashtagChart ─────────────────────────────────────
+
+interface InstaHashtagStat {
+  hashtag:       string;
+  post_count:    number;
+  avg_reach:     number | null;
+  avg_saves:     number | null;
+  avg_save_rate: number | null;
+}
+
+function InstaHashtagChart({ account }: { account: AcctFilter }) {
+  const [data, setData]   = useState<InstaHashtagStat[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+    const param = account !== 'all' ? `?account=${encodeURIComponent(account)}` : '';
+    apiFetch(`/api/instagram/hashtags${param}`)
+      .then(r => r.json())
+      .then((d: { data?: InstaHashtagStat[] }) => setData(d.data ?? []))
+      .catch(() => setError(true));
+  }, [account]);
+
+  if (error) return <EmptyState msg="ハッシュタグデータ取得失敗" />;
+  if (!data.length) return <EmptyState msg="ハッシュタグ付き投稿がありません（データ蓄積後に表示）" />;
+
+  const chartData = data.map(d => ({
+    name:       d.hashtag,
+    '保存率(%)': d.avg_save_rate ?? 0,
+  }));
+
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 26)}>
+        <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+          <XAxis type="number" unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+          <YAxis type="category" dataKey="name" tick={{ ...CHART_STYLE, fill: '#9ca3af' }} width={90} />
+          <Tooltip {...TOOLTIP_STYLE} />
+          <Bar dataKey="保存率(%)" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} radius={[0, 2, 2, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="mt-3 overflow-x-auto">
+        <table className="w-full border-collapse">
+          <thead><tr>
+            <TH>タグ</TH><TH>投稿数</TH><TH>平均リーチ</TH><TH>平均保存数</TH><TH>保存率</TH>
+          </tr></thead>
+          <tbody>{data.map((d, i) => (
+            <tr key={i} className="hover:bg-neutral-800/30">
+              <TD className="font-mono text-fuchsia-400">{d.hashtag}</TD>
+              <TD>{d.post_count}</TD>
+              <TD>{d.avg_reach?.toLocaleString() ?? '—'}</TD>
+              <TD>{d.avg_saves?.toFixed(1) ?? '—'}</TD>
+              <TD className="font-bold text-green-400">
+                {d.avg_save_rate != null ? `${d.avg_save_rate.toFixed(2)}%` : '—'}
+              </TD>
+            </tr>
+          ))}</tbody>
+        </table>
+      </div>
+    </>
+  );
 }
 
 export default function InstaTab() {
@@ -285,6 +427,16 @@ export default function InstaTab() {
             </BarChart>
           </ResponsiveContainer>
         ) : <EmptyState />}
+      </Section>
+
+      {/* ── Heatmap ────────────────────────────────────── */}
+      <Section title="最適投稿時間帯ヒートマップ（Instagram · 直近90日）">
+        <InstaHeatmap account={acctFilter} />
+      </Section>
+
+      {/* ── Hashtag engagement ─────────────────────────── */}
+      <Section title="ハッシュタグ別エンゲージメント（保存率順 Top10）">
+        <InstaHashtagChart account={acctFilter} />
       </Section>
     </>
   );
