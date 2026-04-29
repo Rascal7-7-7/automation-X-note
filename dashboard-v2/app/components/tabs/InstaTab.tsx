@@ -23,6 +23,14 @@ interface TokenInfo {
   status: 'ok' | 'warn' | 'expired' | 'unknown';
 }
 
+interface BuzzTypeStat {
+  buzz_type: string;
+  post_count: number;
+  avg_reach: number | null;
+  avg_saves: number | null;
+  save_rate_pct: number | null;
+}
+
 interface ContentTypeStat {
   content_type: string;
   post_count: number;
@@ -178,6 +186,7 @@ export default function InstaTab() {
   const [pm, setPm]                     = useState<PostMetric[]>([]);
   const [tokens, setTokens]             = useState<TokenInfo[]>([]);
   const [contentTypes, setContentTypes] = useState<ContentTypeStat[]>([]);
+  const [buzzTypes, setBuzzTypes]       = useState<BuzzTypeStat[]>([]);
   const [acctFilter, setAcctFilter]     = useState<AcctFilter>('all');
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
@@ -217,6 +226,9 @@ export default function InstaTab() {
         const isAbort = e instanceof DOMException && e.name === 'AbortError';
         if (!isAbort) console.error('[InstaTab/content-type]', e);
       });
+    apiFetch(`/api/instagram/buzz-type${param}`, { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (!ctrl.signal.aborted && Array.isArray(d.data)) setBuzzTypes(d.data); })
+      .catch(() => {});
     return () => ctrl.abort();
   }, [acctFilter]);
 
@@ -250,6 +262,29 @@ export default function InstaTab() {
     保存率: c.avg_save_rate ?? 0,
     平均リーチ: c.avg_reach ?? 0,
   }));
+
+  const FOLLOWER_WEEK_GOAL = 200;
+  const SAVE_RATE_GOAL     = 8.0;
+
+  const buzzTypeBarData = buzzTypes.map(b => ({
+    name:       b.buzz_type,
+    平均リーチ:  b.avg_reach    ?? 0,
+    平均保存数:  b.avg_saves    ?? 0,
+    '保存率(%)': b.save_rate_pct ?? 0,
+  }));
+
+  const weeklyFollowerGain = (() => {
+    if (followerData.length < 2) return null;
+    const last  = followerData[followerData.length - 1] as Record<string, unknown>;
+    const prev  = (followerData.length >= 8 ? followerData[followerData.length - 8] : followerData[0]) as Record<string, unknown>;
+    const lastSum = accounts.reduce((s, a) => s + (Number(last[a]) || 0), 0);
+    const prevSum = accounts.reduce((s, a) => s + (Number(prev[a]) || 0), 0);
+    return lastSum - prevSum;
+  })();
+
+  const weekAvgSaveRate = saveRates.length > 0
+    ? parseFloat((saveRates.reduce((s, r) => s + r.saveRate, 0) / saveRates.length).toFixed(2))
+    : null;
 
   if (error) return <EmptyState msg={error} />;
   if (loading) return <EmptyState msg="読み込み中..." />;
@@ -437,6 +472,94 @@ export default function InstaTab() {
       {/* ── Hashtag engagement ─────────────────────────── */}
       <Section title="ハッシュタグ別エンゲージメント（保存率順 Top10）">
         <InstaHashtagChart account={acctFilter} />
+      </Section>
+
+      {/* ── Buzz Type A/B ─────────────────────────────── */}
+      <Section title="バズ型 A/B比較（投稿コンテンツ分類別パフォーマンス）">
+        {buzzTypes.length ? (
+          <>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={buzzTypeBarData} barGap={4}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="left" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="right" orientation="right" unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+                <Bar yAxisId="left"  dataKey="平均リーチ"  fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
+                <Bar yAxisId="left"  dataKey="平均保存数"  fill="#22c55e40" stroke="#22c55e" strokeWidth={1} />
+                <Bar yAxisId="right" dataKey="保存率(%)" fill="#f59e0b40" stroke="#f59e0b" strokeWidth={1} />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead><tr>
+                  <TH>バズ型</TH><TH>投稿数</TH><TH>平均リーチ</TH><TH>平均保存数</TH><TH>保存率</TH>
+                </tr></thead>
+                <tbody>{buzzTypes.map((b, i) => (
+                  <tr key={i} className="hover:bg-neutral-800/30">
+                    <TD className="font-medium">{b.buzz_type}</TD>
+                    <TD>{b.post_count}</TD>
+                    <TD>{b.avg_reach?.toLocaleString() ?? '—'}</TD>
+                    <TD>{b.avg_saves?.toFixed(1) ?? '—'}</TD>
+                    <TD className="font-bold text-amber-400">
+                      {b.save_rate_pct != null ? `${b.save_rate_pct.toFixed(2)}%` : '—'}
+                    </TD>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </>
+        ) : <EmptyState msg="投稿が蓄積されると表示されます" />}
+      </Section>
+
+      {/* ── Weekly Scorecard ──────────────────────────── */}
+      <Section title="週次スコアカード">
+        <div className="grid grid-cols-2 gap-4">
+          <div className="rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+            <div className="text-xs text-neutral-400 mb-1">フォロワー週次増加</div>
+            <div className="text-2xl font-bold text-fuchsia-400">
+              {weeklyFollowerGain != null
+                ? (weeklyFollowerGain >= 0 ? `+${weeklyFollowerGain}` : `${weeklyFollowerGain}`)
+                : '—'}
+            </div>
+            <div className="text-[10px] text-neutral-500 mb-2">目標: +{FOLLOWER_WEEK_GOAL}</div>
+            {weeklyFollowerGain != null && (
+              <div className="w-full bg-neutral-700 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${weeklyFollowerGain >= FOLLOWER_WEEK_GOAL ? 'bg-green-500' : 'bg-fuchsia-500'}`}
+                  style={{ width: `${Math.min(100, Math.max(0, (weeklyFollowerGain / FOLLOWER_WEEK_GOAL) * 100))}%` }}
+                />
+              </div>
+            )}
+            <div className="text-[10px] text-neutral-500 mt-1">
+              {weeklyFollowerGain != null
+                ? `${Math.round((weeklyFollowerGain / FOLLOWER_WEEK_GOAL) * 100)}% 達成`
+                : 'データ不足'}
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+            <div className="text-xs text-neutral-400 mb-1">保存率（計測済み投稿平均）</div>
+            <div className="text-2xl font-bold text-green-400">
+              {weekAvgSaveRate != null ? `${weekAvgSaveRate}%` : '—'}
+            </div>
+            <div className="text-[10px] text-neutral-500 mb-2">目標: {SAVE_RATE_GOAL}%</div>
+            {weekAvgSaveRate != null && (
+              <div className="w-full bg-neutral-700 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all ${weekAvgSaveRate >= SAVE_RATE_GOAL ? 'bg-green-500' : 'bg-amber-500'}`}
+                  style={{ width: `${Math.min(100, (weekAvgSaveRate / SAVE_RATE_GOAL) * 100)}%` }}
+                />
+              </div>
+            )}
+            <div className="text-[10px] text-neutral-500 mt-1">
+              {weekAvgSaveRate != null
+                ? `${Math.round((weekAvgSaveRate / SAVE_RATE_GOAL) * 100)}% 達成`
+                : 'データ不足'}
+            </div>
+          </div>
+        </div>
       </Section>
     </>
   );
