@@ -266,18 +266,43 @@ function isoWeek(iso: string) {
   return Math.ceil(((d.getTime() - jan4.getTime()) / 86400000 + jan4.getDay() + 1) / 7);
 }
 
+interface HeatCell { day: number; hour: number; value: number }
+
 function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
-  const [snsAll, setSnsAll]   = useState<SnsMini[]>([]);
-  const [postAll, setPostAll] = useState<PostMini[]>([]);
+  const [snsAll, setSnsAll]       = useState<SnsMini[]>([]);
+  const [postAll, setPostAll]     = useState<PostMini[]>([]);
+  const [heatCells, setHeatCells] = useState<HeatCell[]>([]);
+  const [heatMax, setHeatMax]     = useState(0);
+  const [reportOpen, setReportOpen]   = useState(false);
+  const [reportMd, setReportMd]       = useState<string | null>(null);
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     const ctrl = new AbortController();
-    fetch('/api/sns-metrics?days=14', { signal: ctrl.signal }).then(r => r.json())
+    // 60 days for monthly comparison
+    fetch('/api/sns-metrics?days=60', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setSnsAll(d.metrics ?? [])).catch(() => {});
     fetch('/api/post-metrics?limit=300', { signal: ctrl.signal }).then(r => r.json())
       .then(d => setPostAll(d.metrics ?? [])).catch(() => {});
+    fetch('/api/post-metrics/heatmap', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { setHeatCells(d.cells ?? []); setHeatMax(d.max ?? 0); }).catch(() => {});
     return () => ctrl.abort();
   }, []);
+
+  async function generateReport() {
+    setReportLoading(true);
+    try {
+      const r = await fetch('/api/report/weekly', { method: 'POST' });
+      const d = await r.json() as { markdown?: string };
+      setReportMd(d.markdown ?? '生成失敗');
+      setReportOpen(true);
+    } catch {
+      setReportMd('レポート生成エラー');
+      setReportOpen(true);
+    } finally {
+      setReportLoading(false);
+    }
+  }
 
   const latestByKey = metrics.reduce<Record<string, Metric>>((acc, m) => {
     if (!acc[m.key] || new Date(m.recorded_at) > new Date(acc[m.key].recorded_at)) acc[m.key] = m;
@@ -317,6 +342,35 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
     .sort(([, a], [, b]) => b - a).slice(0, 10)
     .map(([post_id, score]) => ({ post_id, score, ...engMeta[post_id] }));
 
+  // WoW / MoM follower delta per platform (using 60-day snsAll)
+  const NOW_MS = Date.now();
+  const DAY_MS = 86_400_000;
+  const platforms = [...new Set(followerRows.map(m => m.platform))];
+  const wowMomBadges = platforms.map(pf => {
+    const rows = followerRows
+      .filter(m => m.platform === pf)
+      .map(m => ({ ...m, ts: new Date(m.recorded_date ?? m.recorded_at).getTime() }))
+      .sort((a, b) => b.ts - a.ts);
+    const curr = rows[0]?.value ?? null;
+    const closest = (daysAgo: number) =>
+      rows.reduce<{ value: number; ts: number } | null>((best, r) => {
+        const target = NOW_MS - daysAgo * DAY_MS;
+        return !best || Math.abs(r.ts - target) < Math.abs(best.ts - target) ? r : best;
+      }, null);
+    const w7  = closest(7);
+    const w30 = closest(30);
+    return {
+      platform: pf,
+      curr,
+      wow: curr != null && w7  ? curr - w7.value  : null,
+      mom: curr != null && w30 ? curr - w30.value : null,
+    };
+  });
+
+  const DAY_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+  const heatMap: Record<string, number> = {};
+  heatCells.forEach(c => { heatMap[`${c.day}-${c.hour}`] = c.value; });
+
   const TH2 = ({ children }: { children: React.ReactNode }) => (
     <th className="text-left py-1.5 px-2 text-neutral-500 font-medium border-b text-[11px]"
       style={{ borderColor: '#262626' }}>{children}</th>
@@ -327,12 +381,93 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
 
   return (
     <>
-      <KpiGrid items={[
-        [keyList.length, 'ユニークメトリクス'],
-        [metrics.length, '総レコード数'],
-        [latestByKey['x.sampleSize']?.value ?? '—', 'X サンプル数'],
-        [latestByKey['note.sampleSize']?.value ?? '—', 'note サンプル数'],
-      ]} />
+      <div className="flex items-start justify-between gap-4 mb-1">
+        <div className="flex-1">
+          <KpiGrid items={[
+            [keyList.length, 'ユニークメトリクス'],
+            [metrics.length, '総レコード数'],
+            [latestByKey['x.sampleSize']?.value ?? '—', 'X サンプル数'],
+            [latestByKey['note.sampleSize']?.value ?? '—', 'note サンプル数'],
+          ]} />
+        </div>
+        <button
+          onClick={generateReport}
+          disabled={reportLoading}
+          className="mt-1 px-3 py-1.5 rounded text-xs font-semibold border border-violet-700 bg-violet-950 text-violet-300 hover:bg-violet-900 disabled:opacity-50 whitespace-nowrap"
+        >
+          {reportLoading ? '生成中...' : '📊 週次レポート生成'}
+        </button>
+      </div>
+
+      {/* ── Posting heatmap ──────────────────────────────── */}
+      <Section title="投稿時間帯ヒートマップ（直近90日）">
+        {heatCells.length > 0 ? (
+          <div className="overflow-x-auto">
+            <div style={{ display: 'grid', gridTemplateColumns: '24px repeat(24, 1fr)', gap: 2, minWidth: 560 }}>
+              <div />
+              {Array.from({ length: 24 }, (_, h) => (
+                <div key={`h-${h}`} className="text-center text-[9px] text-neutral-600">{h}</div>
+              ))}
+              {DAY_NAMES.flatMap((day, d) => [
+                <div key={`l-${d}`} className="text-[10px] text-neutral-500 flex items-center justify-center">{day}</div>,
+                ...Array.from({ length: 24 }, (_, h) => {
+                  const v = heatMap[`${d}-${h}`] ?? 0;
+                  const intensity = heatMax > 0 ? v / heatMax : 0;
+                  return (
+                    <div
+                      key={`c-${d}-${h}`}
+                      title={`${day} ${h}:00 — ${v.toLocaleString()}`}
+                      style={{
+                        height: 14,
+                        borderRadius: 2,
+                        background: intensity > 0
+                          ? `rgba(99,102,241,${Math.max(0.1, intensity).toFixed(2)})`
+                          : '#1a1a1a',
+                      }}
+                    />
+                  );
+                }),
+              ])}
+            </div>
+            <p className="mt-1.5 text-[10px] text-neutral-600">
+              濃いほどエンゲージメント合計が高い時間帯 (impressions・likes・saves 等の合算)
+            </p>
+          </div>
+        ) : <p className="text-xs py-6 text-center text-neutral-500">post_metrics 収集後に表示（90日分集計）</p>}
+      </Section>
+
+      {/* ── WoW / MoM follower badges ─────────────────────── */}
+      {wowMomBadges.length > 0 && (
+        <Section title="フォロワー増減（前週比 WoW・前月比 MoM）">
+          <div className="flex flex-wrap gap-3">
+            {wowMomBadges.map(b => {
+              const fmtDiff = (d: number | null) =>
+                d === null ? '—' : d >= 0 ? `+${d.toLocaleString()}` : d.toLocaleString();
+              const diffCls = (d: number | null) =>
+                d === null ? 'text-neutral-500'
+                : d > 0 ? 'text-green-400'
+                : d < 0 ? 'text-red-400'
+                : 'text-neutral-400';
+              return (
+                <div
+                  key={b.platform}
+                  className="flex flex-col gap-1 px-3 py-2 rounded border"
+                  style={{ background: '#111', borderColor: '#2a2a2a', minWidth: 130 }}
+                >
+                  <span className="text-[11px] font-semibold text-neutral-200">{b.platform}</span>
+                  <span className="text-[10px] text-neutral-500">
+                    {b.curr != null ? b.curr.toLocaleString() : '—'} followers
+                  </span>
+                  <div className="flex gap-3">
+                    <span className={`text-[11px] font-mono ${diffCls(b.wow)}`}>WoW {fmtDiff(b.wow)}</span>
+                    <span className={`text-[11px] font-mono ${diffCls(b.mom)}`}>MoM {fmtDiff(b.mom)}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </Section>
+      )}
 
       <div className="grid grid-cols-2 gap-4">
         <Section title="週次フォロワー成長率">
@@ -405,6 +540,48 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
           </table>
         </div>
       </Section>
+
+      {/* ── 週次レポートモーダル ────────────────────────────── */}
+      {reportOpen && reportMd !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ background: 'rgba(0,0,0,0.75)' }}
+          onClick={() => setReportOpen(false)}
+        >
+          <div
+            className="relative flex flex-col rounded-lg border"
+            style={{ width: 660, maxHeight: '82vh', background: '#111', borderColor: '#333' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div
+              className="flex items-center justify-between px-4 py-2 border-b"
+              style={{ borderColor: '#262626' }}
+            >
+              <span className="text-xs font-semibold text-neutral-200">📊 週次レポート</span>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => navigator.clipboard.writeText(reportMd ?? '')}
+                  className="text-xs px-2 py-1 rounded border border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:border-neutral-500"
+                >
+                  コピー
+                </button>
+                <button
+                  onClick={() => setReportOpen(false)}
+                  className="text-xs px-2 py-1 rounded border border-neutral-700 text-neutral-400 hover:text-neutral-200 hover:border-neutral-500"
+                >
+                  閉じる
+                </button>
+              </div>
+            </div>
+            <pre
+              className="flex-1 overflow-auto text-[11px] text-neutral-300 p-4 leading-relaxed"
+              style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}
+            >
+              {reportMd}
+            </pre>
+          </div>
+        </div>
+      )}
     </>
   );
 }
