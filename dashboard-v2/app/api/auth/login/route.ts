@@ -6,7 +6,7 @@ const attempts = new Map<string, { count: number; resetAt: number }>();
 
 export async function POST(req: Request) {
   // rate limit: 5 attempts per IP per minute
-  const ip = req.headers.get('x-forwarded-for') ?? 'unknown';
+  const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
   const now = Date.now();
   const rec = attempts.get(ip) ?? { count: 0, resetAt: now + 60_000 };
   if (now > rec.resetAt) { rec.count = 0; rec.resetAt = now + 60_000; }

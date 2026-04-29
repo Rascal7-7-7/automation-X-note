@@ -37,7 +37,8 @@ export async function GET(req: Request) {
         LEFT JOIN post_metrics pm
           ON pm.platform   = p.platform
           AND pm.account   = p.account
-          AND ABS(EXTRACT(EPOCH FROM (p.created_at - pm.recorded_at))) < 3600
+          AND pm.recorded_at >= p.created_at
+          AND pm.recorded_at <  p.created_at + INTERVAL '7 days'
         WHERE p.platform = 'x'
           AND p.status IN ('done', 'approved')
           AND (${account}::text IS NULL OR p.account = ${account})
