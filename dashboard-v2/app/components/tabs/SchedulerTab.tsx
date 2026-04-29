@@ -48,6 +48,21 @@ function isErrorStatus(s: string) {
   return s === 'error' || s === 'failed';
 }
 
+function fmtDur(sec: number): string {
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return s > 0 ? `${m}m ${s}s` : `${m}m`;
+}
+
+function fmtAgo(ts: string): string {
+  const diff = Date.now() - new Date(ts).getTime();
+  const h = Math.floor(diff / 3_600_000);
+  if (h < 1) return '< 1h前';
+  if (h < 24) return `${h}h前`;
+  return `${Math.floor(h / 24)}日前`;
+}
+
 export default function SchedulerTab() {
   const [data, setData]           = useState<SchedulerData>({ workflows: [], executions: [], n8nReachable: false });
   const [loading, setLoading]     = useState(true);
@@ -167,6 +182,52 @@ export default function SchedulerTab() {
     if (!isErrorStatus(ex.status)) successRateMap[ex.workflowId].success++;
   });
 
+  // consecutive failures per workflow (most-recent terminal executions)
+  const consecutiveFailMap: Record<string, number> = {};
+  const terminalByWf: Record<string, Execution[]> = {};
+  data.executions.forEach(ex => {
+    if (ex.status === 'running' || ex.status === 'waiting') return;
+    if (!terminalByWf[ex.workflowId]) terminalByWf[ex.workflowId] = [];
+    terminalByWf[ex.workflowId].push(ex);
+  });
+  Object.entries(terminalByWf).forEach(([wfId, execs]) => {
+    const sorted = [...execs].sort((a, b) =>
+      new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
+    let count = 0;
+    for (const ex of sorted) {
+      if (isErrorStatus(ex.status)) count++;
+      else break;
+    }
+    consecutiveFailMap[wfId] = count;
+  });
+  const hasConsecutiveFail = Object.values(consecutiveFailMap).some(n => n >= 3);
+
+  // average execution duration per workflow (seconds)
+  const avgDurMap: Record<string, number> = {};
+  const durAccum: Record<string, { sum: number; count: number }> = {};
+  data.executions.forEach(ex => {
+    if (ex.status === 'running' || ex.status === 'waiting' || !ex.stoppedAt) return;
+    const dur = new Date(ex.stoppedAt).getTime() - new Date(ex.startedAt).getTime();
+    if (!Number.isFinite(dur) || dur < 0) return;
+    if (!durAccum[ex.workflowId]) durAccum[ex.workflowId] = { sum: 0, count: 0 };
+    durAccum[ex.workflowId].sum += dur;
+    durAccum[ex.workflowId].count++;
+  });
+  Object.entries(durAccum).forEach(([wfId, { sum, count }]) => {
+    avgDurMap[wfId] = count > 0 ? Math.round(sum / count / 1000) : 0;
+  });
+
+  // last success time per workflow
+  const lastSuccessMap: Record<string, string> = {};
+  data.executions
+    .filter(ex => ex.status === 'success' && ex.startedAt)
+    .forEach(ex => {
+      const cur = lastSuccessMap[ex.workflowId];
+      if (!cur || new Date(ex.startedAt) > new Date(cur)) {
+        lastSuccessMap[ex.workflowId] = ex.startedAt;
+      }
+    });
+
   if (loading) return <Spinner />;
 
   return (
@@ -189,6 +250,12 @@ export default function SchedulerTab() {
         </div>
       )}
 
+      {hasConsecutiveFail && (
+        <div className="mb-3 p-3 rounded-lg border border-red-700 bg-red-950/40">
+          <span className="text-red-300 text-xs font-bold">🔴 連続失敗ワークフロー検出 — 3回以上連続でエラーが発生しています。下表の赤行を確認してください</span>
+        </div>
+      )}
+
       <KpiGrid items={[
         [data.workflows.length, 'ワークフロー総数'],
         [active, 'アクティブ', active ? '' : 'text-neutral-500'],
@@ -205,13 +272,18 @@ export default function SchedulerTab() {
                 <TH>名前</TH>
                 <TH>状態</TH>
                 <TH>成功率</TH>
+                <TH>平均実行時間</TH>
+                <TH>最終成功</TH>
                 <TH>次回実行</TH>
                 <TH>更新日時</TH>
                 <TH>操作</TH>
               </tr></thead>
               <tbody>
-                {data.workflows.map(wf => (
-                  <tr key={wf.id} className="hover:bg-neutral-800/30">
+                {data.workflows.map(wf => {
+                  const consecFail = consecutiveFailMap[wf.id] ?? 0;
+                  const isZombie = consecFail >= 3;
+                  return (
+                  <tr key={wf.id} className={isZombie ? 'bg-red-950/30 hover:bg-red-950/50' : 'hover:bg-neutral-800/30'}>
                     <TD className="font-medium">{wf.name}</TD>
                     <TD>
                       <span className={`px-1.5 py-0.5 rounded text-[10px] border ${
@@ -230,6 +302,16 @@ export default function SchedulerTab() {
                         const cls = pct >= 80 ? 'text-green-400' : pct >= 50 ? 'text-yellow-400' : 'text-red-400';
                         return <span className={cls}>{pct}%</span>;
                       })()}
+                    </TD>
+                    <TD className="font-mono text-[11px]">
+                      {avgDurMap[wf.id] != null
+                        ? <span className="text-neutral-300">{fmtDur(avgDurMap[wf.id])}</span>
+                        : <span className="text-neutral-500">—</span>}
+                    </TD>
+                    <TD className="font-mono text-[11px]">
+                      {lastSuccessMap[wf.id]
+                        ? <span className={consecFail >= 3 ? 'text-red-400' : 'text-neutral-400'}>{fmtAgo(lastSuccessMap[wf.id])}</span>
+                        : <span className="text-neutral-500">—</span>}
                     </TD>
                     <TD className="font-mono text-[11px]">
                       {wf.nextRun
@@ -263,7 +345,8 @@ export default function SchedulerTab() {
                       </div>
                     </TD>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
