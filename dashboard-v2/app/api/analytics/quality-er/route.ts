@@ -16,9 +16,9 @@ const CATEGORY_TO_PLATFORM: Record<string, string> = {
 
 function toWeekStart(ts: number): string {
   const d    = new Date(ts);
-  const day  = d.getDay(); // 0=Sun
+  const day  = d.getUTCDay(); // 0=Sun — use UTC to match SQL DATE_TRUNC(UTC)
   const diff = day === 0 ? -6 : 1 - day;
-  const mon  = new Date(d.getFullYear(), d.getMonth(), d.getDate() + diff);
+  const mon  = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() + diff));
   return mon.toISOString().slice(0, 10);
 }
 
