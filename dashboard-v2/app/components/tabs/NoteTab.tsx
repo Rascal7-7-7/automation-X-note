@@ -87,7 +87,10 @@ function NoteSalesSection() {
   useEffect(() => {
     apiFetch('/api/note-sales')
       .then(r => r.json())
-      .then((d: SalesResponse) => setData(d))
+      .then((d: SalesResponse) => {
+        if (d && Array.isArray(d.articles)) setData(d);
+        else setError(true);
+      })
       .catch(() => setError(true));
   }, []);
 
