@@ -260,6 +260,7 @@ function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
 
 interface SnsMini { platform: string; metric_key: string; value: number; recorded_date: string; recorded_at: string; }
 interface PostMini { post_id: string; platform: string; account: string | null; metric_key: string; value: number; }
+interface QualityTrend { categories: string[]; series: Record<string, number | string>[]; }
 
 function isoWeek(iso: string) {
   const d = new Date(iso);
@@ -284,6 +285,24 @@ const PLATFORM_COLORS: Record<string, string> = {
   youtube: '#ef4444',
   ghost: '#9ca3af',
 };
+const QUALITY_COLORS: Record<string, string> = {
+  'instagram-ai': '#ec4899',
+  'x-general':    '#3b82f6',
+  'ghost':        '#9ca3af',
+  'note-tech':    '#22c55e',
+  'youtube-short':'#ef4444',
+  'note-affiliate':'#a78bfa',
+  'note-finance': '#f59e0b',
+};
+const QUALITY_LABELS: Record<string, string> = {
+  'instagram-ai': 'Insta',
+  'x-general':    'X',
+  'ghost':        'Ghost',
+  'note-tech':    'note技術',
+  'youtube-short':'YTショート',
+  'note-affiliate':'noteアフィリ',
+  'note-finance': 'note金融',
+};
 
 function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [snsAll, setSnsAll]       = useState<SnsMini[]>([]);
@@ -291,6 +310,7 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [heatCells, setHeatCells] = useState<HeatCell[]>([]);
   const [heatMax, setHeatMax]     = useState(0);
   const [heatError, setHeatError] = useState(false);
+  const [qualityTrend, setQualityTrend] = useState<QualityTrend>({ categories: [], series: [] });
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportMd, setReportMd]       = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -331,6 +351,9 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
         const isAbort = e instanceof DOMException && e.name === 'AbortError';
         if (!isAbort) setHeatError(true);
       });
+    apiFetch('/api/analytics/quality-trend', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (d.categories) setQualityTrend(d as QualityTrend); })
+      .catch(() => {});
     return () => ctrl.abort();
   }, []);
 
@@ -728,6 +751,42 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
             ))}</tbody>
           </table>
         </div>
+      </Section>
+
+      {/* ── 品質スコアトレンド ────────────────────────────── */}
+      <Section title="コンテンツ品質スコアトレンド（reviewer avgScore）">
+        {qualityTrend.series.length ? (
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={qualityTrend.series} margin={{ left: 0, right: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis dataKey="date" tick={{ ...CHART_STYLE, fill: '#6b7280' }}
+                tickFormatter={(v: string) => v.slice(5)} />
+              <YAxis domain={[0, 10]} tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <Tooltip
+                contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }}
+                formatter={(v: unknown, name: unknown) => [
+                  `${v}`,
+                  QUALITY_LABELS[name as string] ?? String(name),
+                ]}
+              />
+              <Legend
+                formatter={(v: string) => QUALITY_LABELS[v] ?? v}
+                wrapperStyle={{ fontSize: 10, color: '#6b7280' }}
+              />
+              {qualityTrend.categories.map(cat => (
+                <Line
+                  key={cat}
+                  type="monotone"
+                  dataKey={cat}
+                  stroke={QUALITY_COLORS[cat] ?? '#6b7280'}
+                  strokeWidth={1.5}
+                  dot={{ r: 3, fill: QUALITY_COLORS[cat] ?? '#6b7280' }}
+                  connectNulls
+                />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : <p className="text-xs py-6 text-center text-neutral-500">quality-feedback.json 読み込み中...</p>}
       </Section>
 
       {/* ── 週次レポートモーダル ────────────────────────────── */}
