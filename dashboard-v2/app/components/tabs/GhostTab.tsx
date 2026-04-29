@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
-  LineChart, Line, PieChart, Pie, Cell,
+  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
@@ -94,6 +94,7 @@ export default function GhostTab() {
   const [loading, setLoading]           = useState(true);
   const [error, setError]               = useState<string | null>(null);
   const [retryCount, setRetryCount]     = useState(0);
+  const [monthlyRevenue, setMonthlyRevenue] = useState<{ keys: string[]; series: Record<string, number | string>[] }>({ keys: [], series: [] });
 
   useEffect(() => {
     setLoading(true);
@@ -105,6 +106,9 @@ export default function GhostTab() {
         if (!r.ok) throw new Error(`${url} ${r.status}`);
         return r.json();
       });
+
+    apiFetch('/api/ghost/monthly-revenue', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (d.keys) setMonthlyRevenue(d); }).catch(() => {});
 
     Promise.allSettled([
       safeFetch('/api/sns-metrics?platform=ghost&days=30'),
@@ -156,6 +160,16 @@ export default function GhostTab() {
 
   const pendingCount = campaigns.filter(c => c.status === 'pending').length;
   const unsetCount   = campaigns.filter(c => c.approval_status === 'URL未設定').length;
+
+  // category CV bar — group campaigns by category, sum CV counts
+  const catCvMap: Record<string, number> = {};
+  campaigns.forEach(c => {
+    const cat = c.category || 'Other';
+    catCvMap[cat] = (catCvMap[cat] ?? 0) + c.cv;
+  });
+  const catBarData = Object.entries(catCvMap)
+    .map(([category, cv]) => ({ category, cv }))
+    .sort((a, b) => b.cv - a.cv);
 
   // affiliate CTR — client-side from post_metrics
   const affClickMap2: Record<string, number> = {};
@@ -473,6 +487,45 @@ export default function GhostTab() {
             </table>
           </div>
         ) : <EmptyState />}
+      </Section>
+
+      {/* ── P2: Monthly revenue trend ─────────────────────── */}
+      <Section title="月次収益トレンド（ghost.revenue metrics）">
+        {monthlyRevenue.series.length ? (
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={monthlyRevenue.series} margin={{ left: 0, right: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis dataKey="month" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <YAxis tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Legend wrapperStyle={{ fontSize: 10, color: '#6b7280' }} />
+              {monthlyRevenue.keys.map((k, i) => (
+                <Line key={k} type="monotone" dataKey={k}
+                  stroke={LINE_COLORS[i % LINE_COLORS.length]}
+                  strokeWidth={1.5} dot={{ r: 3 }} connectNulls />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <p className="text-xs py-6 text-center text-neutral-500">
+            CV発生後・metrics テーブルに ghost.revenue.* キーが追加されると自動表示
+          </p>
+        )}
+      </Section>
+
+      {/* ── P2: Category CV bar ───────────────────────────── */}
+      <Section title="カテゴリ別 CV数（ASP案件）">
+        {catBarData.length ? (
+          <ResponsiveContainer width="100%" height={Math.max(catBarData.length * 36 + 20, 80)}>
+            <BarChart data={catBarData} layout="vertical" margin={{ left: 0, right: 16 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+              <XAxis type="number" allowDecimals={false} tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+              <YAxis type="category" dataKey="category" width={110} tick={{ ...CHART_STYLE, fill: '#9ca3af' }} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: unknown) => [`${v}`, 'CV数']} />
+              <Bar dataKey="cv" fill="#9ca3af40" stroke="#9ca3af" strokeWidth={1} radius={[0, 2, 2, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : <EmptyState msg="案件データなし" />}
       </Section>
     </>
   );
