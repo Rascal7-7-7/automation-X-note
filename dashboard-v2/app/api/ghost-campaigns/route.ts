@@ -10,6 +10,8 @@ interface Campaign {
   commission: string;
   status: string;
   url: string | null;
+  affiliateUrl: string;
+  approval_status: '設定済み' | 'URL未設定';
   clicks: number;
   cv: number;
   cvr: string;
@@ -41,21 +43,25 @@ export async function GET(req: Request) {
       active?: boolean;
       rejected?: boolean;
       url?: string | null;
+      affiliateUrl?: string | null;
       clicks?: number;
       cv?: number;
       conversions?: number;
     }>;
     const campaigns: Campaign[] = data.map(c => {
-      const clicks = c.clicks ?? 0;
-      const cv = c.cv ?? c.conversions ?? 0;
-      const cvr = clicks > 0 ? ((cv / clicks) * 100).toFixed(1) + '%' : '—';
+      const clicks      = c.clicks ?? 0;
+      const cv          = c.cv ?? c.conversions ?? 0;
+      const cvr         = clicks > 0 ? ((cv / clicks) * 100).toFixed(1) + '%' : '—';
+      const affiliateUrl = c.affiliateUrl ?? c.url ?? '';
       return {
-        id:         c.id ?? '',
-        name:       c.name ?? c.productName ?? '',
-        category:   c.category ?? '',
-        commission: c.commission ?? c.reward ?? '',
-        status:     c.status ?? (c.rejected ? 'rejected' : c.active ? 'active' : 'pending'),
-        url:        c.url ?? null,
+        id:              c.id ?? '',
+        name:            c.name ?? c.productName ?? '',
+        category:        c.category ?? '',
+        commission:      c.commission ?? c.reward ?? '',
+        status:          c.status ?? (c.rejected ? 'rejected' : c.active ? 'active' : 'pending'),
+        url:             affiliateUrl || null,
+        affiliateUrl:    affiliateUrl,
+        approval_status: affiliateUrl ? '設定済み' : 'URL未設定',
         clicks,
         cv,
         cvr,

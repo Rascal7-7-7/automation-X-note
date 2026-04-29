@@ -21,6 +21,8 @@ interface Campaign {
   commission: string;
   status: string;
   url: string | null;
+  affiliateUrl: string;
+  approval_status: '設定済み' | 'URL未設定';
   clicks: number;
   cv: number;
   cvr: string;
@@ -34,41 +36,77 @@ function safeUrl(url: string | null): string | null {
   } catch { return null; }
 }
 
+function shortenUrl(url: string): string {
+  if (!url) return '';
+  try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url.slice(0, 30); }
+}
+
+function AffCtrBadge({ ctr }: { ctr: number }) {
+  const cls = ctr >= 3
+    ? 'bg-green-900 text-green-400 border-green-700'
+    : ctr >= 1
+      ? 'bg-amber-900 text-amber-400 border-amber-700'
+      : 'bg-red-900 text-red-400 border-red-700';
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] border font-mono ${cls}`}>
+      {ctr.toFixed(2)}%
+    </span>
+  );
+}
+
+const AFF_CLICK_KEYS = new Set(['affiliate_clicks', 'link_clicks']);
+const PV_KEYS        = new Set(['pv', 'pageviews']);
+
 export default function GhostTab() {
   const [sns, setSns]             = useState<SnsMetric[]>([]);
   const [pm, setPm]               = useState<PostMetric[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading]     = useState(true);
+  const [error, setError]         = useState<string | null>(null);
 
   useEffect(() => {
     const ctrl = new AbortController();
-    Promise.all([
-      fetch('/api/sns-metrics?platform=ghost&days=30', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/post-metrics?platform=ghost&limit=300', { signal: ctrl.signal }).then(r => r.json()),
-      fetch('/api/ghost-campaigns', { signal: ctrl.signal }).then(r => r.json()),
+
+    const safeFetch = (url: string) =>
+      fetch(url, { signal: ctrl.signal }).then(r => {
+        if (!r.ok) throw new Error(`${url} ${r.status}`);
+        return r.json();
+      });
+
+    Promise.allSettled([
+      safeFetch('/api/sns-metrics?platform=ghost&days=30'),
+      safeFetch('/api/post-metrics?platform=ghost&limit=300'),
+      safeFetch('/api/ghost-campaigns'),
     ]).then(([s, p, gc]) => {
       if (ctrl.signal.aborted) return;
-      setSns(s.metrics ?? []);
-      setPm(p.metrics ?? []);
-      setCampaigns(gc.campaigns ?? []);
+      if (s.status  === 'fulfilled') setSns(s.value.metrics ?? []);
+      if (p.status  === 'fulfilled') setPm(p.value.metrics ?? []);
+      if (gc.status === 'fulfilled') setCampaigns(gc.value.campaigns ?? []);
+      else console.error('[GhostTab/campaigns]', gc.status === 'rejected' ? gc.reason : '');
       setLoading(false);
-    }).catch(e => { if (e.name !== 'AbortError') setLoading(false); });
+    }).catch(e => {
+      if (e.name !== 'AbortError') {
+        console.error('[GhostTab]', e);
+        setError('データの読み込みに失敗しました');
+        setLoading(false);
+      }
+    });
     return () => ctrl.abort();
   }, []);
 
   const { data: pvData, accounts } = pivotByAccount(sns, 'pageviews');
 
   const sourceMeta = sns.filter(m => m.metric_key.startsWith('traffic.'));
-  const pieData = sourceMeta.map(m => ({
-    name: m.metric_key.replace('traffic.', ''),
+  const pieData    = sourceMeta.map(m => ({
+    name:  m.metric_key.replace('traffic.', ''),
     value: m.value,
   }));
 
   const clickMap   = Object.fromEntries(pm.filter(m => m.metric_key === 'clicks').map(m => [m.post_id, m.value]));
   const cvMap      = Object.fromEntries(pm.filter(m => m.metric_key === 'conversions').map(m => [m.post_id, m.value]));
   const revenueMap = Object.fromEntries(pm.filter(m => m.metric_key === 'revenue').map(m => [m.post_id, m.value]));
-  const affIds = [...new Set(Object.keys(clickMap))].slice(0, 10);
-  const affTable = affIds.map(id => ({
+  const affIds     = [...new Set(Object.keys(clickMap))].slice(0, 10);
+  const affTable   = affIds.map(id => ({
     id,
     clicks:  clickMap[id]   ?? 0,
     cv:      cvMap[id]      ?? 0,
@@ -80,7 +118,27 @@ export default function GhostTab() {
     .sort((a, b) => b.value - a.value).slice(0, 5);
 
   const pendingCount = campaigns.filter(c => c.status === 'pending').length;
+  const unsetCount   = campaigns.filter(c => c.approval_status === 'URL未設定').length;
 
+  // affiliate CTR — client-side from post_metrics
+  const affClickMap2: Record<string, number> = {};
+  const pvMap2: Record<string, number> = {};
+  pm.forEach(m => {
+    if (AFF_CLICK_KEYS.has(m.metric_key)) affClickMap2[m.post_id] = (affClickMap2[m.post_id] ?? 0) + m.value;
+    if (PV_KEYS.has(m.metric_key) && m.snapshot_at === 'total') pvMap2[m.post_id] = m.value;
+  });
+  const affCtrRows = Object.keys(pvMap2)
+    .filter(id => pvMap2[id] > 0 && (affClickMap2[id] ?? 0) > 0)
+    .map(id => ({
+      id,
+      pv:        pvMap2[id],
+      affClicks: affClickMap2[id],
+      ctr:       parseFloat(((affClickMap2[id] / pvMap2[id]) * 100).toFixed(2)),
+    }))
+    .sort((a, b) => b.ctr - a.ctr)
+    .slice(0, 15);
+
+  if (error) return <EmptyState msg={error} />;
   if (loading) return <EmptyState msg="読み込み中..." />;
 
   return (
@@ -88,9 +146,97 @@ export default function GhostTab() {
       <KpiGrid items={[
         [sns.filter(m => m.metric_key === 'pageviews').reduce((s, m) => s + m.value, 0) || '—', '総PV(計測期間)'],
         [campaigns.length || '—', 'ASP案件数'],
+        [unsetCount, 'URL未設定', unsetCount > 0 ? 'text-red-400' : ''],
         [pendingCount || 0, '承認待ち案件', pendingCount ? 'text-amber-400' : ''],
-        [affTable.reduce((s, r) => s + r.revenue, 0) || '—', '推定報酬合計(¥)'],
       ]} />
+
+      {/* ASP承認ステータスパネル */}
+      <Section title="ASP承認ステータス">
+        {campaigns.length ? (
+          <>
+            {unsetCount > 0 && (
+              <div className="mb-3 px-3 py-2 rounded border border-red-800 bg-red-950/30 inline-flex items-center gap-2">
+                <span className="text-red-400 text-xs font-bold">⚠ {unsetCount}件 URL未設定</span>
+                <span className="text-red-300 text-xs">— ASPのアフィリURLを取得して設定してください</span>
+              </div>
+            )}
+            <div style={{ maxHeight: 280, overflowY: 'auto' }}>
+              <table className="w-full border-collapse">
+                <thead><tr>
+                  <TH>ASP名 / 商品</TH>
+                  <TH>カテゴリ</TH>
+                  <TH>承認ステータス</TH>
+                  <TH>アフィリURL</TH>
+                </tr></thead>
+                <tbody>
+                  {campaigns.map(c => (
+                    <tr
+                      key={c.id}
+                      className={`hover:bg-neutral-800/30 ${
+                        c.approval_status === 'URL未設定' ? 'bg-red-950/20' : ''
+                      }`}
+                    >
+                      <TD className="font-medium">{c.name}</TD>
+                      <TD className="text-neutral-500">{c.category}</TD>
+                      <TD>
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                          c.approval_status === '設定済み'
+                            ? 'bg-green-900 text-green-400 border-green-700'
+                            : 'bg-red-900 text-red-400 border-red-700'
+                        }`}>
+                          {c.approval_status}
+                        </span>
+                      </TD>
+                      <TD>
+                        {c.affiliateUrl ? (
+                          <a
+                            href={safeUrl(c.affiliateUrl) ?? '#'}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-violet-400 hover:underline text-xs font-mono"
+                          >
+                            {shortenUrl(c.affiliateUrl)}
+                          </a>
+                        ) : (
+                          <span className="text-red-400 text-xs">未設定</span>
+                        )}
+                      </TD>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        ) : <EmptyState msg="案件データなし" />}
+      </Section>
+
+      {/* アフィリリンククリック率 */}
+      <Section title="記事別アフィリリンククリック率 TOP15">
+        {affCtrRows.length ? (
+          <div style={{ maxHeight: 320, overflowY: 'auto' }}>
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH>記事ID / タイトル</TH>
+                <TH>PV</TH>
+                <TH>アフィリクリック</TH>
+                <TH>CTR</TH>
+              </tr></thead>
+              <tbody>
+                {affCtrRows.map(r => (
+                  <tr key={r.id} className="hover:bg-neutral-800/30">
+                    <TD className="font-mono text-xs max-w-[200px] truncate">{r.id}</TD>
+                    <TD>{r.pv.toLocaleString()}</TD>
+                    <TD>{r.affClicks.toLocaleString()}</TD>
+                    <TD><AffCtrBadge ctr={r.ctr} /></TD>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState msg="アフィリクリックデータなし（Bridge連携後に表示されます）" />
+        )}
+      </Section>
 
       <Section title={`ASP案件一覧（${campaigns.length}件）`}>
         {campaigns.length ? (
