@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
   LineChart, Line, BarChart, Bar,
@@ -42,6 +42,15 @@ interface VideoStat {
   video_type: 'ショート' | '長尺';
 }
 
+interface HeatmapCell {
+  day: number;
+  hour: number;
+  value: number;
+}
+
+const YT_DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const YT_DAY_ORDER  = [1, 2, 3, 4, 5, 6, 0]; // Mon–Sun
+
 function pipelineCls(s: string) {
   if (s === 'done' || s === 'success') return 'bg-green-950 text-green-400 border-green-800';
   if (s === 'failed' || s === 'error') return 'bg-red-950 text-red-400 border-red-800';
@@ -73,9 +82,139 @@ function CtrBadge({ ctr }: { ctr: number | null }) {
   );
 }
 
+function LikeRateBadge({ rate }: { rate: number | null }) {
+  if (rate === null) return <span className="text-neutral-500">—</span>;
+  const cls = rate >= 5
+    ? 'bg-green-900 text-green-400 border-green-700'
+    : rate >= 2
+      ? 'bg-amber-900 text-amber-400 border-amber-700'
+      : 'bg-red-900 text-red-400 border-red-700';
+  return (
+    <span className={`px-1.5 py-0.5 rounded text-[10px] border font-mono ${cls}`}>
+      {rate.toFixed(1)}%
+    </span>
+  );
+}
+
 function avgOf(nums: (number | null)[]): number {
   const valid = nums.filter((x): x is number => x !== null);
   return valid.length ? valid.reduce((a, b) => a + b, 0) / valid.length : 0;
+}
+
+function YTHeatmap() {
+  const [cells, setCells]   = useState<HeatmapCell[]>([]);
+  const [maxVal, setMaxVal] = useState(1);
+  const [hmLoad, setHmLoad] = useState(true);
+
+  useEffect(() => {
+    apiFetch('/api/post-metrics/heatmap?platform=youtube')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d) { setCells(d.cells ?? []); setMaxVal(d.max || 1); }
+        setHmLoad(false);
+      })
+      .catch(() => setHmLoad(false));
+  }, []);
+
+  if (hmLoad) return <Spinner />;
+  if (!cells.length) return <EmptyState />;
+
+  const cellMap = new Map(cells.map(c => [`${c.day}-${c.hour}`, c.value]));
+  const top3Set = new Set(
+    [...cells].sort((a, b) => b.value - a.value).slice(0, 3).map(c => `${c.day}-${c.hour}`),
+  );
+
+  const hourTotals = Array.from({ length: 24 }, (_, h) => ({
+    hour: h,
+    total: YT_DAY_ORDER.reduce((s, d) => s + (cellMap.get(`${d}-${h}`) ?? 0), 0),
+  }));
+  const bestHour = [...hourTotals].sort((a, b) => b.total - a.total)[0]?.hour ?? 18;
+
+  return (
+    <>
+      <div className="overflow-x-auto">
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto repeat(24, 1fr)', gap: 2, minWidth: 600 }}>
+          <div />
+          {Array.from({ length: 24 }, (_, h) => (
+            <div key={h} className="text-center text-[9px] text-neutral-500 pb-0.5">{h}</div>
+          ))}
+          {YT_DAY_ORDER.map(dayIdx => (
+            <Fragment key={dayIdx}>
+              <div className="text-[10px] text-neutral-400 pr-1.5 flex items-center">
+                {YT_DAY_LABELS[dayIdx]}
+              </div>
+              {Array.from({ length: 24 }, (_, h) => {
+                const v         = cellMap.get(`${dayIdx}-${h}`) ?? 0;
+                const intensity = maxVal > 0 ? v / maxVal : 0;
+                const isTop     = top3Set.has(`${dayIdx}-${h}`);
+                return (
+                  <div
+                    key={h}
+                    title={`${YT_DAY_LABELS[dayIdx]} ${h}:00 — ${v.toLocaleString()}`}
+                    style={{ background: `rgba(249,115,22,${Math.max(0.12, intensity)})` }}
+                    className={`h-4 rounded-sm ${isTop ? 'ring-1 ring-orange-400' : ''}`}
+                  />
+                );
+              })}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      <p className="text-[10px] text-neutral-500 mt-2">
+        現在: 毎日18:00固定 → 推奨:{' '}
+        <span className="text-orange-400 font-semibold">{bestHour}時</span>（直近90日データより）
+      </p>
+    </>
+  );
+}
+
+function VideoEngagementTable({ videos }: { videos: VideoStat[] }) {
+  const rows = videos
+    .map(v => {
+      const likeRate = v.views && v.views > 0 && v.likes !== null
+        ? (v.likes / v.views) * 100
+        : null;
+      return { ...v, likeRate };
+    })
+    .filter(v => v.likeRate !== null || v.comments !== null)
+    .sort((a, b) => (b.likeRate ?? 0) - (a.likeRate ?? 0))
+    .slice(0, 15);
+
+  if (!rows.length) return <EmptyState />;
+
+  return (
+    <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+      <table className="w-full border-collapse">
+        <thead><tr>
+          <TH>タイトル</TH>
+          <TH>種別</TH>
+          <TH>再生数</TH>
+          <TH>高評価率</TH>
+          <TH>コメント</TH>
+          <TH>横展開</TH>
+        </tr></thead>
+        <tbody>
+          {rows.map(v => {
+            const crossPromo = (v.likeRate ?? 0) >= 3 && (v.comments ?? 0) >= 5;
+            return (
+              <tr key={v.post_id} className="hover:bg-neutral-800/30">
+                <TD className="max-w-[180px] truncate text-xs">{v.title}</TD>
+                <TD className="text-xs">{v.video_type}</TD>
+                <TD className="text-xs">{v.views?.toLocaleString() ?? '—'}</TD>
+                <TD><LikeRateBadge rate={v.likeRate} /></TD>
+                <TD className="text-xs">{v.comments?.toLocaleString() ?? '—'}</TD>
+                <TD>
+                  {crossPromo
+                    ? <span className="text-yellow-400 font-bold">★</span>
+                    : <span className="text-neutral-600">—</span>}
+                </TD>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export default function YTTab() {
@@ -404,6 +543,14 @@ export default function YTTab() {
             </LineChart>
           </ResponsiveContainer>
         ) : <EmptyState />}
+      </Section>
+
+      <Section title="公開タイミング別再生数ヒートマップ（YouTube · 直近90日）">
+        <YTHeatmap />
+      </Section>
+
+      <Section title="動画別コメント数・高評価率（★=横展開推奨）">
+        <VideoEngagementTable videos={videos} />
       </Section>
     </>
   );
