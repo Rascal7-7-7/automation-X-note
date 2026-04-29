@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server';
-
-function parseCookie(req: Request, name: string): string | null {
-  const header = req.headers.get('cookie') ?? '';
-  const match = header.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+import crypto from 'crypto';
+import { verifySession } from './session';
 
 export function checkAuth(req: Request): NextResponse | null {
   const secret = process.env.DASHBOARD_SECRET;
   if (!secret) {
-    if (process.env.NODE_ENV === 'production') {
-      return NextResponse.json({ error: 'server misconfigured' }, { status: 500 });
-    }
-    return null; // dev: skip if not set
+    return NextResponse.json({ error: 'server misconfigured' }, { status: 503 });
   }
+
   const headerSecret = req.headers.get('x-dashboard-secret');
-  const cookieSecret = parseCookie(req, 'dashboard_secret');
-  if (headerSecret === secret || cookieSecret === secret) return null;
+  if (headerSecret !== null) {
+    const a = Buffer.from(headerSecret);
+    const b = Buffer.from(secret);
+    if (a.length === b.length && crypto.timingSafeEqual(a, b)) return null;
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+
+  const cookieHeader = req.headers.get('cookie') ?? '';
+  const sessionToken = cookieHeader.match(/session_id=([^;]+)/)?.[1];
+  if (verifySession(sessionToken)) return null;
+
   return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 }
