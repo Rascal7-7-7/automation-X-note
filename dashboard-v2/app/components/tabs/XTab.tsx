@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Fragment, useState, useEffect, useCallback } from 'react';
 import { apiFetch } from '@/lib/apiFetch';
 import {
   LineChart, Line, BarChart, Bar,
@@ -30,6 +30,26 @@ interface ContentTypeStat {
   post_count: number;
   avg_impressions: number | null;
   avg_er_pct: number | null;
+}
+
+interface HashtagStat {
+  hashtag: string;
+  post_count: number;
+  avg_impressions: number | null;
+  avg_er_pct: number | null;
+}
+
+interface NoteCtrRow {
+  has_link: boolean;
+  post_count: number;
+  avg_er_pct: number | null;
+  avg_impressions: number | null;
+}
+
+interface HeatmapCell {
+  day: number;
+  hour: number;
+  value: number;
 }
 
 const X_ACCOUNTS = ['all', 'rascal_ai_devops', 'invest', 'affiliate'] as const;
@@ -89,6 +109,173 @@ function ContentTypeChart({ account }: { account: AcctFilter }) {
       </div>
       <p className="mt-1 text-[10px] text-neutral-600">
         ※ ER = likes / impressions。投稿と計測データを時間近似で紐付け（β）
+      </p>
+    </>
+  );
+}
+
+// ── XHeatmap ─────────────────────────────────────────────
+
+const DAY_LABELS = ['日', '月', '火', '水', '木', '金', '土'];
+const DAY_ORDER  = [1, 2, 3, 4, 5, 6, 0]; // Mon→Sun
+
+function XHeatmap() {
+  const [cells, setCells] = useState<HeatmapCell[]>([]);
+  const [max, setMax]     = useState(1);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/post-metrics/heatmap?platform=x')
+      .then(r => r.json())
+      .then((d: { cells?: HeatmapCell[]; max?: number }) => {
+        setCells(d.cells ?? []);
+        setMax(d.max || 1);
+      })
+      .catch(() => setError(true));
+  }, []);
+
+  if (error) return <EmptyState msg="ヒートマップデータ取得失敗" />;
+
+  const lookup = new Map<string, number>();
+  cells.forEach(c => lookup.set(`${c.day}_${c.hour}`, c.value));
+
+  const top3 = [...cells].sort((a, b) => b.value - a.value).slice(0, 3);
+
+  return (
+    <>
+      <div style={{ overflowX: 'auto' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'auto repeat(24, 1fr)', gap: 2, minWidth: 580 }}>
+          <div />
+          {Array.from({ length: 24 }, (_, h) => (
+            <div key={h} style={{ textAlign: 'center', fontSize: 9, color: '#6b7280', lineHeight: 1.2 }}>
+              {h % 6 === 0 ? h : ''}
+            </div>
+          ))}
+          {DAY_ORDER.map(day => (
+            <Fragment key={day}>
+              <div style={{ fontSize: 10, color: '#9ca3af', paddingRight: 6, display: 'flex', alignItems: 'center' }}>
+                {DAY_LABELS[day]}
+              </div>
+              {Array.from({ length: 24 }, (_, hour) => {
+                const val = lookup.get(`${day}_${hour}`) ?? 0;
+                const intensity = max > 0 ? val / max : 0;
+                return (
+                  <div
+                    key={hour}
+                    title={`${DAY_LABELS[day]}曜 ${hour}時: ${val.toLocaleString()}`}
+                    style={{
+                      height: 18,
+                      borderRadius: 2,
+                      backgroundColor: intensity > 0
+                        ? `rgba(99,102,241,${Math.max(0.12, intensity)})`
+                        : '#1a1a1a',
+                    }}
+                  />
+                );
+              })}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+      {top3.length > 0 ? (
+        <p className="mt-2 text-[11px] text-neutral-300">
+          🏆 {top3.map(c => `${DAY_LABELS[c.day]}曜 ${c.hour}時`).join('、')}
+        </p>
+      ) : (
+        <EmptyState msg="post_metrics データが溜まると表示されます" />
+      )}
+    </>
+  );
+}
+
+// ── HashtagChart ──────────────────────────────────────────
+
+function HashtagChart() {
+  const [data, setData]   = useState<HashtagStat[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/x/hashtags')
+      .then(r => r.json())
+      .then((d: { data?: HashtagStat[] }) => setData(d.data ?? []))
+      .catch(() => setError(true));
+  }, []);
+
+  if (error) return <EmptyState msg="ハッシュタグデータ取得失敗" />;
+  if (!data.length) return <EmptyState msg="ハッシュタグ付き投稿がありません（データ蓄積後に表示）" />;
+
+  const chartData = data.map(d => ({
+    name:      d.hashtag,
+    平均インプレ: d.avg_impressions ?? 0,
+    '平均ER(%)': d.avg_er_pct ?? 0,
+  }));
+
+  return (
+    <ResponsiveContainer width="100%" height={Math.max(200, chartData.length * 26)}>
+      <BarChart data={chartData} layout="vertical" margin={{ left: 8, right: 40, top: 4, bottom: 4 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+        <XAxis type="number" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+        <YAxis type="category" dataKey="name" tick={{ ...CHART_STYLE, fill: '#9ca3af' }} width={90} />
+        <Tooltip {...TOOLTIP_STYLE} />
+        <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+        <Bar dataKey="平均インプレ" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} radius={[0, 2, 2, 0]} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+// ── NoteCtrSection ────────────────────────────────────────
+
+function NoteCtrSection() {
+  const [data, setData]   = useState<NoteCtrRow[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/x/note-ctr')
+      .then(r => r.json())
+      .then((d: { data?: NoteCtrRow[] }) => setData(d.data ?? []))
+      .catch(() => setError(true));
+  }, []);
+
+  if (error) return <EmptyState msg="note誘導CTRデータ取得失敗" />;
+
+  const linkRow   = data.find(d => d.has_link);
+  const noLinkRow = data.find(d => !d.has_link);
+  const ctr       = linkRow?.avg_er_pct ?? null;
+
+  const chartData = [
+    { name: 'リンク付き', '平均ER(%)': linkRow?.avg_er_pct   ?? 0 },
+    { name: 'リンクなし', '平均ER(%)': noLinkRow?.avg_er_pct ?? 0 },
+  ];
+
+  return (
+    <>
+      <div className="mb-3 inline-block p-3 rounded-lg border border-neutral-700 bg-neutral-900/60">
+        <div className="text-[10px] text-neutral-500 mb-0.5">note誘導CTR（直近30日 · ER代理指標）</div>
+        <div className="text-2xl font-bold text-violet-400">
+          {ctr !== null ? `${ctr.toFixed(1)}%` : '—'}
+        </div>
+        {linkRow && (
+          <div className="text-[10px] text-neutral-500 mt-0.5">
+            リンク付き投稿 {linkRow.post_count}件
+          </div>
+        )}
+      </div>
+      {data.length > 0 ? (
+        <ResponsiveContainer width="100%" height={140}>
+          <BarChart data={chartData} margin={{ top: 4, right: 30, left: 0, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+            <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+            <YAxis unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+            <Tooltip {...TOOLTIP_STYLE} />
+            <Bar dataKey="平均ER(%)" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} radius={[2, 2, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      ) : (
+        <EmptyState msg="直近30日の投稿データがありません" />
+      )}
+      <p className="mt-1 text-[10px] text-neutral-600">
+        ※ CTR代理指標: note.com/http含む投稿のER。link_clicks計測データがあれば実CTRに切り替わります
       </p>
     </>
   );
@@ -304,6 +491,21 @@ export default function XTab() {
       {/* ── Content type breakdown ─────────────────────── */}
       <Section title="コンテンツ型別エンゲージメント（β）">
         <ContentTypeChart account={acctFilter} />
+      </Section>
+
+      {/* ── Heatmap ────────────────────────────────────── */}
+      <Section title="最適投稿時間帯ヒートマップ（X · 直近90日）">
+        <XHeatmap />
+      </Section>
+
+      {/* ── Hashtag engagement ─────────────────────────── */}
+      <Section title="ハッシュタグ別エンゲージメント Top15">
+        <HashtagChart />
+      </Section>
+
+      {/* ── Note CTR ───────────────────────────────────── */}
+      <Section title="note誘導CTR（リンク付き投稿 vs リンクなし）">
+        <NoteCtrSection />
       </Section>
     </>
   );

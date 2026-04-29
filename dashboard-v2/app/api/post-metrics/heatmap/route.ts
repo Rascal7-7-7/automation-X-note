@@ -6,6 +6,9 @@ export async function GET(req: Request) {
   const authErr = checkAuth(req);
   if (authErr) return authErr;
 
+  const { searchParams } = new URL(req.url);
+  const platform = searchParams.get('platform');
+
   try {
     // day: 0=Sun,1=Mon,...,6=Sat  hour: 0-23
     const rows = await sql`
@@ -16,6 +19,7 @@ export async function GET(req: Request) {
       FROM post_metrics
       WHERE metric_key IN ('impressions','likes','saves','reactions','bookmarks','engagement')
         AND recorded_at > NOW() - INTERVAL '90 days'
+        AND (${platform}::text IS NULL OR platform = ${platform})
       GROUP BY day, hour
       ORDER BY day, hour`;
 
