@@ -82,7 +82,11 @@ export async function GET(req: Request) {
     };
 
     return NextResponse.json({ drafts, stats });
-  } catch {
-    return NextResponse.json({ drafts: [], stats: { total: 0, noCover: 0, published: 0, draft: 0 } });
+  } catch (err: unknown) {
+    const code = (err as NodeJS.ErrnoException).code;
+    if (code === 'ENOENT') {
+      return NextResponse.json({ error: 'drafts directory not found' }, { status: 503 });
+    }
+    return NextResponse.json({ error: 'failed to read drafts' }, { status: 500 });
   }
 }

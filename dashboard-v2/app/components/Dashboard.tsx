@@ -40,6 +40,11 @@ interface Metric {
   meta: unknown; recorded_at: string;
 }
 
+interface CreditData {
+  remaining?: number;
+  total?: number;
+}
+
 // ── constants ─────────────────────────────────────────────
 
 const TABS = ['Overview','X','note','Instagram','YouTube','Ghost','インフラ','スケジューラー','分析'] as const;
@@ -412,6 +417,7 @@ export default function Dashboard() {
   const [previewOpen, setPreviewOpen]   = useState(false);
   const [pendingCount, setPendingCount] = useState(0);
   const [dryRun, setDryRun]             = useState(true);
+  const [credits, setCredits]           = useState<CreditData | null>(null);
   const [creditWarn, setCreditWarn]     = useState(false);
 
   const fetchAll = useCallback(async () => {
@@ -425,15 +431,14 @@ export default function Dashboard() {
     if (po.status === 'fulfilled') setPosts(po.value.posts ?? []);
     if (me.status === 'fulfilled') setMetrics(me.value.metrics ?? []);
     if (al.status === 'fulfilled') {
-      const alertList: Alert[] = al.value.alerts ?? [];
-      setAlerts(alertList);
-      const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-      setCreditWarn(alertList.some(a =>
-        a.message.includes('credit balance too low') &&
-        new Date(a.created_at).getTime() > cutoff
-      ));
+      setAlerts(al.value.alerts ?? []);
     }
-    fetch('/api/credits').catch(() => {});
+    fetch('/api/credits').then(r => r.json())
+      .then((d: CreditData) => {
+        setCredits(d);
+        setCreditWarn((d.remaining ?? Infinity) < 1000);
+      })
+      .catch(() => {});
     // pending count for approval badge
     fetch('/api/preview?limit=200').then(r => r.json())
       .then(d => setPendingCount((d.drafts ?? []).length))

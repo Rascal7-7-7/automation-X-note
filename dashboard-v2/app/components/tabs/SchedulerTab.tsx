@@ -24,6 +24,7 @@ interface SchedulerData {
   workflows: Workflow[];
   executions: Execution[];
   n8nReachable: boolean;
+  n8nAuthError?: boolean;
 }
 
 function statusCls(s: string) {
@@ -85,8 +86,9 @@ export default function SchedulerTab() {
       else await load();
     } catch (e) {
       setError('n8n接続エラー: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setToggling(null);
     }
-    setToggling(null);
   }
 
   async function trigger(wf: Workflow) {
@@ -95,11 +97,12 @@ export default function SchedulerTab() {
     try {
       const r = await fetch(`/api/scheduler/${wf.id}/trigger`, { method: 'POST' });
       if (!r.ok) setError('ワークフロー実行失敗');
+      else setTimeout(load, 1500);
     } catch (e) {
       setError('n8n接続エラー: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setTriggering(null);
     }
-    setTriggering(null);
-    setTimeout(load, 1500);
   }
 
   const active  = data.workflows.filter(w => w.active).length;
@@ -116,7 +119,13 @@ export default function SchedulerTab() {
         </div>
       )}
 
-      {!data.n8nReachable && (
+      {data.n8nAuthError && (
+        <div className="mb-3 p-3 rounded-lg border border-red-800 bg-red-950/30">
+          <span className="text-red-400 text-xs font-bold">🔑 n8n 認証エラー — N8N_API_KEY が無効または未設定です</span>
+        </div>
+      )}
+
+      {!data.n8nReachable && !data.n8nAuthError && (
         <div className="mb-3 p-3 rounded-lg border border-amber-800 bg-amber-950/30">
           <span className="text-amber-400 text-xs font-bold">⚠ n8n 未到達 — localhost:5678 が起動しているか確認してください</span>
         </div>

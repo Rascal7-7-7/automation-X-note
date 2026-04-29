@@ -15,7 +15,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const rows = await sql`SELECT * FROM posts WHERE id = ${numId} LIMIT 1`;
   if (!rows.length) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-  const post = rows[0] as { platform: string; account: string | null; content: string | null };
+  const post = rows[0] as {
+    platform: string;
+    account: string | null;
+    content: string | null;
+    status: string;
+  };
+
+  if (post.status !== 'failed' && post.status !== 'error') {
+    return NextResponse.json({ error: 'post is not in failed state' }, { status: 409 });
+  }
 
   const endpoint: Record<string, string> = {
     x:         '/api/x/process',
@@ -27,16 +36,22 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const path = endpoint[post.platform];
   if (!path) return NextResponse.json({ error: 'unsupported platform' }, { status: 400 });
 
+  // optimistic lock: mark retrying before bridge call
+  await sql`UPDATE posts SET status = 'retrying', updated_at = NOW() WHERE id = ${numId}`;
+
   try {
     const r = await fetch(`${BRIDGE}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ account: post.account, content: post.content, retryPostId: numId }),
     });
-    if (!r.ok) return NextResponse.json({ error: 'bridge error' }, { status: 502 });
-    await sql`UPDATE posts SET status = 'retrying', updated_at = NOW() WHERE id = ${numId}`;
+    if (!r.ok) {
+      await sql`UPDATE posts SET status = 'error', updated_at = NOW() WHERE id = ${numId}`;
+      return NextResponse.json({ error: 'bridge error' }, { status: 502 });
+    }
     return NextResponse.json({ ok: true });
   } catch {
+    await sql`UPDATE posts SET status = 'error', updated_at = NOW() WHERE id = ${numId}`.catch(() => {});
     return NextResponse.json({ error: 'bridge unreachable' }, { status: 503 });
   }
 }
