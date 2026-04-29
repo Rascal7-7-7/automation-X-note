@@ -110,7 +110,7 @@ function YTHeatmap() {
     apiFetch('/api/post-metrics/heatmap?platform=youtube')
       .then(r => r.ok ? r.json() : null)
       .then(d => {
-        if (d) { setCells(d.cells ?? []); setMaxVal(d.max || 1); }
+        if (d?.cells) { setCells(d.cells); setMaxVal(d.max ?? 1); }
         setHmLoad(false);
       })
       .catch(() => setHmLoad(false));
@@ -119,16 +119,17 @@ function YTHeatmap() {
   if (hmLoad) return <Spinner />;
   if (!cells.length) return <EmptyState />;
 
-  const cellMap = new Map(cells.map(c => [`${c.day}-${c.hour}`, c.value]));
+  const validCells = cells.filter(c => c.day >= 0 && c.day <= 6 && c.hour >= 0 && c.hour <= 23);
+  const cellMap = new Map(validCells.map(c => [`${c.day}-${c.hour}`, c.value]));
   const top3Set = new Set(
-    [...cells].sort((a, b) => b.value - a.value).slice(0, 3).map(c => `${c.day}-${c.hour}`),
+    [...validCells].sort((a, b) => b.value - a.value).slice(0, 3).map(c => `${c.day}-${c.hour}`),
   );
 
-  const hourTotals = Array.from({ length: 24 }, (_, h) => ({
-    hour: h,
-    total: YT_DAY_ORDER.reduce((s, d) => s + (cellMap.get(`${d}-${h}`) ?? 0), 0),
-  }));
-  const bestHour = [...hourTotals].sort((a, b) => b.total - a.total)[0]?.hour ?? 18;
+  const hourAvgs = Array.from({ length: 24 }, (_, h) => {
+    const vals = YT_DAY_ORDER.map(d => cellMap.get(`${d}-${h}`)).filter((v): v is number => v !== undefined);
+    return { hour: h, avg: vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0 };
+  });
+  const bestHour = [...hourAvgs].sort((a, b) => b.avg - a.avg)[0]?.hour ?? 18;
 
   return (
     <>
@@ -151,7 +152,7 @@ function YTHeatmap() {
                   <div
                     key={h}
                     title={`${YT_DAY_LABELS[dayIdx]} ${h}:00 — ${v.toLocaleString()}`}
-                    style={{ background: `rgba(249,115,22,${Math.max(0.12, intensity)})` }}
+                    style={{ background: v === 0 ? 'rgba(255,255,255,0.04)' : `rgba(249,115,22,${Math.max(0.15, intensity)})` }}
                     className={`h-4 rounded-sm ${isTop ? 'ring-1 ring-orange-400' : ''}`}
                   />
                 );
@@ -176,8 +177,8 @@ function VideoEngagementTable({ videos }: { videos: VideoStat[] }) {
         : null;
       return { ...v, likeRate };
     })
-    .filter(v => v.likeRate !== null || v.comments !== null)
-    .sort((a, b) => (b.likeRate ?? 0) - (a.likeRate ?? 0))
+    .filter((v): v is typeof v & { likeRate: number } => v.likeRate !== null)
+    .sort((a, b) => b.likeRate - a.likeRate)
     .slice(0, 15);
 
   if (!rows.length) return <EmptyState />;
