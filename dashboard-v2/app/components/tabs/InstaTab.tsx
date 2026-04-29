@@ -6,11 +6,14 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import {
-  Section, KpiGrid, EmptyState, TH, TD,
+  Section, KpiGrid, EmptyState,
   SnsMetric, PostMetric,
   pivotByAccount, latestByAccount,
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
 } from '../ui';
+
+const INSTA_ACCOUNTS = ['all', 'acct1', 'acct2', 'acct3'] as const;
+type AcctFilter = (typeof INSTA_ACCOUNTS)[number];
 
 interface TokenInfo {
   account: string;
@@ -19,12 +22,24 @@ interface TokenInfo {
   status: 'ok' | 'warn' | 'expired' | 'unknown';
 }
 
-export default function InstaTab() {
-  const [sns, setSns]       = useState<SnsMetric[]>([]);
-  const [pm, setPm]         = useState<PostMetric[]>([]);
-  const [tokens, setTokens] = useState<TokenInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+interface ContentTypeStat {
+  content_type: string;
+  post_count: number;
+  avg_reach: number | null;
+  avg_saves: number | null;
+  avg_save_rate: number | null;
+}
 
+export default function InstaTab() {
+  const [sns, setSns]                   = useState<SnsMetric[]>([]);
+  const [pm, setPm]                     = useState<PostMetric[]>([]);
+  const [tokens, setTokens]             = useState<TokenInfo[]>([]);
+  const [contentTypes, setContentTypes] = useState<ContentTypeStat[]>([]);
+  const [acctFilter, setAcctFilter]     = useState<AcctFilter>('all');
+  const [loading, setLoading]           = useState(true);
+  const [error, setError]               = useState<string | null>(null);
+
+  // base data — fetched once
   useEffect(() => {
     const ctrl = new AbortController();
     Promise.all([
@@ -37,16 +52,37 @@ export default function InstaTab() {
       setPm(p.metrics ?? []);
       setTokens(t.tokens ?? []);
       setLoading(false);
-    }).catch(e => { if (e.name !== 'AbortError') setLoading(false); });
+    }).catch(e => {
+      if (e.name !== 'AbortError') {
+        console.error('[InstaTab]', e);
+        setError('データの読み込みに失敗しました');
+        setLoading(false);
+      }
+    });
     return () => ctrl.abort();
   }, []);
 
-  const { data: followerData, accounts } = pivotByAccount(sns, 'followers');
-  const { data: reachData }              = pivotByAccount(sns, 'reach');
-  const latestFollowers = latestByAccount(sns, 'followers');
+  // content-type stats — re-fetches when account filter changes
+  useEffect(() => {
+    const ctrl = new AbortController();
+    const param = acctFilter !== 'all' ? `?account=${encodeURIComponent(acctFilter)}` : '';
+    fetch(`/api/insta/content-type${param}`, { signal: ctrl.signal })
+      .then(r => r.json())
+      .then(c => { if (!ctrl.signal.aborted) setContentTypes(c.data ?? []); })
+      .catch(e => { if (e.name !== 'AbortError') console.error('[InstaTab/content-type]', e); });
+    return () => ctrl.abort();
+  }, [acctFilter]);
 
-  const savesMap  = Object.fromEntries(pm.filter(m => m.metric_key === 'saves').map(m => [m.post_id, m.value]));
-  const reachMap  = Object.fromEntries(pm.filter(m => m.metric_key === 'reach').map(m => [m.post_id, m.value]));
+  const filteredSns    = acctFilter !== 'all' ? sns.filter(m => m.account === acctFilter)    : sns;
+  const filteredPm     = acctFilter !== 'all' ? pm.filter(m => m.account === acctFilter)     : pm;
+  const filteredTokens = acctFilter !== 'all' ? tokens.filter(t => t.account === acctFilter) : tokens;
+
+  const { data: followerData, accounts } = pivotByAccount(filteredSns, 'followers');
+  const { data: reachData }              = pivotByAccount(filteredSns, 'reach');
+  const latestFollowers = latestByAccount(filteredSns, 'followers');
+
+  const savesMap  = Object.fromEntries(filteredPm.filter(m => m.metric_key === 'saves').map(m => [m.post_id, m.value]));
+  const reachMap  = Object.fromEntries(filteredPm.filter(m => m.metric_key === 'reach').map(m => [m.post_id, m.value]));
   const saveRates = Object.keys(savesMap)
     .filter(id => reachMap[id] && reachMap[id] > 0)
     .map(id => ({
@@ -56,15 +92,40 @@ export default function InstaTab() {
     .sort((a, b) => b.saveRate - a.saveRate)
     .slice(0, 10);
 
-  const buzzScores  = sns.filter(m => m.metric_key === 'avgScore');
-  const buzzBarData = buzzScores.map(m => ({ account: m.account, score: m.value }));
+  const buzzBarData = filteredSns
+    .filter(m => m.metric_key === 'avgScore')
+    .map(m => ({ account: m.account, score: m.value }));
 
-  const expiredOrWarn = tokens.filter(t => t.status === 'expired' || t.status === 'warn');
+  const expiredOrWarn = filteredTokens.filter(t => t.status === 'expired' || t.status === 'warn');
 
+  const ctBarData = contentTypes.map(c => ({
+    name: c.content_type,
+    保存率: c.avg_save_rate ?? 0,
+    平均リーチ: c.avg_reach ?? 0,
+  }));
+
+  if (error) return <EmptyState msg={error} />;
   if (loading) return <EmptyState msg="読み込み中..." />;
 
   return (
     <>
+      {/* account filter */}
+      <div className="flex gap-2 mb-4 flex-wrap">
+        {INSTA_ACCOUNTS.map(a => (
+          <button
+            key={a}
+            onClick={() => setAcctFilter(a)}
+            className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+              acctFilter === a
+                ? 'bg-fuchsia-700 text-white'
+                : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+            }`}
+          >
+            {a === 'all' ? '全体' : a}
+          </button>
+        ))}
+      </div>
+
       {expiredOrWarn.length > 0 && (
         <div className="mb-3 p-3 rounded-lg border border-red-800 bg-red-950/30">
           <span className="text-red-400 text-xs font-bold">🔑 トークン期限警告</span>
@@ -84,9 +145,9 @@ export default function InstaTab() {
       ]} />
 
       <Section title="トークン有効期限">
-        {tokens.length ? (
+        {filteredTokens.length ? (
           <div className="grid grid-cols-3 gap-3">
-            {tokens.map(t => (
+            {filteredTokens.map(t => (
               <div key={t.account} className={`rounded-lg p-3 border ${
                 t.status === 'expired' ? 'border-red-800 bg-red-950/30'
                 : t.status === 'warn'  ? 'border-amber-800 bg-amber-950/30'
@@ -108,6 +169,52 @@ export default function InstaTab() {
               </div>
             ))}
           </div>
+        ) : <EmptyState />}
+      </Section>
+
+      <Section title="Reels vs 静止画 パフォーマンス比較">
+        {contentTypes.length ? (
+          <>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {contentTypes.map(c => (
+                <div key={c.content_type} className="rounded-lg border border-neutral-700 bg-neutral-800/30 p-4">
+                  <div className="text-sm font-semibold text-neutral-200 mb-3">
+                    {c.content_type === 'Reels' ? '🎬 Reels' : '🖼 静止画'}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <div className="text-neutral-500">投稿数</div>
+                      <div className="text-neutral-100 font-medium">{c.post_count}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均リーチ</div>
+                      <div className="text-neutral-100 font-medium">{c.avg_reach?.toFixed(0) ?? '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均保存数</div>
+                      <div className="text-neutral-100 font-medium">{c.avg_saves?.toFixed(1) ?? '—'}</div>
+                    </div>
+                    <div>
+                      <div className="text-neutral-500">平均保存率</div>
+                      <div className="text-green-400 font-bold">{c.avg_save_rate?.toFixed(2) ?? '—'}%</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={ctBarData} barGap={8}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="left" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+                <Bar yAxisId="left" dataKey="保存率" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} unit="%" />
+                <Bar yAxisId="right" dataKey="平均リーチ" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
         ) : <EmptyState />}
       </Section>
 
