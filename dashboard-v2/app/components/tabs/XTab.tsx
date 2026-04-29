@@ -25,6 +25,17 @@ interface XPost {
   created_at: string;
 }
 
+interface VelocityPost {
+  id: number;
+  content_preview: string;
+  account: string | null;
+  hours_since: number;
+  impressions: number;
+  likes: number;
+  retweets: number;
+  velocity: number;
+}
+
 interface ContentTypeStat {
   content_type: string;
   post_count: number;
@@ -291,6 +302,7 @@ export default function XTab() {
   const [retrying, setRetrying]     = useState<number | null>(null);
   const [retryError, setRetryError] = useState<string | null>(null);
   const [loading, setLoading]       = useState(true);
+  const [velocity, setVelocity]     = useState<VelocityPost[]>([]);
 
   const loadPosts = useCallback(() =>
     apiFetch('/api/posts?platform=x&limit=30').then(r => r.json())
@@ -317,8 +329,44 @@ export default function XTab() {
         setLoading(false);
       }
     });
+    apiFetch('/api/x/velocity', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (Array.isArray(d.posts)) setVelocity(d.posts); }).catch(() => {});
+
     return () => ctrl.abort();
   }, []);
+
+  // ── thread detection (🧵 or N/M pattern) ───────────────
+  const THREAD_RE = /(?:^|\s)(?:🧵|\d+[/／]\d+)/;
+  const postEngMap: Record<number, { imp: number; likes: number; rt: number }> = {};
+  pm.forEach(m => {
+    const id = Number(m.post_id);
+    if (!postEngMap[id]) postEngMap[id] = { imp: 0, likes: 0, rt: 0 };
+    if (m.metric_key === 'impressions') postEngMap[id].imp   = m.value;
+    if (m.metric_key === 'likes')       postEngMap[id].likes = m.value;
+    if (m.metric_key === 'retweets')    postEngMap[id].rt    = m.value;
+  });
+  const threadGroups = { thread: { imp: 0, likes: 0, rt: 0, n: 0 }, single: { imp: 0, likes: 0, rt: 0, n: 0 } };
+  xPosts.forEach(p => {
+    const type = p.content && THREAD_RE.test(p.content) ? 'thread' : 'single';
+    const eng  = postEngMap[p.id];
+    if (eng) {
+      threadGroups[type].imp   += eng.imp;
+      threadGroups[type].likes += eng.likes;
+      threadGroups[type].rt    += eng.rt;
+    }
+    threadGroups[type].n++;
+  });
+  const threadBarData = (['impressions', 'likes', 'retweets'] as const).map(key => {
+    const tN = threadGroups.thread.n || 1;
+    const sN = threadGroups.single.n || 1;
+    const metricKey = key === 'impressions' ? 'imp' : key === 'likes' ? 'likes' : 'rt';
+    return {
+      metric: key === 'impressions' ? 'IMP' : key === 'likes' ? 'いいね' : 'RT',
+      スレッド: parseFloat((threadGroups.thread[metricKey] / tN).toFixed(1)),
+      単体:     parseFloat((threadGroups.single[metricKey] / sN).toFixed(1)),
+    };
+  });
+  const hasThreadData = xPosts.length > 0 && pm.length > 0;
 
   // ── filtered views by account ───────────────────────────
   const filteredSns   = acctFilter !== 'all' ? sns.filter(m => m.account === acctFilter)   : sns;
@@ -506,6 +554,59 @@ export default function XTab() {
       {/* ── Note CTR ───────────────────────────────────── */}
       <Section title="note誘導CTR（リンク付き投稿 vs リンクなし）">
         <NoteCtrSection />
+      </Section>
+
+      {/* ── P2: 2h velocity ────────────────────────────── */}
+      <Section title="投稿後速度スコア Top10（直近48h · eng/h）">
+        {velocity.length ? (
+          <div style={{ maxHeight: 260, overflowY: 'auto' }}>
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH>経過h</TH><TH>IMP</TH><TH>いいね</TH><TH>RT</TH>
+                <TH>速度スコア</TH><TH>投稿プレビュー</TH>
+              </tr></thead>
+              <tbody>{velocity.slice(0, 10).map(p => (
+                <tr key={p.id} className="hover:bg-neutral-800/30">
+                  <TD className="font-mono text-[11px]">{p.hours_since}h</TD>
+                  <TD className="font-mono">{p.impressions.toLocaleString()}</TD>
+                  <TD className="font-mono">{p.likes.toLocaleString()}</TD>
+                  <TD className="font-mono">{p.retweets.toLocaleString()}</TD>
+                  <TD className="font-bold text-blue-400 font-mono">{p.velocity.toLocaleString()}</TD>
+                  <TD className="text-[11px] text-neutral-400 max-w-[200px] truncate">
+                    {p.content_preview || '—'}
+                  </TD>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : (
+          <p className="text-xs py-6 text-center text-neutral-500">直近48h以内の投稿データが蓄積後に表示</p>
+        )}
+      </Section>
+
+      {/* ── P2: Thread vs single ───────────────────────── */}
+      <Section title="スレッド vs 単体ツイート 平均エンゲージメント比較">
+        {hasThreadData ? (
+          <>
+            <p className="text-[10px] text-neutral-500 mb-2">
+              スレッド: {threadGroups.thread.n}件 / 単体: {threadGroups.single.n}件
+              （検出: 🧵・N/M パターン）
+            </p>
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={threadBarData} margin={{ left: 0, right: 8 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="metric" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 10, color: '#6b7280' }} />
+                <Bar dataKey="スレッド" fill="#3b82f640" stroke="#3b82f6" strokeWidth={1} radius={[2,2,0,0]} />
+                <Bar dataKey="単体"     fill="#22c55e40" stroke="#22c55e" strokeWidth={1} radius={[2,2,0,0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </>
+        ) : (
+          <p className="text-xs py-6 text-center text-neutral-500">post_metrics 蓄積後に表示</p>
+        )}
       </Section>
     </>
   );
