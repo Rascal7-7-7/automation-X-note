@@ -927,8 +927,9 @@ export default function Dashboard() {
   const [alerts, setAlerts]         = useState<Alert[]>([]);
   const [lastUpdated, setLastUpdated] = useState('');
   const [loading, setLoading]       = useState(true);
-  const [previewOpen, setPreviewOpen]   = useState(false);
-  const [pendingCount, setPendingCount] = useState(0);
+  const [previewOpen, setPreviewOpen]       = useState(false);
+  const [pendingCount, setPendingCount]     = useState(0);
+  const [pendingByPf, setPendingByPf]       = useState<Record<string, number>>({});
   const [dryRun, setDryRun]             = useState(true);
   const [creditWarn, setCreditWarn]     = useState(false);
   const [fetchError, setFetchError]     = useState(false);
@@ -954,9 +955,15 @@ export default function Dashboard() {
     apiFetch('/api/credits').then(r => r.json())
       .then((d: CreditData) => { setCreditWarn(d.warnLow ?? false); })
       .catch(() => {});
-    // pending count for approval badge
+    // pending count + per-platform breakdown for approval badges
     apiFetch('/api/preview?limit=200').then(r => r.json())
-      .then(d => setPendingCount((d.drafts ?? []).length))
+      .then(d => {
+        const drafts: Array<{ platform: string }> = d.drafts ?? [];
+        setPendingCount(drafts.length);
+        const byPf: Record<string, number> = {};
+        drafts.forEach(dr => { byPf[dr.platform] = (byPf[dr.platform] ?? 0) + 1; });
+        setPendingByPf(byPf);
+      })
       .catch(() => {});
     setLastUpdated(new Date().toLocaleTimeString('ja-JP'));
     setLoading(false);
@@ -1039,21 +1046,44 @@ export default function Dashboard() {
       {/* tabs */}
       <div className="flex gap-1 px-4 overflow-x-auto"
         style={{ background: '#0a0a0a', borderBottom: '1px solid #262626' }}>
-        {TABS.map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-3.5 py-2 rounded-t text-xs whitespace-nowrap transition-colors ${
-              tab === t
-                ? 'text-gray-100 bg-neutral-800'
-                : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'
-            }`}
-            style={tab === t ? { borderBottom: '2px solid #7c6ff7' } : {}}>
-            {t}
-          </button>
-        ))}
+        {TABS.map(t => {
+          const pf       = TAB_TO_PLATFORM[t];
+          const pendCount = pf ? (pendingByPf[pf] ?? 0) : 0;
+          return (
+            <button key={t} onClick={() => setTab(t)}
+              className={`relative px-3.5 py-2 rounded-t text-xs whitespace-nowrap transition-colors ${
+                tab === t
+                  ? 'text-gray-100 bg-neutral-800'
+                  : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-900'
+              }`}
+              style={tab === t ? { borderBottom: '2px solid #7c6ff7' } : {}}>
+              {t}
+              {pendCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-600 text-white leading-none">
+                  {pendCount}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       {/* content */}
       <div className="p-4 max-w-screen-2xl mx-auto">
+        {(() => {
+          const platform = TAB_TO_PLATFORM[tab];
+          const count    = platform ? (pendingByPf[platform] ?? 0) : 0;
+          if (!platform || count === 0) return null;
+          return (
+            <div className="mb-4 p-3 rounded-lg border border-violet-800 bg-violet-950/30 flex items-center justify-between">
+              <span className="text-violet-300 text-sm font-semibold">📋 承認待ち {count}件</span>
+              <button onClick={() => setPreviewOpen(true)}
+                className="text-xs px-3 py-1 rounded bg-violet-800 text-violet-100 hover:bg-violet-700 transition-colors">
+                確認・承認する
+              </button>
+            </div>
+          );
+        })()}
         {renderTab()}
       </div>
 
