@@ -1,13 +1,13 @@
-// Requires NEXT_PUBLIC_DASHBOARD_SECRET in .env.local set to the same value as DASHBOARD_SECRET.
-// NEXT_PUBLIC_ prefix is intentional: this is a local developer dashboard, not a public endpoint.
+// Auth is handled via HttpOnly cookie (set by /api/auth/login).
+// credentials: 'include' ensures the cookie is sent on same-origin requests.
 export async function apiFetch(url: string, opts: RequestInit = {}): Promise<Response> {
-  const secret = process.env.NEXT_PUBLIC_DASHBOARD_SECRET ?? '';
-  const { headers: callerHeaders, ...rest } = opts;
   const isFormData = opts.body instanceof FormData;
-  const headers = new Headers(callerHeaders as HeadersInit | undefined);
-  if (opts.body !== undefined && !isFormData && !headers.has('Content-Type')) {
-    headers.set('Content-Type', 'application/json');
-  }
-  if (secret) headers.set('x-dashboard-secret', secret);
-  return fetch(url, { ...rest, headers });
+  return fetch(url, {
+    ...opts,
+    credentials: 'include',
+    headers: {
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+      ...(opts.headers as Record<string, string> | undefined),
+    },
+  });
 }

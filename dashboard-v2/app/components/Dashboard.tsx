@@ -616,6 +616,11 @@ export default function Dashboard() {
   const [creditWarn, setCreditWarn]     = useState(false);
   const [fetchError, setFetchError]     = useState(false);
 
+  async function logout() {
+    await apiFetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  }
+
   const fetchAll = useCallback(async () => {
     const [ov, po, me, al] = await Promise.allSettled([
       apiFetch('/api/overview').then(r => r.json()),
@@ -693,6 +698,9 @@ export default function Dashboard() {
           <button onClick={fetchAll}
             className="text-xs px-2 py-1 rounded text-neutral-400 hover:text-neutral-200"
             style={{ background: '#1f1f1f' }}>↻</button>
+          <button onClick={logout}
+            className="text-xs px-2 py-1 rounded text-neutral-500 hover:text-neutral-300"
+            style={{ background: '#1f1f1f' }}>⏻</button>
         </div>
       </div>
 
