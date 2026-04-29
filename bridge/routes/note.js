@@ -52,4 +52,20 @@ router.post('/post', async (req, res) => {
   }
 });
 
+router.post('/publish', async (req, res) => {
+  try {
+    const draftId   = req.body?.draftId   ?? null;
+    const accountId = Number(req.body?.accountId ?? 1);
+    if (!draftId || typeof draftId !== 'string') {
+      return res.status(400).json({ ok: false, error: 'draftId required' });
+    }
+    const { runPost } = await import('../../note/post.js');
+    const result = await runPost({ accountId, draftId, mode: 'prod' });
+    res.json({ ok: true, publishedUrl: result?.noteUrl ?? null });
+  } catch (err) {
+    logger.error(MODULE, 'note publish failed', { message: err.message });
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
 export default router;

@@ -35,6 +35,17 @@ function getAccountPaths(accountId = 1) {
   };
 }
 
+function findDraftById(draftsDir, draftId) {
+  const filePath = path.join(draftsDir, `${draftId}.json`);
+  if (!fs.existsSync(filePath)) return null;
+  try {
+    const draft = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    return { filePath, draft };
+  } catch {
+    return null;
+  }
+}
+
 function findOldestDraft(draftsDir) {
   if (!fs.existsSync(draftsDir)) return null;
 
@@ -71,9 +82,10 @@ function notifyPublishReady(title, noteUrl) {
 export async function runPost(accountIdOrOpts = {}) {
   const accountId = typeof accountIdOrOpts === 'number' ? accountIdOrOpts : (accountIdOrOpts.accountId ?? 1);
   const headless  = typeof accountIdOrOpts === 'object' ? (accountIdOrOpts.headless ?? true) : true;
+  const draftId   = typeof accountIdOrOpts === 'object' ? (accountIdOrOpts.draftId ?? null) : null;
   const { draftsDir, sessionFile, username } = getAccountPaths(accountId);
 
-  const file = findOldestDraft(draftsDir);
+  const file = draftId ? findDraftById(draftsDir, draftId) : findOldestDraft(draftsDir);
 
   if (!file) {
     logger.info(MODULE, 'no drafts to post');
@@ -225,20 +237,22 @@ export async function runPost(accountIdOrOpts = {}) {
 
     // ── 公開（prod のみ） ─────────────────────────────────────────
     const isDev = ((typeof accountIdOrOpts === 'object' ? accountIdOrOpts.mode : undefined) ?? process.env.MODE ?? 'dev') === 'dev';
+    let noteUrl;
     if (isDev) {
-      const noteUrl = page.url();
+      noteUrl = page.url();
       markPosted(file.filePath, noteUrl);
       logNotePosted(file.filePath, noteUrl, draft);
       logger.info(MODULE, `DEV: saved as draft only — ${noteUrl}`);
       notifyPublishReady(draft.title, noteUrl);
     } else {
-      const noteUrl = await publishNote(page, draft, username);
+      noteUrl = await publishNote(page, draft, username);
       markPosted(file.filePath, noteUrl);
       logNotePosted(file.filePath, noteUrl, draft);
       logger.info(MODULE, `published: ${noteUrl}`);
       await selfLikeNote(page, noteUrl, username);
       await crossLikeNote(noteUrl, username, accountId, getAccountPaths);
     }
+    return { noteUrl };
   } catch (err) {
     await takeDebugScreenshot(page, 'runPost-ERROR').catch(() => {});
     logger.error(MODULE, 'post failed', { message: err.message });
