@@ -5,6 +5,7 @@ import { apiFetch } from '@/lib/apiFetch';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line, Legend,
+  ScatterChart, Scatter, ZAxis,
 } from 'recharts';
 import XTab          from './tabs/XTab';
 import NoteTab       from './tabs/NoteTab';
@@ -261,6 +262,11 @@ function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
 interface SnsMini { platform: string; metric_key: string; value: number; recorded_date: string; recorded_at: string; }
 interface PostMini { post_id: string; platform: string; account: string | null; metric_key: string; value: number; }
 interface QualityTrend { categories: string[]; series: Record<string, number | string>[]; }
+interface AspCvRankRow {
+  id: string; productName: string; asp: string; category: string;
+  reward: number; postedCount: number; estimatedRevenue: number; lastPostedAt: string | null;
+}
+interface QualityErPoint { platform: string; avgScore: number; er: number; }
 
 function isoWeek(iso: string) {
   const d = new Date(iso);
@@ -311,6 +317,8 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
   const [heatMax, setHeatMax]     = useState(0);
   const [heatError, setHeatError] = useState(false);
   const [qualityTrend, setQualityTrend] = useState<QualityTrend>({ categories: [], series: [] });
+  const [aspCvRank, setAspCvRank]   = useState<AspCvRankRow[]>([]);
+  const [qualityEr, setQualityEr]   = useState<QualityErPoint[]>([]);
   const [reportOpen, setReportOpen]   = useState(false);
   const [reportMd, setReportMd]       = useState<string | null>(null);
   const [reportLoading, setReportLoading] = useState(false);
@@ -353,6 +361,12 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
       });
     apiFetch('/api/analytics/quality-trend', { signal: ctrl.signal }).then(r => r.json())
       .then(d => { if (d.categories) setQualityTrend(d as QualityTrend); })
+      .catch(() => {});
+    apiFetch('/api/analytics/asp-cv-rank', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (Array.isArray(d.rows)) setAspCvRank(d.rows as AspCvRankRow[]); })
+      .catch(() => {});
+    apiFetch('/api/analytics/quality-er', { signal: ctrl.signal }).then(r => r.json())
+      .then(d => { if (Array.isArray(d.points)) setQualityEr(d.points as QualityErPoint[]); })
       .catch(() => {});
     return () => ctrl.abort();
   }, []);
@@ -787,6 +801,75 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
             </LineChart>
           </ResponsiveContainer>
         ) : <p className="text-xs py-6 text-center text-neutral-500">quality-feedback.json 読み込み中...</p>}
+      </Section>
+
+      {/* ── ASP 推定CV貢献ランキング ──────────────────────── */}
+      <Section title="ASP推定CV貢献ランキング（投稿数 × 報酬単価）">
+        {aspCvRank.length ? (
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead><tr>
+                <TH2>#</TH2>
+                <TH2>案件名</TH2>
+                <TH2>カテゴリ</TH2>
+                <TH2>報酬(円)</TH2>
+                <TH2>投稿数</TH2>
+                <TH2>推定貢献(円)</TH2>
+                <TH2>最終投稿</TH2>
+              </tr></thead>
+              <tbody>{aspCvRank.map((r, i) => (
+                <tr key={r.id} className="hover:bg-neutral-800/30">
+                  <TD2 cls="text-neutral-500">{i + 1}</TD2>
+                  <TD2 cls="font-medium text-neutral-100 max-w-[180px] truncate">{r.productName}</TD2>
+                  <TD2 cls="text-neutral-400 text-[10px]">{r.category}</TD2>
+                  <TD2>¥{r.reward.toLocaleString()}</TD2>
+                  <TD2>{r.postedCount}</TD2>
+                  <TD2 cls={`font-bold ${r.estimatedRevenue > 0 ? 'text-green-400' : 'text-neutral-500'}`}>
+                    {r.estimatedRevenue > 0 ? `¥${r.estimatedRevenue.toLocaleString()}` : '—'}
+                  </TD2>
+                  <TD2 cls="text-neutral-500 text-[10px]">{r.lastPostedAt ? fmtTs(r.lastPostedAt) : '—'}</TD2>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : <p className="text-xs py-6 text-center text-neutral-500">ASPキャンペーンデータなし</p>}
+      </Section>
+
+      {/* ── 品質 × ER 散布図 ───────────────────────────────── */}
+      <Section title="品質スコア × エンゲージメント率 相関散布図">
+        {qualityEr.length ? (() => {
+          const byPlatform = qualityEr.reduce<Record<string, QualityErPoint[]>>((acc, p) => {
+            (acc[p.platform] ??= []).push(p);
+            return acc;
+          }, {});
+          return (
+            <ResponsiveContainer width="100%" height={260}>
+              <ScatterChart margin={{ top: 12, right: 20, bottom: 28, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis
+                  type="number" dataKey="avgScore" name="品質スコア"
+                  domain={[0, 10]} tick={{ ...CHART_STYLE, fill: '#6b7280' }}
+                  label={{ value: '品質スコア', position: 'insideBottom', offset: -14, fill: '#6b7280', fontSize: 10 }}
+                />
+                <YAxis
+                  type="number" dataKey="er" name="ER(%)"
+                  tick={{ ...CHART_STYLE, fill: '#6b7280' }}
+                  label={{ value: 'ER(%)', angle: -90, position: 'insideLeft', offset: 8, fill: '#6b7280', fontSize: 10 }}
+                />
+                <ZAxis range={[40, 40]} />
+                <Tooltip
+                  cursor={{ strokeDasharray: '3 3' }}
+                  contentStyle={{ background: '#1a1a1a', border: '1px solid #333', fontSize: 11 }}
+                  formatter={(v: unknown, name: unknown) => [`${v}`, String(name)]}
+                />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+                {Object.entries(byPlatform).map(([pf, pts]) => (
+                  <Scatter key={pf} name={pf} data={pts} fill={PLATFORM_COLORS[pf] ?? '#6b7280'} fillOpacity={0.8} />
+                ))}
+              </ScatterChart>
+            </ResponsiveContainer>
+          );
+        })() : <p className="text-xs py-6 text-center text-neutral-500">ER指標が蓄積されると相関が表示されます</p>}
       </Section>
 
       {/* ── 週次レポートモーダル ────────────────────────────── */}
