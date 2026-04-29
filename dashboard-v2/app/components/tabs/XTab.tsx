@@ -12,6 +12,8 @@ import {
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
 } from '../ui';
 
+// ── types ──────────────────────────────────────────────────
+
 interface XPost {
   id: number;
   platform: string;
@@ -22,13 +24,85 @@ interface XPost {
   created_at: string;
 }
 
+interface ContentTypeStat {
+  content_type: string;
+  post_count: number;
+  avg_impressions: number | null;
+  avg_er_pct: number | null;
+}
+
+const X_ACCOUNTS = ['all', 'rascal_ai_devops', 'invest', 'affiliate'] as const;
+type AcctFilter = (typeof X_ACCOUNTS)[number];
+
+// ── ContentTypeChart ──────────────────────────────────────
+
+function ContentTypeChart({ account }: { account: AcctFilter }) {
+  const [data, setData]   = useState<ContentTypeStat[]>([]);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+    const url = account !== 'all'
+      ? `/api/x/content-type?account=${encodeURIComponent(account)}`
+      : '/api/x/content-type';
+    fetch(url).then(r => r.json())
+      .then(d => setData((d.data as ContentTypeStat[]) ?? []))
+      .catch(e => { console.error('[ContentTypeChart] fetch failed', e); setError(true); });
+  }, [account]);
+
+  if (error) return <EmptyState msg="コンテンツ型データの取得に失敗しました" />;
+  if (!data.length) {
+    return <EmptyState msg="投稿データなし — posts.published_at が入力されると表示" />;
+  }
+
+  const barData = data.map(d => ({
+    name: d.content_type,
+    投稿数: d.post_count,
+    平均インプレ: d.avg_impressions ?? 0,
+    '平均ER(%)': d.avg_er_pct ?? 0,
+  }));
+
+  return (
+    <>
+      <ResponsiveContainer width="100%" height={200}>
+        <BarChart data={barData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+          <XAxis dataKey="name" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+          <YAxis yAxisId="left" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+          <YAxis yAxisId="right" orientation="right" unit="%" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+          <Tooltip {...TOOLTIP_STYLE} />
+          <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+          <Bar yAxisId="left" dataKey="平均インプレ"
+            fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} radius={[2, 2, 0, 0]} />
+          <Bar yAxisId="right" dataKey="平均ER(%)"
+            fill="#22c55e40" stroke="#22c55e" strokeWidth={1} radius={[2, 2, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+      <div className="mt-2 flex gap-4">
+        {data.map(d => (
+          <div key={d.content_type} className="text-[11px] text-neutral-500">
+            <span className="text-neutral-300 font-semibold">{d.content_type}</span>
+            {' '}— {d.post_count}件
+          </div>
+        ))}
+      </div>
+      <p className="mt-1 text-[10px] text-neutral-600">
+        ※ ER = likes / impressions。投稿と計測データを時間近似で紐付け（β）
+      </p>
+    </>
+  );
+}
+
+// ── XTab ──────────────────────────────────────────────────
+
 export default function XTab() {
-  const [sns, setSns]         = useState<SnsMetric[]>([]);
-  const [pm, setPm]           = useState<PostMetric[]>([]);
-  const [xPosts, setXPosts]   = useState<XPost[]>([]);
-  const [retrying, setRetrying]   = useState<number | null>(null);
+  const [sns, setSns]               = useState<SnsMetric[]>([]);
+  const [pm, setPm]                 = useState<PostMetric[]>([]);
+  const [xPosts, setXPosts]         = useState<XPost[]>([]);
+  const [acctFilter, setAcctFilter] = useState<AcctFilter>('all');
+  const [retrying, setRetrying]     = useState<number | null>(null);
   const [retryError, setRetryError] = useState<string | null>(null);
-  const [loading, setLoading]     = useState(true);
+  const [loading, setLoading]       = useState(true);
 
   const loadPosts = useCallback(() =>
     fetch('/api/posts?platform=x&limit=30').then(r => r.json())
@@ -48,31 +122,43 @@ export default function XTab() {
       setPm(p.metrics ?? []);
       setXPosts(xp.posts ?? []);
       setLoading(false);
-    }).catch(e => { if (e.name !== 'AbortError') setLoading(false); });
+    }).catch(e => {
+      if (e.name !== 'AbortError') {
+        console.error('[XTab] initial load failed', e);
+        setLoading(false);
+      }
+    });
     return () => ctrl.abort();
   }, []);
 
-  const { data: followerData, accounts } = pivotByAccount(sns, 'followers');
-  const latest = latestByAccount(sns, 'followers');
+  // ── filtered views by account ───────────────────────────
+  const filteredSns   = acctFilter !== 'all' ? sns.filter(m => m.account === acctFilter)   : sns;
+  const filteredPm    = acctFilter !== 'all' ? pm.filter(m => m.account === acctFilter)    : pm;
+  const filteredPosts = acctFilter !== 'all' ? xPosts.filter(p => p.account === acctFilter) : xPosts;
+
+  const { data: followerData, accounts } = pivotByAccount(filteredSns, 'followers');
+  const latest = latestByAccount(filteredSns, 'followers');
 
   const erData = ['promoAvgER', 'normalAvgER'].flatMap(key =>
-    sns.filter(m => m.metric_key === key).map(m => ({
+    filteredSns.filter(m => m.metric_key === key).map(m => ({
       date: m.recorded_at.slice(0, 10),
       label: key === 'promoAvgER' ? 'プロモ' : '通常',
       value: m.value,
     }))
   );
   const erBarData = Object.entries(
-    erData.reduce<Record<string, Record<string, number>>>((acc, r) => {
-      acc[r.date] = { ...(acc[r.date] ?? {}), [r.label]: r.value };
-      return acc;
-    }, {})
+    erData.reduce<Record<string, Record<string, number>>>((acc, r) => ({
+      ...acc, [r.date]: { ...(acc[r.date] ?? {}), [r.label]: r.value },
+    }), {})
   ).sort().slice(-7).map(([date, vals]) => ({ date, ...vals }));
 
-  const postImpressions = pm.filter(m => m.metric_key === 'impressions' && m.snapshot_at === 'total');
-  const topPosts = postImpressions.sort((a, b) => b.value - a.value).slice(0, 10);
+  const postImpressions = filteredPm
+    .filter(m => m.metric_key === 'impressions' && m.snapshot_at === 'total')
+    .slice()
+    .sort((a, b) => b.value - a.value);
+  const topPosts = postImpressions.slice(0, 10);
 
-  const failedPosts = xPosts.filter(p => p.status === 'failed');
+  const failedPosts = filteredPosts.filter(p => p.status === 'failed');
 
   async function retry(id: number) {
     setRetrying(id);
@@ -95,6 +181,23 @@ export default function XTab() {
 
   return (
     <>
+      {/* ── Account filter ─────────────────────────────── */}
+      <div className="flex gap-1.5 mb-3">
+        {X_ACCOUNTS.map(a => (
+          <button
+            key={a}
+            onClick={() => setAcctFilter(a)}
+            className={`px-3 py-1 rounded text-xs font-medium border transition-colors ${
+              acctFilter === a
+                ? 'border-violet-700 bg-violet-950 text-violet-300'
+                : 'border-neutral-700 bg-neutral-900 text-neutral-400 hover:border-neutral-500 hover:text-neutral-200'
+            }`}
+          >
+            {a === 'all' ? '全体' : `@${a}`}
+          </button>
+        ))}
+      </div>
+
       <KpiGrid items={[
         [accounts.length || '—', 'トラッキング中アカウント数'],
         [Object.values(latest).reduce((s, v) => s + v, 0) || '—', '合計フォロワー(最新)'],
@@ -170,7 +273,7 @@ export default function XTab() {
               <Tooltip {...TOOLTIP_STYLE} />
               <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
               <Bar dataKey="プロモ" fill="#7c6ff740" stroke="#7c6ff7" strokeWidth={1} />
-              <Bar dataKey="通常" fill="#22c55e40" stroke="#22c55e" strokeWidth={1} />
+              <Bar dataKey="通常"   fill="#22c55e40" stroke="#22c55e" strokeWidth={1} />
             </BarChart>
           </ResponsiveContainer>
         ) : <EmptyState />}
@@ -194,6 +297,11 @@ export default function XTab() {
             </table>
           </div>
         ) : <EmptyState />}
+      </Section>
+
+      {/* ── Content type breakdown ─────────────────────── */}
+      <Section title="コンテンツ型別エンゲージメント（β）">
+        <ContentTypeChart account={acctFilter} />
       </Section>
     </>
   );
