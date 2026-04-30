@@ -94,6 +94,7 @@ export const TASKS = [
   // ── X 自己リプライ返信（朝投稿・昼投稿へのフォローアップ） ──────
   { name: 'x:self-reply', slot: 'morning', cron: '30 8 * * *' },  // 毎日 08:30 JST — 朝投稿へのリプライ返信
   { name: 'x:self-reply', slot: 'noon',    cron: '0 13 * * *'  }, // 毎日 13:00 JST — 昼投稿へのリプライ返信
+  { name: 'x:post-self-reply', cron: '*/30 * * * *' },            // 30分毎 — 2h遅延 self-reply キュー処理
 
   // ── Anthropic クレジット残高監視（毎朝 + 夜） ────────────────────
   {

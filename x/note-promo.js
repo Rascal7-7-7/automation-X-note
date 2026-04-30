@@ -109,7 +109,22 @@ async function generatePromoTweet(draft) {
 概要: ${draft.summary}
 テーマ: ${draft.theme}`;
 
-  return generate(system, prompt, { maxTokens: 300, model: 'claude-sonnet-4-6' });
+  const raw = await generate(system, prompt, { maxTokens: 300, model: 'claude-sonnet-4-6' });
+  logger.info(MODULE, `generated ${raw.length}字`, { preview: raw.slice(0, 60) });
+
+  if (raw.length > 270) {
+    // 末尾のハッシュタグ行を除去して短縮を試みる
+    const trimmed = raw.replace(/\n#\S+(\s+#\S+)*\s*$/, '').trimEnd();
+    if (trimmed.length <= 270) {
+      logger.warn(MODULE, `truncated hashtags: ${raw.length}→${trimmed.length}字`);
+      return trimmed;
+    }
+    // それでも超えるなら硬截断
+    const cut = raw.slice(0, 267) + '…';
+    logger.warn(MODULE, `hard-truncated: ${raw.length}→${cut.length}字`);
+    return cut;
+  }
+  return raw;
 }
 
 // ── メイン ───────────────────────────────────────────────────────────

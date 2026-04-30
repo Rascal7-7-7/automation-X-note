@@ -37,6 +37,7 @@ import { runDailyResearch }  from '../analytics/daily-research.js';
 import { runAINews }          from '../x/ai-news.js';
 import { runSelfReply }      from '../x/self-reply.js';
 import { runCheckCredits }   from '../shared/check-anthropic-credits.js';
+import { runPendingSelfReplies } from '../x/post-self-reply.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
 import { runCommunityPost as runYtCommunityPost } from '../youtube/community-post.js';
@@ -110,6 +111,7 @@ const HANDLERS = {
   'research:ai-tools':               ()     => runAIToolsResearch(),
   'analytics:daily-research':        ()     => runDailyResearch(),
   'x:self-reply':             () => runSelfReply(),
+  'x:post-self-reply':        () => runPendingSelfReplies(),
   'anthropic:check-credits': () => runCheckCredits(),
   'x:ai-news':                       async () => {
     await runAINews();

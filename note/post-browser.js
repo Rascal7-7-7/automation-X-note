@@ -146,25 +146,23 @@ export async function typeBodyWithCodeBlocks(page, bodyText) {
       }
       await pasteTextToEditor(page, seg.content);
     } else if (seg.type === 'code') {
+      await editor.click();
       await page.keyboard.press(`${mod}+End`);
       await page.keyboard.press('Enter');
       await page.waitForTimeout(200);
 
-      const inserted = await insertNativeCodeBlock(page, seg.content);
-      if (!inserted) {
-        // フォールバック: markdown ``` トリガー
-        await page.keyboard.type('```');
-        await page.keyboard.press('Enter');
+      // ``` トリガーをプライマリとして使用（UIメニュークリックより信頼性が高い）
+      await page.keyboard.type('```');
+      await page.keyboard.press('Enter');
+      await page.waitForTimeout(200);
+      if (seg.content) {
+        await page.evaluate(t => navigator.clipboard.writeText(t), seg.content);
+        await page.keyboard.press(`${mod}+v`);
         await page.waitForTimeout(200);
-        if (seg.content) {
-          await page.evaluate(t => navigator.clipboard.writeText(t), seg.content);
-          await page.keyboard.press(`${mod}+v`);
-          await page.waitForTimeout(200);
-        }
-        await page.keyboard.press('Escape');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('Enter');
       }
+      await page.keyboard.press('Escape');
+      await page.keyboard.press('ArrowDown');
+      await page.keyboard.press('Enter');
       await page.waitForTimeout(100);
       first = false;
     }

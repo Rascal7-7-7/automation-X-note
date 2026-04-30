@@ -11,6 +11,7 @@ import { logger } from '../shared/logger.js';
 import { appendFileSync, existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { scheduleSelfReply } from './post-self-reply.js';
 
 const __dirname   = path.dirname(fileURLToPath(import.meta.url));
 const MODULE      = 'x:article';
@@ -141,6 +142,11 @@ export async function runArticle() {
       postedAt:  new Date().toISOString(),
     }) + '\n',
   );
+
+  // 2時間後に補足 self-reply をスケジュール
+  if (tweetIds[0]) {
+    scheduleSelfReply(tweetIds[0], 'article');
+  }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
