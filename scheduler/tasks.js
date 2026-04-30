@@ -95,6 +95,8 @@ export const TASKS = [
   { name: 'x:self-reply', slot: 'morning', cron: '30 8 * * *' },  // 毎日 08:30 JST — 朝投稿へのリプライ返信
   { name: 'x:self-reply', slot: 'noon',    cron: '0 13 * * *'  }, // 毎日 13:00 JST — 昼投稿へのリプライ返信
   { name: 'x:post-self-reply', cron: '*/30 * * * *' },            // 30分毎 — 2h遅延 self-reply キュー処理
+  { name: 'x:coattail-reply', slot: 'morning', cron: '30 9 * * *'  }, // 毎日 09:30 JST — コバンザメ戦略
+  { name: 'x:coattail-reply', slot: 'night',   cron: '30 22 * * *' }, // 毎日 22:30 JST — コバンザメ戦略
 
   // ── Anthropic クレジット残高監視（毎朝 + 夜） ────────────────────
   {

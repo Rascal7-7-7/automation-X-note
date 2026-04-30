@@ -1,0 +1,12 @@
+{
+  "_comment": "コバンザメ戦略 ターゲットアカウント設定。handleはX@なし。active:falseで無効化可能",
+  "maxPerRun": 8,
+  "maxPerDay": 20,
+  "targets": [
+    { "handle": "aicolumnwriter", "name": "アトカ", "active": true },
+    { "handle": "Naoki_GPT",      "name": "なおき", "active": true },
+    { "handle": "KazukiMorita99", "name": "AI副業系クリエイター", "active": true },
+    { "handle": "gijutsuc",       "name": "技術系AI副業", "active": true },
+    { "handle": "claude_code_jp", "name": "Claude Code JP", "active": false }
+  ]
+}
