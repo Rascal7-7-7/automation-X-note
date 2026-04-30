@@ -26,8 +26,8 @@ type RawCampaign = {
 };
 
 function mapCampaign(c: RawCampaign): Campaign {
-  const clicks = c.clicks ?? 0;
-  const cv = c.cv ?? c.conversions ?? 0;
+  const clicks = Number.isFinite(c.clicks) ? (c.clicks as number) : 0;
+  const cv = Number.isFinite(c.cv) ? (c.cv as number) : Number.isFinite(c.conversions) ? (c.conversions as number) : 0;
   const affiliateUrl = c.affiliateUrl ?? c.url ?? '';
   return {
     id: c.id ?? '', name: c.name ?? c.productName ?? '', category: c.category ?? '',

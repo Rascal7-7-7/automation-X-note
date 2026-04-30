@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { checkAuth } from '@/lib/auth';
 
-const BRIDGE = process.env.BRIDGE_URL ?? 'http://localhost:3001';
+const BRIDGE = process.env.BRIDGE_URL;
 
 const ALLOWED_PATHS = new Set([
   '/api/x/process',
@@ -18,7 +18,9 @@ export async function POST(req: Request) {
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid json' }, { status: 400 }); }
 
-  const { bridgePath } = body as { bridgePath?: unknown };
+  if (!BRIDGE) return NextResponse.json({ error: 'BRIDGE_URL not configured' }, { status: 503 });
+
+  const { bridgePath, ...forwardBody } = body as { bridgePath?: unknown; [k: string]: unknown };
   if (typeof bridgePath !== 'string' || !ALLOWED_PATHS.has(bridgePath)) {
     return NextResponse.json({ error: 'invalid bridgePath' }, { status: 400 });
   }
@@ -29,6 +31,7 @@ export async function POST(req: Request) {
     const r    = await fetch(`${BRIDGE}${bridgePath}`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(forwardBody),
       signal:  ctrl.signal,
     });
     clearTimeout(tid);

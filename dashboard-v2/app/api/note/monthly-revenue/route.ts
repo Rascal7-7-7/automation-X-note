@@ -15,9 +15,9 @@ function aggregateMonthly(drafts: RawDraft[]) {
     if (!Number.isFinite(ts) || ts <= 0) continue;
     const price = typeof d.price === 'number' ? d.price : 0;
     if (price <= 0) continue;
-    const salesCount = typeof d.sales_count === 'number' ? d.sales_count : 0;
-    const revenue = typeof d.revenue === 'number' ? d.revenue : price * salesCount;
-    if (revenue <= 0) continue;
+    const salesCount = typeof d.sales_count === 'number' && Number.isFinite(d.sales_count) ? d.sales_count : 0;
+    const revenue = typeof d.revenue === 'number' && Number.isFinite(d.revenue) ? d.revenue : price * salesCount;
+    if (!Number.isFinite(revenue) || revenue <= 0) continue;
     const month = new Date(ts).toISOString().slice(0, 7);
     monthMap[month] = (monthMap[month] ?? 0) + revenue;
   }

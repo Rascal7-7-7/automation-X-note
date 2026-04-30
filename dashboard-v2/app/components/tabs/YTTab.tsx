@@ -273,10 +273,12 @@ export default function YTTab() {
   }, [retryCount]);
 
   useEffect(() => {
-    apiFetch('/api/yt/analytics-trend')
+    const ctrl = new AbortController();
+    apiFetch('/api/yt/analytics-trend', { signal: ctrl.signal })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d?.snapshots) setAnalytics(d); })
       .catch(() => {});
+    return () => ctrl.abort();
   }, [retryCount]);
 
   const { data: subData, accounts } = pivotByAccount(sns, 'subscribers');
