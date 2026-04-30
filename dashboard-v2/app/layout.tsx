@@ -4,6 +4,7 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'SNS自動化 ダッシュボード',
   description: 'SNS副業自動化システム 管理ダッシュボード v2',
+  icons: { icon: '/favicon.svg' },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
