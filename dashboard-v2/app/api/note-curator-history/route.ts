@@ -22,7 +22,8 @@ export async function GET(req: Request) {
   }
 
   const ROOT = process.env.AUTOMATION_ROOT;
-  if (!ROOT) return NextResponse.json({ error: 'AUTOMATION_ROOT not set' }, { status: 503 });
+  // AUTOMATION_ROOT 未設定はローカル専用機能 — 空配列で graceful degradation
+  if (!ROOT) return NextResponse.json({ history: [] });
 
   try {
     const raw = await readFile(join(ROOT, 'note', 'curator-history.json'), 'utf-8');
