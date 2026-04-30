@@ -72,6 +72,7 @@ export default function SchedulerTab() {
   const [expanded, setExpanded]   = useState<Set<string>>(new Set());
   const [details, setDetails]     = useState<Record<string, ExecDetail | null>>({});
   const [retrying, setRetrying]   = useState<string | null>(null);
+  const [bulkToggling, setBulkToggling] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -118,6 +119,25 @@ export default function SchedulerTab() {
       setError('n8n接続エラー: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setToggling(null);
+    }
+  }
+
+  async function bulkToggle(active: boolean) {
+    setBulkToggling(true); setError(null);
+    try {
+      await Promise.all(
+        data.workflows
+          .filter(wf => wf.active !== active)
+          .map(wf => apiFetch(`/api/scheduler/${wf.id}/toggle`, {
+            method: 'POST',
+            body: JSON.stringify({ active }),
+          })),
+      );
+      await load();
+    } catch (e) {
+      setError('一括操作エラー: ' + (e instanceof Error ? e.message : String(e)));
+    } finally {
+      setBulkToggling(false);
     }
   }
 
@@ -262,6 +282,26 @@ export default function SchedulerTab() {
         [failed, '直近エラー', failed ? 'text-red-400' : ''],
         [running, '実行中', running ? 'text-blue-400' : ''],
       ]} />
+
+      {/* ── Bulk controls ─────────────────────────────────── */}
+      {data.n8nReachable && data.workflows.length > 0 && (
+        <div className="flex gap-2 mb-3">
+          <button
+            onClick={() => bulkToggle(true)}
+            disabled={bulkToggling}
+            className="px-3 py-1.5 text-xs rounded bg-green-800 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {bulkToggling ? '処理中...' : '▶ 全再開'}
+          </button>
+          <button
+            onClick={() => bulkToggle(false)}
+            disabled={bulkToggling}
+            className="px-3 py-1.5 text-xs rounded bg-red-900 hover:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+          >
+            {bulkToggling ? '処理中...' : '⏹ 全停止'}
+          </button>
+        </div>
+      )}
 
       {/* ── Workflow list ──────────────────────────────────── */}
       <Section title="ワークフロー一覧">

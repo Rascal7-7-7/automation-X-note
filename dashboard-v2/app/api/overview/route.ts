@@ -2,13 +2,13 @@ import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { checkAuth } from '@/lib/auth';
 
-const BRIDGE = process.env.BRIDGE_URL ?? 'http://localhost:3001';
-
 async function bridgeHealth() {
+  const bridge = process.env.BRIDGE_URL;
+  if (!bridge) return { ok: false, ts: null };
   try {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 2000);
-    const r = await fetch(`${BRIDGE}/health`, { signal: ctrl.signal });
+    const r = await fetch(`${bridge}/health`, { signal: ctrl.signal });
     clearTimeout(tid);
     return { ok: r.ok, ts: new Date().toISOString() };
   } catch {

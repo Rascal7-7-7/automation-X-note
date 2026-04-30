@@ -240,23 +240,70 @@ function PlatformTab({ platform, posts }: { platform: string; posts: Post[] }) {
   );
 }
 
+interface SyncResult { key: string; ok: boolean; reason?: string }
+interface SyncResponse { results: SyncResult[]; summary: { ok: number; ng: number; total: number }; syncedAt: string }
+
 function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
   const errorAlerts = alerts.filter(a => a.severity === 'ERROR');
-  const warnAlerts = alerts.filter(a => a.severity === 'WARN');
+  const warnAlerts  = alerts.filter(a => a.severity === 'WARN');
+  const [syncing, setSyncing]     = useState(false);
+  const [syncResult, setSyncResult] = useState<SyncResponse | null>(null);
+  const [syncError, setSyncError]   = useState<string | null>(null);
+
+  async function runSync() {
+    setSyncing(true); setSyncResult(null); setSyncError(null);
+    try {
+      const r = await apiFetch('/api/admin/sync', { method: 'POST' });
+      if (r.status === 503) { setSyncError('AUTOMATION_ROOT 未設定 — ローカル実行のみ対応'); return; }
+      const d = await r.json() as SyncResponse;
+      setSyncResult(d);
+    } catch { setSyncError('同期失敗'); }
+    finally { setSyncing(false); }
+  }
+
   return (
     <>
       <KpiGrid items={[
-        [data.bridge?.ok ? '● UP' : '● DOWN', 'Bridge Server :3001', data.bridge?.ok ? 'text-green-400' : 'text-red-400'],
+        [data.bridge?.ok ? '● UP' : '● DOWN', 'Bridge Server', data.bridge?.ok ? 'text-green-400' : 'text-red-400'],
         [errorAlerts.length, 'ERROR'],
         [warnAlerts.length, 'WARN'],
         [alerts.length, '総アラート(未解決)'],
       ]} />
+
       <Section title="Bridge Server">
         <div className="flex gap-3 items-center">
-          <StatusBadge ok={data.bridge?.ok ?? null} label="Bridge :3001" />
+          <StatusBadge ok={data.bridge?.ok ?? null} label="Bridge" />
           <span className="text-xs text-neutral-500">確認: {fmtTs(data.bridge?.ts ?? null)}</span>
         </div>
       </Section>
+
+      <Section title="DB 手動同期 (ローカル専用)">
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={runSync}
+              disabled={syncing}
+              className="px-3 py-1.5 text-xs rounded bg-violet-700 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              {syncing ? '同期中...' : '🔄 Neon DB に今すぐ同期'}
+            </button>
+            {syncResult && (
+              <span className="text-xs text-green-400">
+                ✓ {syncResult.summary.ok}/{syncResult.summary.total} 成功 — {fmtTs(syncResult.syncedAt)}
+              </span>
+            )}
+            {syncError && <span className="text-xs text-red-400">{syncError}</span>}
+          </div>
+          {syncResult && syncResult.summary.ng > 0 && (
+            <div className="text-xs text-neutral-500 space-y-0.5">
+              {syncResult.results.filter(r => !r.ok).map(r => (
+                <div key={r.key} className="text-amber-500">⚠ {r.key}: {r.reason}</div>
+              ))}
+            </div>
+          )}
+        </div>
+      </Section>
+
       <Section title="ERROR アラート">
         <AlertsTable alerts={errorAlerts.slice(0, 20)} />
       </Section>
