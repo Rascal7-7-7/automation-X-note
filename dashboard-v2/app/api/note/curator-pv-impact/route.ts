@@ -16,7 +16,7 @@ export async function GET(req: Request) {
   if (authErr) return authErr;
 
   const ROOT = process.env.AUTOMATION_ROOT;
-  if (!ROOT) return NextResponse.json({ error: 'AUTOMATION_ROOT not set' }, { status: 503 });
+  if (!ROOT) return NextResponse.json({ entries: [] });
 
   try {
     const raw     = await readFile(join(ROOT, 'note', 'curator-history.json'), 'utf-8');

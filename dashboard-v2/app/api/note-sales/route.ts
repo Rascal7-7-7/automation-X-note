@@ -40,7 +40,7 @@ export async function GET(req: Request) {
   if (authErr) return authErr;
 
   const ROOT = process.env.AUTOMATION_ROOT;
-  if (!ROOT) return NextResponse.json({ error: 'AUTOMATION_ROOT not set' }, { status: 503 });
+  if (!ROOT) return NextResponse.json({ articles: [], summary: { paid_count: 0, total_revenue: 0, avg_price: 0 } });
 
   const DRAFTS_DIR = join(ROOT, 'note', 'drafts');
 
