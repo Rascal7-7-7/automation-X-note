@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkAuth } from '@/lib/auth';
-
-const BRIDGE = process.env.BRIDGE_URL;
+import { kvGet } from '@/lib/kv';
 
 const ALLOWED_PATHS = new Set([
   '/api/x/process',
@@ -18,7 +17,8 @@ export async function POST(req: Request) {
   let body: unknown;
   try { body = await req.json(); } catch { return NextResponse.json({ error: 'invalid json' }, { status: 400 }); }
 
-  if (!BRIDGE) return NextResponse.json({ error: 'BRIDGE_URL not configured' }, { status: 503 });
+  const bridge = (await kvGet<string>('settings:bridge-url')) ?? process.env.BRIDGE_URL;
+  if (!bridge) return NextResponse.json({ error: 'BRIDGE_URL not configured' }, { status: 503 });
 
   const { bridgePath, ...forwardBody } = body as { bridgePath?: unknown; [k: string]: unknown };
   if (typeof bridgePath !== 'string' || !ALLOWED_PATHS.has(bridgePath)) {
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
   try {
     const ctrl = new AbortController();
     const tid  = setTimeout(() => ctrl.abort(), 15_000);
-    const r    = await fetch(`${BRIDGE}${bridgePath}`, {
+    const r    = await fetch(`${bridge}${bridgePath}`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify(forwardBody),

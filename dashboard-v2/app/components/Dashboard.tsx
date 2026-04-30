@@ -246,9 +246,34 @@ interface SyncResponse { results: SyncResult[]; summary: { ok: number; ng: numbe
 function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
   const errorAlerts = alerts.filter(a => a.severity === 'ERROR');
   const warnAlerts  = alerts.filter(a => a.severity === 'WARN');
-  const [syncing, setSyncing]     = useState(false);
-  const [syncResult, setSyncResult] = useState<SyncResponse | null>(null);
-  const [syncError, setSyncError]   = useState<string | null>(null);
+  const [syncing, setSyncing]         = useState(false);
+  const [syncResult, setSyncResult]   = useState<SyncResponse | null>(null);
+  const [syncError, setSyncError]     = useState<string | null>(null);
+  const [bridgeInput, setBridgeInput] = useState('');
+  const [bridgeSaving, setBridgeSaving] = useState(false);
+  const [bridgeSaved, setBridgeSaved]   = useState(false);
+
+  useEffect(() => {
+    apiFetch('/api/kv/settings:bridge-url')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (typeof d === 'string' && d) setBridgeInput(d); })
+      .catch(() => {});
+  }, []);
+
+  async function saveBridgeUrl() {
+    if (!bridgeInput.trim()) return;
+    setBridgeSaving(true); setBridgeSaved(false);
+    try {
+      await apiFetch('/api/kv/settings:bridge-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bridgeInput.trim()),
+      });
+      setBridgeSaved(true);
+      setTimeout(() => setBridgeSaved(false), 3000);
+    } catch { /* ignore */ }
+    finally { setBridgeSaving(false); }
+  }
 
   async function runSync() {
     setSyncing(true); setSyncResult(null); setSyncError(null);
@@ -274,6 +299,28 @@ function InfraTab({ data, alerts }: { data: OverviewData; alerts: Alert[] }) {
         <div className="flex gap-3 items-center">
           <StatusBadge ok={data.bridge?.ok ?? null} label="Bridge" />
           <span className="text-xs text-neutral-500">確認: {fmtTs(data.bridge?.ts ?? null)}</span>
+        </div>
+      </Section>
+
+      <Section title="BRIDGE_URL 設定">
+        <div className="flex flex-col gap-2">
+          <p className="text-xs text-neutral-500">tunnel URL が変わったときに更新。設定値は env より優先されます。</p>
+          <div className="flex gap-2 items-center">
+            <input
+              type="url"
+              value={bridgeInput}
+              onChange={e => setBridgeInput(e.target.value)}
+              placeholder="https://xxxx.trycloudflare.com"
+              className="flex-1 min-w-0 px-2 py-1.5 text-xs rounded bg-neutral-800 border border-neutral-700 text-neutral-100 placeholder-neutral-600 focus:outline-none focus:border-violet-500"
+            />
+            <button
+              onClick={saveBridgeUrl}
+              disabled={bridgeSaving || !bridgeInput.trim()}
+              className="px-3 py-1.5 text-xs rounded bg-violet-700 hover:bg-violet-600 disabled:opacity-50 disabled:cursor-not-allowed font-medium whitespace-nowrap"
+            >
+              {bridgeSaving ? '保存中...' : bridgeSaved ? '✓ 保存済み' : '保存'}
+            </button>
+          </div>
         </div>
       </Section>
 
@@ -572,13 +619,29 @@ function AnalyticsTab({ metrics }: { metrics: Metric[] }) {
             [latestByKey['note.sampleSize']?.value ?? '—', 'note サンプル数'],
           ]} />
         </div>
-        <button
-          onClick={generateReport}
-          disabled={reportLoading}
-          className="mt-1 px-3 py-1.5 rounded text-xs font-semibold border border-violet-700 bg-violet-950 text-violet-300 hover:bg-violet-900 disabled:opacity-50 whitespace-nowrap"
-        >
-          {reportLoading ? '生成中...' : '📊 週次レポート生成'}
-        </button>
+        <div className="flex gap-2 flex-wrap mt-1">
+          <button
+            onClick={generateReport}
+            disabled={reportLoading}
+            className="px-3 py-1.5 rounded text-xs font-semibold border border-violet-700 bg-violet-950 text-violet-300 hover:bg-violet-900 disabled:opacity-50 whitespace-nowrap"
+          >
+            {reportLoading ? '生成中...' : '📊 週次レポート生成'}
+          </button>
+          <a
+            href="/api/export/analytics?days=90"
+            download
+            className="px-3 py-1.5 rounded text-xs font-semibold border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 whitespace-nowrap"
+          >
+            ↓ SNSメトリクス CSV
+          </a>
+          <a
+            href="/api/export/posts?days=30"
+            download
+            className="px-3 py-1.5 rounded text-xs font-semibold border border-neutral-700 bg-neutral-900 text-neutral-300 hover:bg-neutral-800 whitespace-nowrap"
+          >
+            ↓ 投稿履歴 CSV
+          </a>
+        </div>
       </div>
 
       {/* ── Posting heatmap ──────────────────────────────── */}

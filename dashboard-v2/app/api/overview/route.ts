@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { checkAuth } from '@/lib/auth';
+import { kvGet } from '@/lib/kv';
 
 async function bridgeHealth() {
-  const bridge = process.env.BRIDGE_URL;
+  const bridge = (await kvGet<string>('settings:bridge-url')) ?? process.env.BRIDGE_URL;
   if (!bridge) return { ok: false, ts: null };
   try {
     const ctrl = new AbortController();
