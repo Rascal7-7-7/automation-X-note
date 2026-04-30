@@ -89,6 +89,10 @@ export async function insertNativeCodeBlock(page, codeContent) {
   ].join(', ')).first();
 
   if (await codeItem.count() === 0) return false;
+  // メニューアイテムが DOM にあっても viewport 外の場合があるのでスクロール後に可視チェック
+  await codeItem.scrollIntoViewIfNeeded({ timeout: 2_000 }).catch(() => {});
+  const isVisible = await codeItem.isVisible({ timeout: 1_000 }).catch(() => false);
+  if (!isVisible) return false; // 呼び出し元の ``` フォールバックに委譲
   await codeItem.click();
   await page.waitForTimeout(400);
 

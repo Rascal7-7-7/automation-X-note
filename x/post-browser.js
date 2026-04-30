@@ -40,9 +40,17 @@ export async function postTweetBrowser(text) {
       await page.waitForTimeout(1_500);
     }
 
-    // テキスト入力（複数マッチ対策で .first()）
-    await page.locator(SEL.textarea).first().fill(text);
-    await page.waitForTimeout(1_000);
+    // テキスト入力 — fill() の後に input イベントを明示的に発火させ
+    // React の文字数カウンターを起動させる（これをしないと submitBtn が disabled のまま）
+    const ta = page.locator(SEL.textarea).first();
+    await ta.click();
+    await ta.fill(text);
+    await ta.dispatchEvent('input');
+    await page.waitForTimeout(300);
+    // ボタンが enabled になるまで最大 5 秒待つ
+    await page.locator(SEL.submitBtn).first()
+      .waitFor({ state: 'enabled', timeout: 5_000 })
+      .catch(() => {}); // タイムアウトしても次の click で再試行
 
     // 投稿ボタンをクリック（複数マッチ対策で .first()）
     await page.locator(SEL.submitBtn).first().click();
