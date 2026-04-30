@@ -55,8 +55,8 @@ export const TASKS = [
   // ── note account1: AI副業・自動化（毎日 = 7本/週） ─────────────
   { name: 'note:research', account: 1, cron: '30 5 * * 1,3,4,6' }, // 月水木土 05:30 — リサーチ（週4回でキューを厚く）
   { name: 'note:generate', account: 1, cron: '0 6 * * *' },        // 毎日 06:00 — 生成
-  { name: 'note:post',     account: 1, cron: '0 7 * * *' },        // 毎日 07:00 — 投稿（朝ピーク）
-  { name: 'x:note-promo',              cron: '15 7 * * *' },       // 毎日 07:15 — 投稿直後X告知
+  { name: 'note:post',     account: 1, cron: '0 20 * * *' },       // 毎日 20:00 — 投稿（Xエンゲージ最高峰）
+  { name: 'x:note-promo',              cron: '15 20 * * *' },      // 毎日 20:15 — 投稿直後X告知（20時台がベスト時間帯）
 
   // ── note account2: 投資・FX・株（毎日 = 7本/週）───────────────── ①強化
   { name: 'note:research', account: 2, cron: '30 5 * * 1,2,4' },   // 月火木 05:30 — リサーチ（週3回）
