@@ -95,6 +95,12 @@ export const TASKS = [
   { name: 'x:self-reply', slot: 'morning', cron: '30 8 * * *' },  // 毎日 08:30 JST — 朝投稿へのリプライ返信
   { name: 'x:self-reply', slot: 'noon',    cron: '0 13 * * *'  }, // 毎日 13:00 JST — 昼投稿へのリプライ返信
 
+  // ── Anthropic クレジット残高監視（毎朝 + 夜） ────────────────────
+  {
+    name: 'anthropic:check-credits',
+    cron: '0 8,20 * * *',          // 毎日 08:00・20:00 — 残高チェック ($5警告/$1危機)
+  },
+
   // ── ダッシュボード Neon 同期（毎時） ────────────────────────────
   {
     name: 'dashboard:push-to-neon',

@@ -36,6 +36,7 @@ import { runAIToolsResearch } from '../shared/ai-tools-researcher.js';
 import { runDailyResearch }  from '../analytics/daily-research.js';
 import { runAINews }          from '../x/ai-news.js';
 import { runSelfReply }      from '../x/self-reply.js';
+import { runCheckCredits }   from '../shared/check-anthropic-credits.js';
 import { runRender  as runYtRender }           from '../youtube/render.js';
 import { runUpload  as runYtUpload }           from '../youtube/upload.js';
 import { runCommunityPost as runYtCommunityPost } from '../youtube/community-post.js';
@@ -108,7 +109,8 @@ const HANDLERS = {
   'youtube:upload:reddit-short':      (task) => runYtUpload({ type: task.type }),
   'research:ai-tools':               ()     => runAIToolsResearch(),
   'analytics:daily-research':        ()     => runDailyResearch(),
-  'x:self-reply':   () => runSelfReply(),
+  'x:self-reply':             () => runSelfReply(),
+  'anthropic:check-credits': () => runCheckCredits(),
   'x:ai-news':                       async () => {
     await runAINews();
     await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
