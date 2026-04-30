@@ -13,6 +13,17 @@ import {
   CHART_STYLE, LINE_COLORS, TOOLTIP_STYLE, fmtTs,
 } from '../ui';
 
+interface AnalyticsSnapshot {
+  date:              string;
+  views:             number;
+  watchMinutes:      number;
+  avgViewPct:        number;
+  subscribersGained: number;
+  subscribersLost:   number;
+  likes:             number;
+  comments:          number;
+}
+
 interface PipelineItem {
   id: number;
   type: string;
@@ -223,6 +234,7 @@ export default function YTTab() {
   const [pm, setPm]               = useState<PostMetric[]>([]);
   const [pipeline, setPipeline]   = useState<PipelineData>({ pipeline: [], byStatus: {} });
   const [videos, setVideos]       = useState<VideoStat[]>([]);
+  const [analytics, setAnalytics] = useState<{ snapshots: AnalyticsSnapshot[]; latest: AnalyticsSnapshot | null }>({ snapshots: [], latest: null });
   const [loading, setLoading]     = useState(true);
   const [error, setError]         = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
@@ -258,6 +270,13 @@ export default function YTTab() {
       setLoading(false);
     });
     return () => ctrl.abort();
+  }, [retryCount]);
+
+  useEffect(() => {
+    apiFetch('/api/yt/analytics-trend')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.snapshots) setAnalytics(d); })
+      .catch(() => {});
   }, [retryCount]);
 
   const { data: subData, accounts } = pivotByAccount(sns, 'subscribers');
@@ -352,6 +371,38 @@ export default function YTTab() {
         [pipeline.byStatus.rendering ?? 0, 'レンダリング中', (pipeline.byStatus.rendering ?? 0) > 0 ? 'text-blue-400' : ''],
         [pipeline.byStatus.failed ?? 0, 'パイプライン失敗', (pipeline.byStatus.failed ?? 0) > 0 ? 'text-red-400' : ''],
       ]} />
+
+      {analytics.latest && (
+        <Section title="YouTube Analytics 直近30日実績">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            {([
+              [analytics.latest.views.toLocaleString(),             '再生数',         'text-orange-400'],
+              [`${analytics.latest.subscribersGained}`,             '登録者増加',     analytics.latest.subscribersGained > 0 ? 'text-green-400' : 'text-neutral-400'],
+              [`${Math.round(analytics.latest.watchMinutes)}分`,    '視聴時間',       'text-blue-400'],
+              [`${analytics.latest.avgViewPct.toFixed(1)}%`,        '平均視聴維持率', analytics.latest.avgViewPct >= 40 ? 'text-green-400' : analytics.latest.avgViewPct >= 20 ? 'text-amber-400' : 'text-neutral-400'],
+            ] as [string, string, string][]).map(([val, label, cls]) => (
+              <div key={label} className="rounded-lg border border-neutral-700 bg-neutral-800/30 p-3 text-center">
+                <div className={`text-xl font-bold ${cls}`}>{val}</div>
+                <div className="text-[11px] text-neutral-500 mt-0.5">{label}</div>
+              </div>
+            ))}
+          </div>
+          {analytics.snapshots.length >= 2 && (
+            <ResponsiveContainer width="100%" height={180}>
+              <LineChart data={analytics.snapshots}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" />
+                <XAxis dataKey="date" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="left"  tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ ...CHART_STYLE, fill: '#6b7280' }} />
+                <Tooltip {...TOOLTIP_STYLE} />
+                <Legend wrapperStyle={{ fontSize: 11, color: '#9ca3af' }} />
+                <Line yAxisId="left"  type="monotone" dataKey="views"             name="再生数(30日)" stroke="#f97316" strokeWidth={2} dot={{ r: 3 }} />
+                <Line yAxisId="right" type="monotone" dataKey="subscribersGained" name="登録者増加"   stroke="#22c55e" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </Section>
+      )}
 
       <Section title="サムネイル別CTRランキング TOP10">
         {ctrRanking.length ? (
