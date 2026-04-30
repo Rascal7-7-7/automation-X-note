@@ -151,6 +151,11 @@ async function isCdpReady() {
 
 async function launchBrave() {
   const { spawn } = await import('child_process');
+  const { existsSync } = await import('fs');
+  // バイナリ非存在は即失敗（15s 無駄ポーリングを回避）
+  if (!existsSync(BRAVE_BIN)) {
+    throw new Error(`Brave not installed at ${BRAVE_BIN} — CDP unavailable`);
+  }
   spawn(BRAVE_BIN, ['--remote-debugging-port=9222', '--no-first-run'], {
     detached: true, stdio: 'ignore',
   }).unref();

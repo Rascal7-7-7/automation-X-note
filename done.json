@@ -1,0 +1,48 @@
+{
+  "diagnosedAt": "2026-04-30",
+  "issues": [
+    {
+      "id": "x:ai-news-brave-timeout",
+      "title": "x:ai-news — Brave launch timeout が頻発",
+      "status": "FIXED",
+      "rootCause": "scheduler/index.js の x:ai-news タスクが runAINews() 成功後に runQuoteRT() を呼ぶ。runQuoteRT は getBraveBrowser() (CDP接続) を必要とするが、Brave が未起動 (Mac スリープ/バックグラウンド実行時) だとタイムアウトしてタスク全体が FAIL 扱いになっていた。runAINews 自体は成功していたにもかかわらず alerts に誤検知エラーが積まれていた。",
+      "fix": [
+        "scheduler/index.js: runQuoteRT() 呼び出しを try/catch で囲み、失敗時は logger.warn のみ (FAIL 扱いにしない)",
+        "x/browser-client.js: launchBrave() に existsSync(BRAVE_BIN) チェックを追加し、バイナリ不在時は 15s ポーリングせず即時 throw (早期失敗)"
+      ],
+      "filesChanged": [
+        "scheduler/index.js",
+        "x/browser-client.js"
+      ],
+      "commit": "pending"
+    },
+    {
+      "id": "note:post-code-button-timeout",
+      "title": "note:post — button:has-text(コード) is not visible タイムアウト",
+      "status": "FIXED (commit 6a7f3fb)",
+      "rootCause": "insertNativeCodeBlock() で「+」ボタンメニューの「コード」項目が count>0 (DOM上に存在) でも viewport 外にあり isVisible=false のまま .click() を試みて 30s タイムアウト。scrollIntoViewIfNeeded が呼ばれていなかった。",
+      "fix": [
+        "note/post-browser.js: codeItem.scrollIntoViewIfNeeded() → isVisible チェック → false なら return false で ``` フォールバックに委譲するよう修正"
+      ],
+      "filesChanged": ["note/post-browser.js"],
+      "commit": "6a7f3fb"
+    },
+    {
+      "id": "x:note-promo-tweet-button-disabled",
+      "title": "x:note-promo — tweetButtonInline aria-disabled=true で投稿できない",
+      "status": "FIXED (commit 6a7f3fb)",
+      "rootCause": "postTweetBrowser() で textarea.fill(text) 後に React の文字数カウンターが input イベントを検知せず、tweetButtonInline が disabled のまま waitForTimeout(1000) だけ待って .click() → 30s タイムアウト。fill() は DOM value を直接セットするが React の synthetic input イベントは発火しない。",
+      "fix": [
+        "x/post-browser.js: fill() 後に dispatchEvent('input') を追加して React カウンターを起動",
+        "x/post-browser.js: waitFor({ state: 'enabled', timeout: 5000 }) を追加してボタン有効化を確認してからクリック"
+      ],
+      "filesChanged": ["x/post-browser.js"],
+      "commit": "6a7f3fb"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "fixed": 3,
+    "pending": 0
+  }
+}

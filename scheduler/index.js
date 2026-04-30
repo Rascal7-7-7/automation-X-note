@@ -113,7 +113,12 @@ const HANDLERS = {
   'anthropic:check-credits': () => runCheckCredits(),
   'x:ai-news':                       async () => {
     await runAINews();
-    await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
+    // runQuoteRT は Brave CDP が必要 — 未起動時は警告のみ（AI news 投稿失敗扱いにしない）
+    try {
+      await runQuoteRT(['AI', 'ChatGPT', 'Claude', '生成AI', 'OpenAI', 'Gemini'], { maxPerRun: 2 });
+    } catch (e) {
+      logger.warn('x:ai-news', `runQuoteRT skipped — ${e.message}`);
+    }
   },
 
   'dashboard:push-to-neon': () => new Promise((resolve, reject) => {
