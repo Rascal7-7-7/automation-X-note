@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { checkAuth } from '@/lib/auth';
+import { kvGet } from '@/lib/kv';
 import fs from 'fs';
 import path from 'path';
 
@@ -17,6 +18,10 @@ interface AnalyticsSnapshot {
 export async function GET(req: Request) {
   const authErr = checkAuth(req);
   if (authErr) return authErr;
+
+  // DB-first: return from kv_store if available (Vercel / PC-off mode)
+  const cached = await kvGet<{ snapshots: AnalyticsSnapshot[]; latest: AnalyticsSnapshot | null }>('yt:analytics:snapshots');
+  if (cached) return NextResponse.json(cached);
 
   try {
     const root = process.env.AUTOMATION_ROOT ?? path.resolve(process.cwd(), '..');

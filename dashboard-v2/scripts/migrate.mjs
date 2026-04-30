@@ -67,3 +67,13 @@ await sql`CREATE TABLE post_metrics (
 )`;
 
 console.log('schema applied');
+
+// ── kv_store: generic JSON key-value store ────────────────
+await sql`
+  CREATE TABLE IF NOT EXISTS kv_store (
+    key        TEXT PRIMARY KEY,
+    data       JSONB NOT NULL DEFAULT '{}',
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )`;
+await sql`CREATE INDEX IF NOT EXISTS kv_store_updated_at_idx ON kv_store(updated_at DESC)`;
+console.log('kv_store: table ready');

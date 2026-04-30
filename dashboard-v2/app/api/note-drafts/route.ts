@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { readdir, readFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { checkAuth } from '@/lib/auth';
+import { kvGet } from '@/lib/kv';
 
 interface Draft {
   id: string;
@@ -13,39 +14,71 @@ interface Draft {
   status: 'draft' | 'published';
 }
 
+type RawDraft = {
+  _file?: string; _account?: string;
+  title?: string; name?: string;
+  publishedUrl?: string; published_url?: string;
+  coverImageUrl?: string; cover_image?: string;
+  status?: string; createdAt?: string; created_at?: string;
+};
+
+function mapKvDraft(d: RawDraft): Draft | null {
+  const file = d._file ?? '';
+  if (!file) return null;
+  const id = file.replace('.json', '');
+  const publishedUrl = d.publishedUrl ?? d.published_url ?? null;
+  const tsNum = Number(file.split('-')[0]);
+  return {
+    id,
+    account: d._account ?? 'account1',
+    title: d.title ?? d.name ?? id.replace(/^\d+-/, '').replace(/-/g, ' '),
+    createdAt: d.createdAt ?? d.created_at ?? (Number.isFinite(tsNum) && tsNum > 0 ? new Date(tsNum).toISOString() : new Date().toISOString()),
+    hasCoverImage: !!(d.coverImageUrl ?? d.cover_image),
+    publishedUrl,
+    status: d.status === 'published' || publishedUrl ? 'published' : 'draft',
+  };
+}
+
 async function readDraft(filePath: string, account: string): Promise<Draft | null> {
   try {
     const raw = await readFile(filePath, 'utf-8');
-    const data = JSON.parse(raw) as {
-      title?: string;
-      name?: string;
-      publishedUrl?: string;
-      published_url?: string;
-      coverImageUrl?: string;
-      cover_image?: string;
-      status?: string;
-      createdAt?: string;
-      created_at?: string;
-    };
+    const data = JSON.parse(raw) as RawDraft;
     const s = await stat(filePath);
     const name = filePath.split('/').pop() ?? '';
+    const publishedUrl = data.publishedUrl ?? data.published_url ?? null;
     return {
       id: name.replace('.json', ''),
       account,
       title: data.title ?? data.name ?? name.replace(/^\d+-/, '').replace('.json', '').replace(/-/g, ' '),
       createdAt: data.createdAt ?? data.created_at ?? s.birthtime.toISOString(),
       hasCoverImage: !!(data.coverImageUrl ?? data.cover_image),
-      publishedUrl: data.publishedUrl ?? data.published_url ?? null,
-      status: data.status === 'published' || (data.publishedUrl ?? data.published_url) ? 'published' : 'draft',
+      publishedUrl,
+      status: data.status === 'published' || publishedUrl ? 'published' : 'draft',
     };
   } catch {
     return null;
   }
 }
 
+function buildStats(drafts: Draft[]) {
+  return {
+    total: drafts.length,
+    noCover: drafts.filter(d => !d.hasCoverImage).length,
+    published: drafts.filter(d => d.status === 'published').length,
+    draft: drafts.filter(d => d.status === 'draft').length,
+  };
+}
+
 export async function GET(req: Request) {
   const authErr = checkAuth(req);
   if (authErr) return authErr;
+
+  const kvData = await kvGet<{ drafts: RawDraft[] }>('note:drafts');
+  if (kvData?.drafts) {
+    const drafts = kvData.drafts.map(mapKvDraft).filter((d): d is Draft => d !== null);
+    drafts.sort((a: Draft, b: Draft) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    return NextResponse.json({ drafts, stats: buildStats(drafts) });
+  }
 
   const ROOT = process.env.AUTOMATION_ROOT;
   if (!ROOT) return NextResponse.json({ error: 'AUTOMATION_ROOT not set' }, { status: 503 });
@@ -75,19 +108,10 @@ export async function GET(req: Request) {
 
     drafts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const stats = {
-      total: drafts.length,
-      noCover: drafts.filter(d => !d.hasCoverImage).length,
-      published: drafts.filter(d => d.status === 'published').length,
-      draft: drafts.filter(d => d.status === 'draft').length,
-    };
-
-    return NextResponse.json({ drafts, stats });
+    return NextResponse.json({ drafts, stats: buildStats(drafts) });
   } catch (err: unknown) {
     const code = (err as NodeJS.ErrnoException).code;
-    if (code === 'ENOENT') {
-      return NextResponse.json({ error: 'drafts directory not found' }, { status: 503 });
-    }
+    if (code === 'ENOENT') return NextResponse.json({ error: 'drafts directory not found' }, { status: 503 });
     return NextResponse.json({ error: 'failed to read drafts' }, { status: 500 });
   }
 }

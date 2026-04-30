@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { checkAuth } from '@/lib/auth';
+import { kvGet } from '@/lib/kv';
 import fs from 'fs';
 import path from 'path';
 
@@ -27,9 +28,10 @@ export async function GET(req: Request) {
   if (authErr) return authErr;
 
   try {
+    const cached = await kvGet<QualityData>('analytics:quality-feedback');
     const root   = process.env.AUTOMATION_ROOT ?? path.resolve(process.cwd(), '..');
     const qfPath = path.join(root, 'analytics', 'quality-feedback.json');
-    const raw    = JSON.parse(fs.readFileSync(qfPath, 'utf8')) as QualityData;
+    const raw    = cached ?? (JSON.parse(fs.readFileSync(qfPath, 'utf8')) as QualityData);
 
     const points: Array<{ platform: string; avgScore: number; weekStart: string }> = [];
     for (const [cat, entries] of Object.entries(raw)) {
