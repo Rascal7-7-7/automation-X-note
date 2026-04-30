@@ -115,7 +115,7 @@ const HANDLERS = {
   },
 
   'dashboard:push-to-neon': () => new Promise((resolve, reject) => {
-    const proc = spawn('node', ['/Users/Rascal/work/automation/dashboard-v2/scripts/push-to-neon.js'], { stdio: 'inherit' });
+    const proc = spawn('node', ['/Users/Rascal/work/automation/dashboard-v2/scripts/push-to-neon.mjs'], { stdio: 'inherit' });
     proc.on('close', code => code === 0 ? resolve() : reject(new Error(`exit ${code}`)));
   }),
 };

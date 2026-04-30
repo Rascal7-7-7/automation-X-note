@@ -15,133 +15,42 @@ export const TASKS = [
     cron: '0 9 * * 1,5',           // 月・金 09:00 — 画像+note CTA付き長文記事
   },
 
-  // ── Instagram トークン期限監視（毎日朝） ──────────────────────────
-  {
-    name: 'instagram:check-expiry',
-    cron: '0 9 * * *',             // 毎日 09:00 — トークン残日数チェック
-  },
+  // ── Instagram — 停止中（2026-04-30 X/note集中戦略に切替） ────────────
+  // { name: 'instagram:check-expiry',   cron: '0 9 * * *' },
+  // { name: 'instagram:generate:1',     account: 1, cron: '0 19 * * 2,4,6' },
+  // { name: 'instagram:image:1',        account: 1, cron: '10 19 * * 2,4,6' },
+  // { name: 'instagram:render:1',       account: 1, cron: '25 19 * * 2,4,6' },
+  // { name: 'instagram:post-image:1',   account: 1, cron: '45 19 * * 2,4,6' },
+  // { name: 'instagram:post-reels:1',   account: 1, cron: '50 19 * * 2,4,6' },
+  // { name: 'instagram:generate:2',     account: 2, cron: '0 20 * * 2,4,6' },
+  // { name: 'instagram:image:2',        account: 2, cron: '10 20 * * 2,4,6' },
+  // { name: 'instagram:render:2',       account: 2, cron: '25 20 * * 2,4,6' },
+  // { name: 'instagram:post-image:2',   account: 2, cron: '45 20 * * 2,4,6' },
+  // { name: 'instagram:post-reels:2',   account: 2, cron: '50 20 * * 2,4,6' },
 
-  // ── Instagram account1 パイプライン（火・木・土 19時台） ──────────
-  { name: 'instagram:generate:1',   account: 1, cron: '0 19 * * 2,4,6' },   // 19:00 生成
-  { name: 'instagram:image:1',      account: 1, cron: '10 19 * * 2,4,6' },  // 19:10 画像生成
-  { name: 'instagram:render:1',     account: 1, cron: '25 19 * * 2,4,6' },  // 19:25 Reels生成
-  { name: 'instagram:post-image:1', account: 1, cron: '45 19 * * 2,4,6' },  // 19:45 静止画投稿
-  { name: 'instagram:post-reels:1', account: 1, cron: '50 19 * * 2,4,6' },  // 19:50 Reels投稿
-
-  // ── Instagram account2 パイプライン（火・木・土 20時台） ──────────
-  { name: 'instagram:generate:2',   account: 2, cron: '0 20 * * 2,4,6' },   // 20:00 生成
-  { name: 'instagram:image:2',      account: 2, cron: '10 20 * * 2,4,6' },  // 20:10 画像生成
-  { name: 'instagram:render:2',     account: 2, cron: '25 20 * * 2,4,6' },  // 20:25 Reels生成
-  { name: 'instagram:post-image:2', account: 2, cron: '45 20 * * 2,4,6' },  // 20:45 静止画投稿
-  { name: 'instagram:post-reels:2', account: 2, cron: '50 20 * * 2,4,6' },  // 20:50 Reels投稿
-
-  // ── YouTube Reddit読み上げ（毎日） ───────────────────────────────────
-  {
-    name: 'youtube:reddit-fetch',
-    cron: '0 2 * * *',              // 毎日 02:00 — AIサブレディットのトップ投稿取得
-  },
-  {
-    name: 'youtube:reddit-generate',
-    cron: '0 3 * * *',              // 毎日 03:00 — 日本語台本に翻訳・生成
-    type: 'reddit-short',
-  },
-  {
-    name: 'youtube:render:reddit-short',
-    cron: '0 4 * * *',              // 毎日 04:00 — Ken Burns + Whisper で動画生成
-    type: 'reddit-short',
-  },
-  {
-    name: 'youtube:upload:reddit-short',
-    cron: '0 20 * * 1,2,3,4,5',    // 平日 20:00 — アップロード（AI動画の2時間後）
-    type: 'reddit-short',
-  },
-
-  // ── YouTube 速報ショート（月・水・金 朝イチ — AIニュース翌日反応） ──
-  {
-    name: 'youtube:generate:breaking-short',
-    cron: '30 7 * * 1,3,5',      // 月水金 07:30 — daily-research直後に速報生成
-    type: 'breaking-short',
-  },
-  {
-    name: 'youtube:render:breaking-short',
-    cron: '30 8 * * 1,3,5',      // 月水金 08:30 — レンダリング
-    type: 'breaking-short',
-  },
-  {
-    name: 'youtube:upload:breaking-short',
-    cron: '0 12 * * 1,3,5',      // 月水金 12:00 — 昼アップロード（速報は昼が最適）
-    type: 'breaking-short',
-  },
-
-  // ── YouTube ショート（毎日） ────────────────────────────────────
-  {
-    name: 'youtube:generate:short',
-    cron: '0 0 * * *',            // 毎日 00:00 — 台本・タイトル生成
-    type: 'short',
-  },
-  {
-    name: 'youtube:render:short',
-    cron: '0 1 * * *',            // 毎日 01:00 — 動画レンダリング
-    type: 'short',
-  },
-  {
-    name: 'youtube:upload:short',
-    cron: '0 18 * * 1,2,3,4,5',  // 平日 18:00 — アップロード（週末は除く）
-    type: 'short',
-  },
-
-  // ── YouTube ChatGPT絵コンテショート（毎日・アカウント2） ─────────────────
-  {
-    name: 'youtube:generate:chatgpt-short',
-    cron: '0 5 * * *',            // 毎日 05:00 — storyboard + 9フレーム生成
-    type: 'chatgpt-short',
-  },
-  {
-    name: 'youtube:render:chatgpt-short',
-    cron: '0 6 * * *',            // 毎日 06:00 — gpt-image-2 → Ken Burns → FFmpeg
-    type: 'chatgpt-short',
-  },
-  {
-    name: 'youtube:upload:chatgpt-short',
-    cron: '0 19 * * *',           // 毎日 19:00 — らすかる【AI絵コンテ工場】(account2)
-    type: 'chatgpt-short',
-  },
-
-  // ── YouTube AIアニメショート — 一時停止中 ────────────────────────────────
-  // { name: 'youtube:generate:anime-short', cron: '0 4 * * *', type: 'anime-short' },
-  // { name: 'youtube:render:anime-short',   cron: '0 5 * * *', type: 'anime-short' },
-  // { name: 'youtube:upload:anime-short',   cron: '30 18 * * *', type: 'anime-short' },
-
-  // ── YouTube ロング（水曜週1回） ──────────────────────────────────
-  {
-    name: 'youtube:generate:long',
-    cron: '0 0 * * 3',            // 水曜 00:00 — 台本生成
-    type: 'long',
-  },
-  {
-    name: 'youtube:render:long',
-    cron: '0 2 * * 3',            // 水曜 02:00 — レンダリング（長いので2時間後）
-    type: 'long',
-  },
-  {
-    name: 'youtube:upload:long',
-    cron: '0 19 * * 3',           // 水曜 19:00 — アップロード
-    type: 'long',
-  },
-
-  // ── YouTube テーマ週次自動生成（毎週日曜 23:00） ────────────────
-  {
-    name: 'youtube:plan',
-    cron: '0 23 * * 0',            // 毎週日曜 23:00 — 翌週分テーマを weekly_plan.json に追記
-  },
-
-  // ── YouTube Posts タブ（月・水・金 週3回） ──────────────────────
-  {
-    name: 'youtube:community-post',
-    cron: '0 9 * * 1,3,5',         // 月・水・金 09:00 — コミュニティ投稿文を生成してキューへ
-  },
-  // youtube:post-community — 登録者500人達成後に有効化
-  // { name: 'youtube:post-community', cron: '30 9 * * 1,3,5' },
+  // ── YouTube — 停止中（2026-04-30 X/note集中戦略に切替） ──────────────
+  // { name: 'youtube:reddit-fetch',              cron: '0 2 * * *' },
+  // { name: 'youtube:reddit-generate',           cron: '0 3 * * *',        type: 'reddit-short' },
+  // { name: 'youtube:render:reddit-short',       cron: '0 4 * * *',        type: 'reddit-short' },
+  // { name: 'youtube:upload:reddit-short',       cron: '0 20 * * 1,2,3,4,5', type: 'reddit-short' },
+  // { name: 'youtube:generate:breaking-short',   cron: '30 7 * * 1,3,5',  type: 'breaking-short' },
+  // { name: 'youtube:render:breaking-short',     cron: '30 8 * * 1,3,5',  type: 'breaking-short' },
+  // { name: 'youtube:upload:breaking-short',     cron: '0 12 * * 1,3,5',  type: 'breaking-short' },
+  // { name: 'youtube:generate:short',            cron: '0 0 * * *',        type: 'short' },
+  // { name: 'youtube:render:short',              cron: '0 1 * * *',        type: 'short' },
+  // { name: 'youtube:upload:short',              cron: '0 18 * * 1,2,3,4,5', type: 'short' },
+  // { name: 'youtube:generate:chatgpt-short',    cron: '0 5 * * *',        type: 'chatgpt-short' },
+  // { name: 'youtube:render:chatgpt-short',      cron: '0 6 * * *',        type: 'chatgpt-short' },
+  // { name: 'youtube:upload:chatgpt-short',      cron: '0 19 * * *',       type: 'chatgpt-short' },
+  // { name: 'youtube:generate:anime-short',      cron: '0 4 * * *',        type: 'anime-short' },
+  // { name: 'youtube:render:anime-short',        cron: '0 5 * * *',        type: 'anime-short' },
+  // { name: 'youtube:upload:anime-short',        cron: '30 18 * * *',      type: 'anime-short' },
+  // { name: 'youtube:generate:long',             cron: '0 0 * * 3',        type: 'long' },
+  // { name: 'youtube:render:long',               cron: '0 2 * * 3',        type: 'long' },
+  // { name: 'youtube:upload:long',               cron: '0 19 * * 3',       type: 'long' },
+  // { name: 'youtube:plan',                      cron: '0 23 * * 0' },
+  // { name: 'youtube:community-post',            cron: '0 9 * * 1,3,5' },
+  // { name: 'youtube:post-community',            cron: '30 9 * * 1,3,5' }, // 登録者500人後
 
   // ── note account1: AI副業・自動化（毎日 = 7本/週） ─────────────
   { name: 'note:research', account: 1, cron: '30 5 * * 1,3,4,6' }, // 月水木土 05:30 — リサーチ（週4回でキューを厚く）
