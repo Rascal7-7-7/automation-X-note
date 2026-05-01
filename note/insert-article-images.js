@@ -16,7 +16,7 @@ import path from 'path';
 import https from 'https';
 import { fileURLToPath } from 'url';
 import OpenAI from 'openai';
-import { launchChromeProfileContext } from '../shared/browser-launch.js';
+import { launchBrowser, launchChromeProfileContext } from '../shared/browser-launch.js';
 import { getAccount } from './accounts.js';
 import { generate } from '../shared/claude-client.js';
 import { saveJSON } from '../shared/file-utils.js';
@@ -72,7 +72,7 @@ function collectTargetDrafts() {
         const body = (d.paidBody ?? '') + (d.freeBody ?? '') + (d.body ?? '');
         const placeholders = extractPlaceholders(body);
         if (placeholders.length === 0) continue;
-        const noteId = (d.noteUrl ?? '').match(/\/(n[a-z0-9]+)\/?/)?.[1];
+        const noteId = (d.noteUrl ?? '').match(/\/notes\/(n[a-z0-9]+)/)?.[1] ?? (d.noteUrl ?? '').match(/\/(n[a-z0-9]{8,})\/?/)?.[1];
         const editorUrl = toEditorUrl(d.noteUrl ?? '');
         if (!editorUrl) {
           logger.warn(MODULE, `cannot derive editor URL for ${d.title}`);
@@ -162,30 +162,45 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
 
   // Chrome起動・挿入フェーズ
   const { chromeProfile } = getAccount(accountId);
-  if (!chromeProfile) {
-    logger.warn(MODULE, `no chromeProfile for acct${accountId} — skipping insertion`);
-    return generated;
+  const sessionFiles = { 1: '.note-session.json', 2: '.note-session-2.json', 3: '.note-session-3.json' };
+  const sessionFile  = path.join(__dirname, '..', sessionFiles[accountId] ?? '.note-session.json');
+
+  async function buildContext() {
+    if (chromeProfile) {
+      logger.info(MODULE, `trying Chrome profile: ${chromeProfile}`);
+      const ctx = await launchChromeProfileContext(chromeProfile);
+      const pg  = await ctx.newPage();
+      await pg.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      await pg.waitForTimeout(1_500);
+      if (pg.url().includes('/login')) {
+        await pg.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
+        await pg.waitForTimeout(5_000);
+      }
+      if (!pg.url().includes('/login')) return { context: ctx, page: pg, browser: null };
+      logger.warn(MODULE, `Chrome profile "${chromeProfile}" not authenticated — falling back to session file`);
+      await ctx.close();
+    }
+    // Session file fallback
+    if (!fs.existsSync(sessionFile)) throw new Error(`no session file for acct${accountId}: ${sessionFile}`);
+    const browser = await launchBrowser({ headless: true });
+    const ctx = await browser.newContext({
+      storageState: sessionFile,
+      viewport: { width: 1280, height: 900 },
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+    });
+    return { context: ctx, page: await ctx.newPage(), browser };
   }
 
   logger.info(MODULE, `opening editor: ${editorUrl}`);
-  const context = await launchChromeProfileContext(chromeProfile);
-  const page    = await context.newPage();
+  const { context, page, browser } = await buildContext();
 
   try {
-    // Navigate to note.com first to establish auth context (cookie domain: note.com)
-    await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    await page.waitForTimeout(1_500);
-    if (page.url().includes('/login')) {
-      // Try autofill login (Chrome profile has saved credentials)
-      await page.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
-      await page.waitForTimeout(4_000);
-      if (page.url().includes('/login')) {
-        throw new Error(`Chrome profile "${chromeProfile}" not logged in to note.com — open Chrome and log in manually`);
-      }
-    }
-
     await page.goto(editorUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
+    // Fast-fail if still on login page
+    if (page.url().includes('/login')) {
+      throw new Error(`acct${accountId} not authenticated — refresh session: node note/save-session.js`);
+    }
 
     await takeDebugScreenshot(page, `article-${noteId}-before-editor-wait`);
     await page.waitForSelector('div.ProseMirror[role="textbox"]', { timeout: 35_000 });
@@ -209,7 +224,8 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
 
     return generated;
   } finally {
-    await context.close();
+    await context.close().catch(() => {});
+    if (browser) await browser.close().catch(() => {});
   }
 }
 
