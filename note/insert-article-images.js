@@ -21,7 +21,7 @@ import { getAccount } from './accounts.js';
 import { generate } from '../shared/claude-client.js';
 import { saveJSON } from '../shared/file-utils.js';
 import { logger } from '../shared/logger.js';
-import { takeDebugScreenshot } from './post-browser.js';
+import { takeDebugScreenshot, insertImageAtPlaceholder } from './post-browser.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE    = 'note:insert-images';
@@ -172,12 +172,20 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
   const page    = await context.newPage();
 
   try {
+    // Navigate to note.com first to establish auth context (cookie domain: note.com)
+    await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await page.waitForTimeout(1_500);
+    if (page.url().includes('/login')) {
+      // Try autofill login (Chrome profile has saved credentials)
+      await page.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
+      await page.waitForTimeout(4_000);
+      if (page.url().includes('/login')) {
+        throw new Error(`Chrome profile "${chromeProfile}" not logged in to note.com — open Chrome and log in manually`);
+      }
+    }
+
     await page.goto(editorUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
-
-    if (page.url().includes('/login')) {
-      throw new Error(`Chrome profile "${chromeProfile}" not logged in to note.com`);
-    }
 
     await page.waitForSelector('div.ProseMirror[role="textbox"]', { timeout: 20_000 });
     await page.waitForTimeout(1_500);
