@@ -94,24 +94,16 @@ function collectTargetDrafts() {
   return targets;
 }
 
-// ── DALL-E 3 画像生成 ─────────────────────────────────────────────
-function downloadToFile(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, res => {
-      res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', err => { fs.unlink(dest, () => {}); reject(err); });
-  });
-}
-
-async function buildDallePrompt(description, articleTitle) {
+// ── gpt-image-1 画像生成 ──────────────────────────────────────────
+async function buildImagePrompt(description, articleTitle) {
   return generate(
-    'Create a concise DALL-E 3 prompt (English, max 200 chars) for a note.com blog in-article image. ' +
-    'Style: clean professional infographic or diagram. Light background, modern minimalist. ' +
-    'No real people faces. Simple icons and shapes are OK for flow diagrams. No UI chrome.',
+    'Create a concise image generation prompt (English, max 250 chars) for a note.com Japanese blog article. ' +
+    'Style: photorealistic or high-quality digital illustration. ' +
+    'Warm natural lighting, professional photography feel. ' +
+    'No text overlays, no UI chrome, no watermarks. No real human faces. ' +
+    'Suitable for a Japanese lifestyle/side-hustle income blog.',
     `Article: ${articleTitle}\nImage needed: ${description}`,
-    { maxTokens: 150 },
+    { maxTokens: 200 },
   );
 }
 
@@ -128,20 +120,45 @@ async function generateSectionImage(description, articleTitle, noteId, idx) {
     return outPath;
   }
 
-  const openai  = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  const dallePrompt = await buildDallePrompt(description, articleTitle);
+  const openai     = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const imgPrompt  = await buildImagePrompt(description, articleTitle);
   logger.info(MODULE, `generating image [${idx}]: ${description.slice(0, 40)}`);
-  logger.info(MODULE, `dalle prompt: ${dallePrompt.trim().slice(0, 100)}`);
+  logger.info(MODULE, `image prompt: ${imgPrompt.trim().slice(0, 120)}`);
 
-  const res = await openai.images.generate({
-    model:           'dall-e-3',
-    prompt:          dallePrompt.trim(),
-    n:               1,
-    size:            '1792x1024',
-    quality:         'hd',       // HD品質
-    response_format: 'url',
-  });
-  await downloadToFile(res.data[0].url, outPath);
+  try {
+    // gpt-image-1: photorealistic, returns base64
+    const res = await openai.images.generate({
+      model:          'gpt-image-1',
+      prompt:         imgPrompt.trim(),
+      n:              1,
+      size:           '1536x1024',
+      quality:        'high',
+    });
+    const b64 = res.data[0].b64_json;
+    fs.writeFileSync(outPath, Buffer.from(b64, 'base64'));
+  } catch (err) {
+    if (err.status === 403 || err.status === 404 || /model/i.test(err.message)) {
+      logger.warn(MODULE, `gpt-image-1 unavailable (${err.message?.slice(0, 60)}) — falling back to dall-e-3`);
+      const res = await openai.images.generate({
+        model:           'dall-e-3',
+        prompt:          imgPrompt.trim(),
+        n:               1,
+        size:            '1792x1024',
+        quality:         'hd',
+        response_format: 'url',
+      });
+      await new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(outPath);
+        https.get(res.data[0].url, r => {
+          r.pipe(file);
+          file.on('finish', () => { file.close(); resolve(); });
+        }).on('error', e => { fs.unlink(outPath, () => {}); reject(e); });
+      });
+    } else {
+      throw err;
+    }
+  }
+
   logger.info(MODULE, `saved: ${outPath}`);
   return outPath;
 }
@@ -172,9 +189,10 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
       logger.info(MODULE, `trying Chrome profile: ${chromeProfile}`);
       const ctx = await launchChromeProfileContext(chromeProfile);
       const pg  = await ctx.newPage();
-      await pg.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-      await pg.waitForTimeout(1_500);
+      await pg.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await pg.waitForTimeout(2_000);
       if (pg.url().includes('/login')) {
+        await pg.waitForTimeout(2_500);
         await pg.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
         await pg.waitForTimeout(5_000);
       }
