@@ -27,5 +27,22 @@
   "createdAt": "2026-04-28T21:01:31.603Z",
   "status": "posted",
   "postedAt": "2026-04-28T22:01:57.554Z",
-  "promoPosted": false
+  "promoPosted": false,
+  "sectionImages": [
+    {
+      "placeholder": "5ステップのフロー図（Goal→Context→Constraints→Format→Verify）",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/nb72e0ae58d1f/section-0.png",
+      "insertedAt": "2026-05-01T10:54:16.183Z"
+    },
+    {
+      "placeholder": "n8nのワークフロー画面スクリーンショット（Webhook→Claude→Notion）",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/nb72e0ae58d1f/section-1.png",
+      "insertedAt": "2026-05-01T10:54:24.541Z"
+    },
+    {
+      "placeholder": "チェックリスト画像 / 3日間ロードマップ",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/nb72e0ae58d1f/section-2.png",
+      "insertedAt": "2026-05-01T10:54:32.957Z"
+    }
+  ]
 }

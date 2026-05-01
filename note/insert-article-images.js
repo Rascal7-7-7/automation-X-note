@@ -211,6 +211,7 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
       storageState: sessionFile,
       viewport: { width: 1280, height: 900 },
       userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      permissions: ['clipboard-read', 'clipboard-write'],
     });
     return { context: ctx, page: await ctx.newPage(), browser };
   }

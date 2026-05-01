@@ -27,5 +27,22 @@
   "createdAt": "2026-04-30T21:01:41.980Z",
   "status": "posted",
   "postedAt": "2026-05-01T05:58:21.407Z",
-  "promoPosted": false
+  "promoPosted": false,
+  "sectionImages": [
+    {
+      "placeholder": "3パターン使い分けフロー図（思考系/実装系/自動化系の判断ツリー）",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n669dfcab6505/section-0.png",
+      "insertedAt": "2026-05-01T10:55:00.033Z"
+    },
+    {
+      "placeholder": "n8nのワークフロー全体スクリーンショット",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n669dfcab6505/section-1.png",
+      "insertedAt": "2026-05-01T10:55:08.478Z"
+    },
+    {
+      "placeholder": "チェックリストの印刷用テンプレート画像",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n669dfcab6505/section-2.png",
+      "insertedAt": "2026-05-01T10:55:16.504Z"
+    }
+  ]
 }
