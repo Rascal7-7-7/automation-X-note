@@ -23,7 +23,7 @@
   "reviewScore": 7.2,
   "personaScores": null,
   "accountId": 2,
-  "noteUrl": "https://editor.note.com/notes/n85023cf6724e/publish/",
+  "noteUrl": "https://note.com/rascal_invest/n/n85023cf6724e",
   "createdAt": "2026-04-30T23:01:16.363Z",
   "status": "posted",
   "postedAt": "2026-05-01T06:12:25.282Z",
@@ -31,19 +31,23 @@
   "sectionImages": [
     {
       "placeholder": "ChatGPTとClaudeの画面を並べた使い分けフロー図",
-      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-0.png"
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-0.png",
+      "requiresManualInsertion": true
     },
     {
       "placeholder": "n8nで組んだ自動化ワークフローのスクリーンショット",
-      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-1.png"
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-1.png",
+      "requiresManualInsertion": true
     },
     {
       "placeholder": "投稿ビュー数が落ち込んだ期間のグラフ",
-      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-2.png"
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-2.png",
+      "requiresManualInsertion": true
     },
     {
       "placeholder": "Notionテンプレの初期画面スクリーンショット",
-      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-3.png"
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-3.png",
+      "requiresManualInsertion": true
     }
   ]
 }

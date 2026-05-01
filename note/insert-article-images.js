@@ -187,18 +187,22 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
   async function buildContext() {
     if (chromeProfile) {
       logger.info(MODULE, `trying Chrome profile: ${chromeProfile}`);
-      const ctx = await launchChromeProfileContext(chromeProfile);
-      const pg  = await ctx.newPage();
-      await pg.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
-      await pg.waitForTimeout(2_000);
-      if (pg.url().includes('/login')) {
-        await pg.waitForTimeout(2_500);
-        await pg.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
-        await pg.waitForTimeout(5_000);
+      try {
+        const ctx = await launchChromeProfileContext(chromeProfile);
+        const pg  = await ctx.newPage();
+        await pg.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        await pg.waitForTimeout(2_000);
+        if (pg.url().includes('/login')) {
+          await pg.waitForTimeout(2_500);
+          await pg.getByRole('button', { name: 'ログイン' }).click().catch(() => {});
+          await pg.waitForTimeout(5_000);
+        }
+        if (!pg.url().includes('/login')) return { context: ctx, page: pg, browser: null };
+        logger.warn(MODULE, `Chrome profile "${chromeProfile}" not authenticated — falling back to session file`);
+        await ctx.close();
+      } catch (launchErr) {
+        logger.warn(MODULE, `Chrome profile launch failed (${launchErr.message?.slice(0, 80)}) — falling back to session file`);
       }
-      if (!pg.url().includes('/login')) return { context: ctx, page: pg, browser: null };
-      logger.warn(MODULE, `Chrome profile "${chromeProfile}" not authenticated — falling back to session file`);
-      await ctx.close();
     }
     // Session file fallback
     if (!fs.existsSync(sessionFile)) throw new Error(`no session file for acct${accountId}: ${sessionFile}`);

@@ -89,29 +89,11 @@ async function runPublishFlow(page, draft, username, accountId) {
 
   if (imgPath && fs.existsSync(imgPath)) await page.waitForTimeout(500);
 
-  // Step 1: 公開に進む
-  const publishBtnSelectors = [
-    'button:has-text("公開に進む")',
-    'button:has-text("編集済みを公開")',
-    'button:has-text("公開する")',
-    '[data-testid="publish-button"]',
-  ];
-  let clicked = false;
-  for (const sel of publishBtnSelectors) {
-    const btn = page.locator(sel).first();
-    if (await btn.count() > 0) {
-      await btn.click();
-      console.log(`  clicked: ${sel}`);
-      clicked = true;
-      break;
-    }
-  }
-  if (!clicked) {
-    await screenshot(page, 'no-publish-btn', accountId);
-    throw new Error('公開ボタンが見つかりません');
-  }
-
-  await page.waitForTimeout(3_000);
+  // Step 1: 公開設定ページへ直接遷移（headless mode でクリック後ナビゲーションが発生しないため）
+  const publishUrl = page.url().replace(/\/edit\/?$/, '/publish/');
+  console.log(`  navigating to publish page: ${publishUrl}`);
+  await page.goto(publishUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+  await page.waitForTimeout(2_000);
   await screenshot(page, 'publish-page', accountId);
 
   // Set hashtags
@@ -285,7 +267,7 @@ async function main() {
   const editorUrl = `https://editor.note.com/notes/${key}/edit/`;
   console.log(`Editor: ${editorUrl}`);
 
-  const browser = await launchBrowser({ headless: false });
+  const browser = await launchBrowser({ headless: process.env.HEADED !== '1' });
   const context = await browser.newContext({ storageState: sessionFile });
   const page = await context.newPage();
 

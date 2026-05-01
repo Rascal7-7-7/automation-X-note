@@ -23,9 +23,26 @@
   "reviewScore": 6.8,
   "personaScores": null,
   "accountId": 1,
-  "noteUrl": "https://editor.note.com/notes/n898351109e50/publish/",
+  "noteUrl": "https://note.com/rascal_ai_devops/n/n898351109e50",
   "createdAt": "2026-04-29T21:01:40.183Z",
   "status": "posted",
   "postedAt": "2026-04-29T22:01:57.111Z",
-  "promoPosted": false
+  "promoPosted": false,
+  "sectionImages": [
+    {
+      "placeholder": "3ステップロードマップのフロー図（学習→ポートフォリオ→受注）",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-0.png",
+      "insertedAt": "2026-05-01T07:27:36.552Z"
+    },
+    {
+      "placeholder": "ココナラの売上ダッシュボードスクリーンショット",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-1.png",
+      "insertedAt": "2026-05-01T07:27:45.420Z"
+    },
+    {
+      "placeholder": "ChatGPTで営業文を生成している画面",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-2.png",
+      "requiresManualInsertion": true
+    }
+  ]
 }

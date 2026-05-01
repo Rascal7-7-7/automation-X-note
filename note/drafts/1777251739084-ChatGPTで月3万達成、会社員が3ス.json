@@ -23,9 +23,26 @@
   "reviewScore": 6.6,
   "personaScores": null,
   "accountId": 1,
-  "noteUrl": "https://editor.note.com/notes/n3928972fbe96/publish/",
+  "noteUrl": "https://note.com/rascal_ai_devops/n/n3928972fbe96",
   "createdAt": "2026-04-27T01:02:19.084Z",
   "status": "posted",
   "postedAt": "2026-04-27T22:01:58.306Z",
-  "promoPosted": false
+  "promoPosted": false,
+  "sectionImages": [
+    {
+      "placeholder": "ChatGPT→Claude→人間校正の3ステップフロー図",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n3928972fbe96/section-0.png",
+      "insertedAt": "2026-05-01T07:25:50.690Z"
+    },
+    {
+      "placeholder": "noteダッシュボードの売上スクリーンショット",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n3928972fbe96/section-1.png",
+      "insertedAt": "2026-05-01T07:25:59.560Z"
+    },
+    {
+      "placeholder": "noteの記事作成画面・有料設定箇所のキャプチャ",
+      "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n3928972fbe96/section-2.png",
+      "insertedAt": "2026-05-01T07:26:08.442Z"
+    }
+  ]
 }
