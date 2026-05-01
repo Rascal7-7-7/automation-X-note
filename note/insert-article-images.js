@@ -78,8 +78,10 @@ function collectTargetDrafts() {
           logger.warn(MODULE, `cannot derive editor URL for ${d.title}`);
           continue;
         }
-        // skip only placeholders that were ACTUALLY INSERTED (insertedAt present)
-        const existing = (d.sectionImages ?? []).filter(s => s.imagePath && fs.existsSync(s.imagePath) && s.insertedAt);
+        // skip placeholders that are DONE (insertedAt present) or flagged for manual insertion
+        const existing = (d.sectionImages ?? []).filter(s =>
+          (s.imagePath && fs.existsSync(s.imagePath) && s.insertedAt) || s.requiresManualInsertion
+        );
         const pending = placeholders.filter(p => !existing.find(e => e.placeholder.trim() === p.trim()));
         if (pending.length === 0) {
           logger.info(MODULE, `skip (all images done): ${d.title}`);
@@ -208,11 +210,16 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
     await takeDebugScreenshot(page, `article-${noteId}-editor-ready`);
 
     const insertedImages = [];
+    const failedImages   = [];
     for (let i = 0; i < generated.length; i++) {
       const { placeholder, imagePath } = generated[i];
       if (!imagePath) { logger.warn(MODULE, `no image for: ${placeholder}`); continue; }
       const ok = await insertImageAtPlaceholder(page, placeholder, imagePath, i);
-      if (ok) insertedImages.push({ placeholder, imagePath, insertedAt: new Date().toISOString() });
+      if (ok) {
+        insertedImages.push({ placeholder, imagePath, insertedAt: new Date().toISOString() });
+      } else {
+        failedImages.push({ placeholder, imagePath });
+      }
       await page.waitForTimeout(800);
     }
 
@@ -223,7 +230,7 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
     }
     logger.info(MODULE, `${draft.title}: ${insertedImages.length}/${generated.length} images inserted`);
 
-    return insertedImages;
+    return { insertedImages, failedImages };
   } finally {
     await context.close().catch(() => {});
     if (browser) await browser.close().catch(() => {});
@@ -242,14 +249,22 @@ async function main() {
   for (const target of targets) {
     logger.info(MODULE, `--- ${target.draft.title} (acct${target.accountId}) ---`);
     try {
-      const insertedImages = await processArticle(target);
+      const { insertedImages, failedImages } = await processArticle(target);
 
-      // draft JSON に挿入済み sectionImages のみ保存（insertedAt 付き）
-      if (insertedImages.length > 0) {
+      const hasChanges = insertedImages.length > 0 || failedImages.length > 0;
+      if (hasChanges) {
         const prev = target.draft.sectionImages ?? [];
+        // inserted: add with insertedAt
+        // failed: mark requiresManualInsertion so next run skips them
+        const manualEntries = failedImages.map(f => ({ ...f, requiresManualInsertion: true }));
+        if (manualEntries.length > 0) {
+          logger.warn(MODULE, `${target.draft.title}: ${manualEntries.length} image(s) need manual insertion`);
+          for (const e of manualEntries) logger.warn(MODULE, `  ↳ ${e.imagePath}`);
+        }
+        const allNew = [...insertedImages, ...manualEntries];
         const merged = [
-          ...prev.filter(p => !insertedImages.find(g => g.placeholder === p.placeholder)),
-          ...insertedImages,
+          ...prev.filter(p => !allNew.find(g => g.placeholder === p.placeholder)),
+          ...allNew,
         ];
         const updated = { ...target.draft, sectionImages: merged };
         saveJSON(target.fp, updated);

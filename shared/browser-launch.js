@@ -66,7 +66,7 @@ export async function launchChromeProfileContext(profileDir) {
 
   chrome.on('error', err => { throw err; });
 
-  await waitForPort(port, 30_000);
+  await waitForPort(port, 60_000);
 
   const browser = await chromium.connectOverCDP(`http://localhost:${port}`);
   const contexts = browser.contexts();
