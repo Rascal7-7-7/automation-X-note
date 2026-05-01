@@ -32,22 +32,30 @@
     {
       "placeholder": "ChatGPTカスタムGPT「Mental Coach」の対話画面スクリーンショット",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-0.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:55:54.564Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "RescueTimeとTradingView口座残高の30日推移グラフ",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-1.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:55:54.564Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "バックテスト結果グラフ - 累積リターン比較線2本",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-2.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:55:54.564Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "30日チェックリストテンプレート（Notion）",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-3.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:55:54.564Z",
+      "note": "not_in_published_article"
     }
   ]
 }

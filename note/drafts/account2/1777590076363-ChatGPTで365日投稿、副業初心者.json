@@ -32,22 +32,30 @@
     {
       "placeholder": "ChatGPTとClaudeの画面を並べた使い分けフロー図",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-0.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:00.420Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "n8nで組んだ自動化ワークフローのスクリーンショット",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-1.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:00.420Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "投稿ビュー数が落ち込んだ期間のグラフ",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-2.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:00.420Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "Notionテンプレの初期画面スクリーンショット",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n85023cf6724e/section-3.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:00.420Z",
+      "note": "not_in_published_article"
     }
   ]
 }

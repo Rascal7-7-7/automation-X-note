@@ -32,17 +32,23 @@
     {
       "placeholder": "3ステップロードマップのフロー図（学習→ポートフォリオ→受注）",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-0.png",
-      "insertedAt": "2026-05-01T07:27:36.552Z"
+      "insertedAt": "2026-05-01T07:27:36.552Z",
+      "deletedAt": "2026-05-01T13:04:22.293Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "ココナラの売上ダッシュボードスクリーンショット",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-1.png",
-      "insertedAt": "2026-05-01T07:27:45.420Z"
+      "insertedAt": "2026-05-01T07:27:45.420Z",
+      "deletedAt": "2026-05-01T13:04:22.293Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "ChatGPTで営業文を生成している画面",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/n898351109e50/section-2.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:55:44.111Z",
+      "note": "not_in_published_article"
     }
   ]
 }

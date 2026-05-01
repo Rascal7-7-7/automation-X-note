@@ -32,17 +32,23 @@
     {
       "placeholder": "購買心理3ステップのフロー図（共感→ベネフィット→CTA）",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-0.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:10.292Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "A8.net管理画面の成果レポートスクリーンショット（CV数・承認率・報酬額）",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-1.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:10.292Z",
+      "note": "not_in_published_article"
     },
     {
       "placeholder": "30日間アクションプランのカレンダー画像",
       "imagePath": "/Users/Rascal/work/automation/.tmp-note-images/article/notes/section-2.png",
-      "requiresManualInsertion": true
+      "requiresManualInsertion": true,
+      "deletedAt": "2026-05-01T12:57:10.292Z",
+      "note": "not_in_published_article"
     }
   ]
 }
