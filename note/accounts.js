@@ -10,6 +10,7 @@ export const NOTE_ACCOUNTS = {
   1: {
     id: 1,
     label: 'AI副業・自動化',
+    chromeProfile: 'Profile 1',              // rascal.devops@gmail.com
     noteUrl: 'https://note.com/rascal_ai_devops',
     personaSet: 'note-tech',
     queueDir: 'queue',                    // note/queue/ideas.jsonl
@@ -52,6 +53,7 @@ export const NOTE_ACCOUNTS = {
   2: {
     id: 2,
     label: '投資・FX・自動売買',
+    chromeProfile: 'Profile 3',              // takumitoyozato@gmail.com
     noteUrl: 'https://note.com/rascal_invest',   // アカウント作成後に更新
     personaSet: 'note-finance',
     queueDir: 'queue/account2',
@@ -95,6 +97,7 @@ export const NOTE_ACCOUNTS = {
   3: {
     id: 3,
     label: 'A8.netアフィリエイト',
+    chromeProfile: 'Default',                // taku233442@gmail.com
     noteUrl: 'https://note.com/rascal_affiliate',  // アカウント作成後に更新
     personaSet: 'note-affiliate',
     queueDir: 'queue/account3',

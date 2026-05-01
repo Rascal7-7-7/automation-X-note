@@ -9,7 +9,8 @@
  * ⚠️ 公開は手動確認後に行ってください
  */
 import 'dotenv/config';
-import { launchBrowser } from '../shared/browser-launch.js';
+import { launchBrowser, launchChromeProfileContext } from '../shared/browser-launch.js';
+import { getAccount } from './accounts.js';
 import { logger } from '../shared/logger.js';
 import { logNotePosted } from '../analytics/logger.js';
 import fs from 'fs';
@@ -95,23 +96,33 @@ export async function runPost(accountIdOrOpts = {}) {
   const { draft } = file;
   logger.info(MODULE, `posting: ${draft.title}`);
 
-  const browser = await launchBrowser({ headless });
-  const context = await browser.newContext({
-    storageState: fs.existsSync(sessionFile) ? sessionFile : undefined,
-    viewport: { width: 1280, height: 900 },
-    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-    permissions: ['clipboard-read', 'clipboard-write'],
-  });
+  const chromeProfile = getAccount(accountId)?.chromeProfile ?? null;
+  let browser = null;
+  let context;
+  if (chromeProfile) {
+    context = await launchChromeProfileContext(chromeProfile);
+  } else {
+    browser = await launchBrowser({ headless });
+    context = await browser.newContext({
+      storageState: fs.existsSync(sessionFile) ? sessionFile : undefined,
+      viewport: { width: 1280, height: 900 },
+      userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+      permissions: ['clipboard-read', 'clipboard-write'],
+    });
+  }
   const page = await context.newPage();
 
   try {
     // ── ログイン ──────────────────────────────────────────────────
     await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
     await page.waitForTimeout(2_000);
-    // ログイン済み判定: URLがloginページでなければOK
     const isLoggedIn = !page.url().includes('/login');
 
-    if (!isLoggedIn) {
+    if (chromeProfile) {
+      // Chrome実プロファイル使用 — セッションはブラウザ側で保持
+      if (!isLoggedIn) throw new Error(`Chrome profile "${chromeProfile}" not logged in to note.com — open Chrome and log in manually`);
+      logger.info(MODULE, `using Chrome profile: ${chromeProfile}`);
+    } else if (!isLoggedIn) {
       logger.info(MODULE, 'logging in to note.com');
       await page.goto('https://note.com/login', { waitUntil: 'domcontentloaded', timeout: 20_000 });
       await page.waitForSelector('#email', { timeout: 15_000 });
@@ -258,7 +269,8 @@ export async function runPost(accountIdOrOpts = {}) {
     logger.error(MODULE, 'post failed', { message: err.message });
     throw err;
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
+    else await context.close();
   }
 }
 

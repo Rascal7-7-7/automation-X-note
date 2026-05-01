@@ -3,10 +3,17 @@
   "maxPerRun": 8,
   "maxPerDay": 20,
   "targets": [
-    { "handle": "aicolumnwriter", "name": "アトカ", "active": true },
-    { "handle": "Naoki_GPT",      "name": "なおき", "active": true },
-    { "handle": "KazukiMorita99", "name": "AI副業系クリエイター", "active": true },
-    { "handle": "gijutsuc",       "name": "技術系AI副業", "active": true },
-    { "handle": "claude_code_jp", "name": "Claude Code JP", "active": false }
+    { "handle": "aicolumnwriter",  "name": "アトカ",             "active": true },
+    { "handle": "Naoki_GPT",       "name": "なおき",             "active": true },
+    { "handle": "KazukiMorita99",  "name": "AI副業系クリエイター", "active": true },
+    { "handle": "gijutsuc",        "name": "技術系AI副業",       "active": true },
+    { "handle": "claude_code_jp",  "name": "Claude Code JP",     "active": false },
+    { "handle": "akaoniudetate",   "name": "赤鬼",               "active": true, "note": "Claude Code×note/X完全自動化・月収100万チャレンジ。最優先" },
+    { "handle": "kaneki_ai888",    "name": "カネキ",             "active": true, "note": "Claude Code×Xアフィリ収益化" },
+    { "handle": "ai_jitan",        "name": "AI時短",             "active": true, "note": "AI時短・副業特化" },
+    { "handle": "haruai9690",      "name": "はるAI",             "active": true, "note": "AI副業実践系" },
+    { "handle": "ai_fukugyo_lab1", "name": "AI副業ラボ",         "active": true, "note": "AI副業情報発信" },
+    { "handle": "develogon0",      "name": "でぶろごん",         "active": true, "note": "AI開発・副業系" },
+    { "handle": "free_creator_ai", "name": "フリクリAI",         "active": true, "note": "フリーランス×AI" }
   ]
 }
