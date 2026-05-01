@@ -18,7 +18,7 @@ import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { execFile } from 'child_process';
-import { IS_MAC, uploadCoverImage, insertPaidSection, typeBodyWithCodeBlocks, takeDebugScreenshot } from './post-browser.js';
+import { IS_MAC, uploadCoverImage, insertPaidSection, typeBodyWithCodeBlocks, takeDebugScreenshot, insertSectionImages } from './post-browser.js';
 import { publishNote, selfLikeNote, crossLikeNote } from './post-publish.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -114,40 +114,53 @@ export async function runPost(accountIdOrOpts = {}) {
 
   try {
     // ── ログイン ──────────────────────────────────────────────────
-    await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-    await page.waitForTimeout(2_000);
-    const isLoggedIn = !page.url().includes('/login');
-
     if (chromeProfile) {
-      // Chrome実プロファイル使用 — セッションはブラウザ側で保持
-      if (!isLoggedIn) throw new Error(`Chrome profile "${chromeProfile}" not logged in to note.com — open Chrome and log in manually`);
+      // Chrome profile path: セッションチェックはnotes/newへのリダイレクトで判定
       logger.info(MODULE, `using Chrome profile: ${chromeProfile}`);
-    } else if (!isLoggedIn) {
-      logger.info(MODULE, 'logging in to note.com');
-      await page.goto('https://note.com/login', { waitUntil: 'domcontentloaded', timeout: 20_000 });
-      await page.waitForSelector('#email', { timeout: 15_000 });
-      await page.evaluate(({ email, password }) => {
-        const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-        const emailEl = document.querySelector('#email');
-        const passEl  = document.querySelector('#password');
-        setter.call(emailEl, email);
-        emailEl.dispatchEvent(new Event('input', { bubbles: true }));
-        setter.call(passEl, password);
-        passEl.dispatchEvent(new Event('input', { bubbles: true }));
-      }, { email: process.env.NOTE_EMAIL, password: process.env.NOTE_PASSWORD });
-      await page.waitForTimeout(1_000);
-      await page.getByRole('button', { name: 'ログイン' }).click();
-      await page.waitForTimeout(4_000);
-      await context.storageState({ path: sessionFile });
+    } else {
+      await page.goto('https://note.com/', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+      await page.waitForTimeout(2_000);
+      const isLoggedIn = !page.url().includes('/login');
+      if (!isLoggedIn) {
+        logger.info(MODULE, 'logging in to note.com');
+        await page.goto('https://note.com/login', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+        await page.waitForSelector('#email', { timeout: 15_000 });
+        await page.evaluate(({ email, password }) => {
+          const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+          const emailEl = document.querySelector('#email');
+          const passEl  = document.querySelector('#password');
+          setter.call(emailEl, email);
+          emailEl.dispatchEvent(new Event('input', { bubbles: true }));
+          setter.call(passEl, password);
+          passEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }, { email: process.env.NOTE_EMAIL, password: process.env.NOTE_PASSWORD });
+        await page.waitForTimeout(1_000);
+        await page.getByRole('button', { name: 'ログイン' }).click();
+        await page.waitForTimeout(4_000);
+        await context.storageState({ path: sessionFile });
+      }
     }
 
     // ── 新規記事作成 ──────────────────────────────────────────────
     await page.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
 
-    // ログインページにリダイレクトされた場合はセッション切れ
+    // ログインページにリダイレクトされた場合
     if (page.url().includes('/login')) {
-      throw new Error('session expired — run: node note/save-session.js');
+      if (chromeProfile) {
+        // Chrome autofill で再ログイン
+        logger.info(MODULE, `session expired in ${chromeProfile} — autofill login`);
+        await page.waitForTimeout(2_500);
+        await page.getByRole('button', { name: 'ログイン' }).click();
+        await page.waitForTimeout(4_000);
+        if (page.url().includes('/login')) {
+          throw new Error(`Autofill login failed for "${chromeProfile}" — open Chrome and log in to note.com manually`);
+        }
+        await page.goto('https://note.com/notes/new', { waitUntil: 'domcontentloaded', timeout: 30_000 });
+        await page.waitForTimeout(3_000);
+      } else {
+        throw new Error('session expired — run: node note/save-session.js');
+      }
     }
     logger.info(MODULE, `editor URL: ${page.url()}`);
 
@@ -223,6 +236,12 @@ export async function runPost(accountIdOrOpts = {}) {
       await insertPaidSection(page, editor, bodyText);
     } else {
       await typeBodyWithCodeBlocks(page, bodyText);
+      await page.waitForTimeout(1_000);
+    }
+
+    // ── 記事内画像挿入（sectionImages がある場合）──────────────────
+    if (draft.sectionImages?.length) {
+      await insertSectionImages(page, draft.sectionImages);
       await page.waitForTimeout(1_000);
     }
 

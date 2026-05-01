@@ -249,3 +249,132 @@ export async function tryClick(page, selectors, { label = '', force = false } = 
   await takeDebugScreenshot(page, `${label}-ALL_FAILED`);
   throw new Error(`tryClick [${label}] all selectors failed: ${selectors.join(' | ')}`);
 }
+
+// ── 記事内画像挿入 ────────────────────────────────────────────────
+// insert-article-images.js と post.js の両方から使用する共通関数
+
+/**
+ * ProseMirror 内の「📊 [ここに画像: ...]」blockquote を imagePath の画像に置換する。
+ * idx は同一記事内での連番（デバッグスクリーンショット名に使用）。
+ * 成功時 true、失敗時 false を返す。
+ */
+export async function insertImageAtPlaceholder(page, description, imagePath, idx = 0) {
+  const shortDesc = description.slice(0, 20);
+  const prefix    = `img-insert-${idx}`;
+  const editor    = page.locator('div.ProseMirror[role="textbox"]').first();
+
+  // Step1: 対象blockquoteを特定（説明文の先頭10文字で照合）
+  const bqs = editor.locator('blockquote');
+  let targetBq = null;
+  const bqCount = await bqs.count();
+  for (let i = 0; i < bqCount; i++) {
+    const txt = await bqs.nth(i).textContent().catch(() => '');
+    if (txt.includes('📊') && txt.includes(shortDesc.slice(0, 10))) {
+      targetBq = bqs.nth(i);
+      break;
+    }
+  }
+  if (!targetBq) {
+    for (let i = 0; i < bqCount; i++) {
+      const txt = await bqs.nth(i).textContent().catch(() => '');
+      if (txt.includes('📊')) { targetBq = bqs.nth(i); break; }
+    }
+  }
+  if (!targetBq) {
+    logger.warn(MODULE, `[${prefix}] placeholder not found: ${shortDesc}`);
+    await takeDebugScreenshot(page, `${prefix}-NOT_FOUND`);
+    return false;
+  }
+
+  // Step2: blockquote全体を選択して削除
+  await targetBq.click();
+  await page.waitForTimeout(200);
+  await targetBq.click({ clickCount: 3 });
+  await page.waitForTimeout(200);
+  await page.keyboard.press('Backspace');
+  await page.waitForTimeout(600);
+
+  // Step3: 空行への画像挿入（3戦略）
+
+  // 戦略A: note.comの「+」ボタン
+  await page.mouse.move(640, 400);
+  await page.waitForTimeout(400);
+  const plusSelectors = [
+    '[class*="PlusButton"]:not([disabled])',
+    '[class*="plus-button"]:not([disabled])',
+    '[data-testid*="add-content"]',
+    '[aria-label*="コンテンツを追加"]',
+  ];
+  for (const sel of plusSelectors) {
+    const btn = page.locator(sel).first();
+    if (await btn.count() > 0) {
+      await btn.click();
+      await page.waitForTimeout(500);
+      const imgOpt = page.locator(
+        'button:has-text("画像"), [role="menuitem"]:has-text("画像"), [role="option"]:has-text("画像")'
+      ).first();
+      if (await imgOpt.count() > 0) {
+        const [fc] = await Promise.all([
+          page.waitForEvent('filechooser', { timeout: 8_000 }),
+          imgOpt.click(),
+        ]);
+        await fc.setFiles(imagePath);
+        await page.waitForTimeout(2_500);
+        logger.info(MODULE, `[${prefix}] inserted via + menu`);
+        return true;
+      }
+      await page.keyboard.press('Escape');
+    }
+  }
+
+  // 戦略B: スラッシュコマンド
+  await page.keyboard.type('/');
+  await page.waitForTimeout(700);
+  const slashImg = page.locator(
+    '[class*="slash"] button:has-text("画像"), [role="listbox"] [role="option"]:has-text("画像")'
+  ).first();
+  if (await slashImg.count() > 0) {
+    const [fc] = await Promise.all([
+      page.waitForEvent('filechooser', { timeout: 8_000 }),
+      slashImg.click(),
+    ]);
+    await fc.setFiles(imagePath);
+    await page.waitForTimeout(2_500);
+    logger.info(MODULE, `[${prefix}] inserted via slash command`);
+    return true;
+  }
+  await page.keyboard.press('Escape');
+  await page.keyboard.press('Backspace');
+
+  // 戦略C: 隠し file input
+  const fileInputs = page.locator('input[type="file"][accept*="image"]');
+  if (await fileInputs.count() > 0) {
+    await fileInputs.first().setFiles(imagePath);
+    await page.waitForTimeout(2_500);
+    logger.info(MODULE, `[${prefix}] inserted via file input`);
+    return true;
+  }
+
+  await takeDebugScreenshot(page, `${prefix}-ALL_FAILED`);
+  logger.warn(MODULE, `[${prefix}] all insertion strategies failed`);
+  return false;
+}
+
+/**
+ * draft.sectionImages の全エントリを順番に挿入する。
+ * sectionImages: [{ placeholder: string, imagePath: string }]
+ */
+export async function insertSectionImages(page, sectionImages = []) {
+  if (!sectionImages.length) return;
+  let ok = 0;
+  for (let i = 0; i < sectionImages.length; i++) {
+    const { placeholder, imagePath } = sectionImages[i];
+    if (!imagePath || !fs.existsSync(imagePath)) {
+      logger.warn(MODULE, `section image missing: ${imagePath}`);
+      continue;
+    }
+    const success = await insertImageAtPlaceholder(page, placeholder, imagePath, i);
+    if (success) ok++;
+  }
+  logger.info(MODULE, `section images inserted: ${ok}/${sectionImages.length}`);
+}

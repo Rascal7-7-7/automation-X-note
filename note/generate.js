@@ -208,6 +208,54 @@ async function generateNoteImages(title, theme) {
   return results;
 }
 
+const SECTION_PLACEHOLDER_RE = />\s*📊\s*\[ここに画像:([^\]]+)\]/g;
+
+async function generateSectionImages(paidBody, title, ts) {
+  if (!process.env.OPENAI_API_KEY) return [];
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const tmpDir = path.join(__dirname, `../.tmp-note-images/article/${ts}`);
+  fs.mkdirSync(tmpDir, { recursive: true });
+
+  const descs = [];
+  let m;
+  const re = new RegExp(SECTION_PLACEHOLDER_RE.source, 'g');
+  while ((m = re.exec(paidBody)) !== null) {
+    const d = m[1].trim();
+    if (!descs.includes(d)) descs.push(d);
+  }
+  if (!descs.length) return [];
+
+  const results = [];
+  for (let i = 0; i < descs.length; i++) {
+    const desc = descs[i];
+    const outPath = path.join(tmpDir, `section-${i}.png`);
+    if (fs.existsSync(outPath)) {
+      results.push({ placeholder: desc, imagePath: outPath });
+      continue;
+    }
+    try {
+      const promptRaw = await generate(
+        'Create a concise DALL-E 3 prompt (English, ≤200 chars) for a note.com article body image. ' +
+        'Style: professional infographic or diagram, light background, no faces, minimalist modern.',
+        `Article: ${title}\nImage: ${desc}`,
+        { maxTokens: 150 },
+      );
+      const res = await openai.images.generate({
+        model: 'dall-e-3', prompt: promptRaw.trim(),
+        n: 1, size: '1792x1024', quality: 'hd', response_format: 'url',
+      });
+      await downloadToFile(res.data[0].url, outPath);
+      results.push({ placeholder: desc, imagePath: outPath });
+      logger.info(MODULE, `section image [${i}] generated: ${outPath}`);
+    } catch (err) {
+      logger.warn(MODULE, `section image [${i}] failed: ${err.message}`);
+      results.push({ placeholder: desc, imagePath: null });
+    }
+  }
+  return results;
+}
+
+
 function buildCTA(account) {
   return `
 
@@ -267,9 +315,11 @@ ${paidSections.map((s, i) => `${i + 3}. ${s}`).join('\n')}${paidExtra}
   ]);
   logger.info(MODULE, `free section review score: ${freeReview.avgScore}`);
 
-  const paidBody = paidBodyRaw + buildCTA(account ?? { ctaLabel: 'AI活用・副業自動化の実践ノウハウを毎週公開', ctaProfile: 'https://note.com/rascal_ai_devops' });
+  const paidBody    = paidBodyRaw + buildCTA(account ?? { ctaLabel: 'AI活用・副業自動化の実践ノウハウを毎週公開', ctaProfile: 'https://note.com/rascal_ai_devops' });
+  const ts          = Date.now();
+  const sectionImages = await generateSectionImages(paidBody, outline.title, ts);
 
-  return { freeBody, paidBody, images, freeReview };
+  return { freeBody, paidBody, images, freeReview, sectionImages };
 }
 
 export async function generatePaidBody(outline, accountId = 1) {
@@ -321,7 +371,7 @@ export async function runGenerate(theme, accountId = 1) {
     const outline = await generateOutline(resolvedTheme, hintText, account);
     logger.info(MODULE, 'outline done', { title: outline.title });
 
-    const { freeBody, paidBody, images, freeReview } = await generateArticle(outline, account);
+    const { freeBody, paidBody, images, freeReview, sectionImages } = await generateArticle(outline, account);
 
     const draft = {
       title:       outline.title,
@@ -333,7 +383,8 @@ export async function runGenerate(theme, accountId = 1) {
       body:        freeBody + '\n\n' + paidBody,
       theme:       resolvedTheme,
       angle:       idea?.angle ?? null,
-      headerImage:  images?.headerImage ?? null,
+      headerImage:   images?.headerImage ?? null,
+      sectionImages: sectionImages ?? [],
       reviewScore:  freeReview?.avgScore ?? null,
       personaScores: freeReview?.scores ?? null,
       accountId,
