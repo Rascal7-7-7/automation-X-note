@@ -78,9 +78,9 @@ function collectTargetDrafts() {
           logger.warn(MODULE, `cannot derive editor URL for ${d.title}`);
           continue;
         }
-        // skip if already has sectionImages with paths
-        const existing = (d.sectionImages ?? []).filter(s => s.imagePath && fs.existsSync(s.imagePath));
-        const pending = placeholders.filter(p => !existing.find(e => e.placeholder === p));
+        // skip only placeholders that were ACTUALLY INSERTED (insertedAt present)
+        const existing = (d.sectionImages ?? []).filter(s => s.imagePath && fs.existsSync(s.imagePath) && s.insertedAt);
+        const pending = placeholders.filter(p => !existing.find(e => e.placeholder.trim() === p.trim()));
         if (pending.length === 0) {
           logger.info(MODULE, `skip (all images done): ${d.title}`);
           continue;
@@ -207,22 +207,23 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
     await page.waitForTimeout(1_500);
     await takeDebugScreenshot(page, `article-${noteId}-editor-ready`);
 
-    let successCount = 0;
+    const insertedImages = [];
     for (let i = 0; i < generated.length; i++) {
       const { placeholder, imagePath } = generated[i];
       if (!imagePath) { logger.warn(MODULE, `no image for: ${placeholder}`); continue; }
       const ok = await insertImageAtPlaceholder(page, placeholder, imagePath, i);
-      if (ok) successCount++;
+      if (ok) insertedImages.push({ placeholder, imagePath, insertedAt: new Date().toISOString() });
       await page.waitForTimeout(800);
     }
 
-    // Ctrl+S で保存
-    await page.keyboard.press('Meta+s');
-    await page.waitForTimeout(2_000);
-    await takeDebugScreenshot(page, `article-${noteId}-saved`);
-    logger.info(MODULE, `${draft.title}: ${successCount}/${generated.length} images inserted`);
+    if (insertedImages.length > 0) {
+      await page.keyboard.press('Meta+s');
+      await page.waitForTimeout(2_000);
+      await takeDebugScreenshot(page, `article-${noteId}-saved`);
+    }
+    logger.info(MODULE, `${draft.title}: ${insertedImages.length}/${generated.length} images inserted`);
 
-    return generated;
+    return insertedImages;
   } finally {
     await context.close().catch(() => {});
     if (browser) await browser.close().catch(() => {});
@@ -241,17 +242,19 @@ async function main() {
   for (const target of targets) {
     logger.info(MODULE, `--- ${target.draft.title} (acct${target.accountId}) ---`);
     try {
-      const generated = await processArticle(target);
+      const insertedImages = await processArticle(target);
 
-      // draft JSON に sectionImages を保存
-      const prev = target.draft.sectionImages ?? [];
-      const merged = [
-        ...prev.filter(p => !generated.find(g => g.placeholder === p.placeholder)),
-        ...generated,
-      ];
-      const updated = { ...target.draft, sectionImages: merged };
-      saveJSON(target.fp, updated);
-      logger.info(MODULE, `draft updated: ${path.basename(target.fp)}`);
+      // draft JSON に挿入済み sectionImages のみ保存（insertedAt 付き）
+      if (insertedImages.length > 0) {
+        const prev = target.draft.sectionImages ?? [];
+        const merged = [
+          ...prev.filter(p => !insertedImages.find(g => g.placeholder === p.placeholder)),
+          ...insertedImages,
+        ];
+        const updated = { ...target.draft, sectionImages: merged };
+        saveJSON(target.fp, updated);
+        logger.info(MODULE, `draft updated: ${path.basename(target.fp)}`);
+      }
     } catch (err) {
       logger.error(MODULE, `FAILED: ${target.draft.title}`, { message: err.message });
     }
