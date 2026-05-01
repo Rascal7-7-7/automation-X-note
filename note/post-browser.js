@@ -263,96 +263,161 @@ export async function insertImageAtPlaceholder(page, description, imagePath, idx
   const prefix    = `img-insert-${idx}`;
   const editor    = page.locator('div.ProseMirror[role="textbox"]').first();
 
-  // Step1: 対象blockquoteを特定（説明文の先頭10文字で照合）
+  // Step1: 対象blockquote（または段落）を特定
   const bqs = editor.locator('blockquote');
-  let targetBq = null;
+  let targetEl = null;
   const bqCount = await bqs.count();
   for (let i = 0; i < bqCount; i++) {
     const txt = await bqs.nth(i).textContent().catch(() => '');
-    if (txt.includes('📊') && txt.includes(shortDesc.slice(0, 10))) {
-      targetBq = bqs.nth(i);
-      break;
-    }
+    if (txt.includes('📊') && txt.includes(shortDesc.slice(0, 8))) { targetEl = bqs.nth(i); break; }
   }
-  if (!targetBq) {
+  if (!targetEl) {
     for (let i = 0; i < bqCount; i++) {
       const txt = await bqs.nth(i).textContent().catch(() => '');
-      if (txt.includes('📊')) { targetBq = bqs.nth(i); break; }
+      if (txt.includes('📊')) { targetEl = bqs.nth(i); break; }
     }
   }
-  if (!targetBq) {
+  // フォールバック: blockquoteでなく段落として入力された場合
+  if (!targetEl) {
+    const paras = editor.locator('p');
+    const pCount = await paras.count();
+    for (let i = 0; i < Math.min(pCount, 80); i++) {
+      const txt = await paras.nth(i).textContent().catch(() => '');
+      if (txt.includes('📊') && txt.includes(shortDesc.slice(0, 8))) { targetEl = paras.nth(i); break; }
+    }
+    if (!targetEl) {
+      for (let i = 0; i < Math.min(pCount, 80); i++) {
+        const txt = await paras.nth(i).textContent().catch(() => '');
+        if (txt.includes('📊')) { targetEl = paras.nth(i); break; }
+      }
+    }
+  }
+  if (!targetEl) {
     logger.warn(MODULE, `[${prefix}] placeholder not found: ${shortDesc}`);
     await takeDebugScreenshot(page, `${prefix}-NOT_FOUND`);
     return false;
   }
 
-  // Step2: blockquote全体を選択して削除
-  await targetBq.click();
+  // Step2: 要素全体を選択して削除
+  await targetEl.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(300);
+  await targetEl.click();
   await page.waitForTimeout(200);
-  await targetBq.click({ clickCount: 3 });
+  await targetEl.click({ clickCount: 3 });
   await page.waitForTimeout(200);
   await page.keyboard.press('Backspace');
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(700);
 
-  // Step3: 空行への画像挿入（3戦略）
-
-  // 戦略A: note.comの「+」ボタン
-  await page.mouse.move(640, 400);
+  // Step3: カーソル位置を取得してスクロール
+  await page.evaluate(() => {
+    const sel = window.getSelection();
+    const node = sel?.getRangeAt(0)?.startContainer;
+    if (node) {
+      const el = node.nodeType === 3 ? node.parentElement : node;
+      el?.scrollIntoView({ block: 'center', behavior: 'instant' });
+    }
+  });
   await page.waitForTimeout(400);
-  const plusSelectors = [
-    '[class*="PlusButton"]:not([disabled])',
-    '[class*="plus-button"]:not([disabled])',
-    '[data-testid*="add-content"]',
-    '[aria-label*="コンテンツを追加"]',
-  ];
-  for (const sel of plusSelectors) {
-    const btn = page.locator(sel).first();
-    if (await btn.count() > 0) {
-      await btn.click();
-      await page.waitForTimeout(500);
-      const imgOpt = page.locator(
-        'button:has-text("画像"), [role="menuitem"]:has-text("画像"), [role="option"]:has-text("画像")'
-      ).first();
+
+  const cursorY = await page.evaluate(() => {
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return 400;
+    const r = sel.getRangeAt(0).getBoundingClientRect();
+    return Math.min(Math.max(r.top + r.height / 2, 60), 800);
+  });
+
+  // 戦略A: カーソル行の左マージンにホバーして「+」ボタンを探す
+  for (const hoverX of [50, 30, 70]) {
+    await page.mouse.move(hoverX, cursorY);
+    await page.waitForTimeout(500);
+
+    // DOM評価でボタンを特定
+    const nearBtn = await page.evaluate((y) => {
+      const btns = Array.from(document.querySelectorAll('button, [role="button"]'));
+      const near = btns.filter(b => {
+        const r = b.getBoundingClientRect();
+        return r.width > 0 && r.x < 180 && Math.abs((r.top + r.height / 2) - y) < 60;
+      });
+      return near.map(b => ({
+        cls: b.className.slice(0, 120),
+        txt: b.textContent?.trim().slice(0, 8),
+        aria: b.getAttribute('aria-label'),
+        x: Math.round(b.getBoundingClientRect().x + b.getBoundingClientRect().width / 2),
+        y: Math.round(b.getBoundingClientRect().y + b.getBoundingClientRect().height / 2),
+      }));
+    }, cursorY);
+
+    logger.info(MODULE, `[${prefix}] left-margin buttons at y=${cursorY}: ${JSON.stringify(nearBtn)}`);
+
+    if (nearBtn.length > 0) {
+      await page.mouse.click(nearBtn[0].x, nearBtn[0].y);
+      await page.waitForTimeout(600);
+      const imgOpt = page.locator('button, [role="menuitem"], [role="option"], li')
+        .filter({ hasText: '画像' }).filter({ visible: true }).first();
       if (await imgOpt.count() > 0) {
-        const [fc] = await Promise.all([
-          page.waitForEvent('filechooser', { timeout: 8_000 }),
-          imgOpt.click(),
-        ]);
-        await fc.setFiles(imagePath);
-        await page.waitForTimeout(2_500);
-        logger.info(MODULE, `[${prefix}] inserted via + menu`);
-        return true;
+        try {
+          const [fc] = await Promise.all([
+            page.waitForEvent('filechooser', { timeout: 8_000 }),
+            imgOpt.click(),
+          ]);
+          await fc.setFiles(imagePath);
+          await page.waitForTimeout(3_000);
+          logger.info(MODULE, `[${prefix}] inserted via + menu`);
+          return true;
+        } catch { /* try next strategy */ }
       }
       await page.keyboard.press('Escape');
+      break;
     }
   }
 
-  // 戦略B: スラッシュコマンド
+  // 戦略B: スラッシュコマンド /画像
   await page.keyboard.type('/');
-  await page.waitForTimeout(700);
-  const slashImg = page.locator(
-    '[class*="slash"] button:has-text("画像"), [role="listbox"] [role="option"]:has-text("画像")'
-  ).first();
+  await page.waitForTimeout(900);
+  await takeDebugScreenshot(page, `${prefix}-after-slash`);
+  const slashImg = page.locator('button, [role="menuitem"], [role="option"], li')
+    .filter({ hasText: '画像' }).filter({ visible: true }).first();
   if (await slashImg.count() > 0) {
-    const [fc] = await Promise.all([
-      page.waitForEvent('filechooser', { timeout: 8_000 }),
-      slashImg.click(),
-    ]);
-    await fc.setFiles(imagePath);
-    await page.waitForTimeout(2_500);
-    logger.info(MODULE, `[${prefix}] inserted via slash command`);
-    return true;
+    try {
+      const [fc] = await Promise.all([
+        page.waitForEvent('filechooser', { timeout: 8_000 }),
+        slashImg.click(),
+      ]);
+      await fc.setFiles(imagePath);
+      await page.waitForTimeout(3_000);
+      logger.info(MODULE, `[${prefix}] inserted via slash command`);
+      return true;
+    } catch { /* fall through */ }
   }
   await page.keyboard.press('Escape');
   await page.keyboard.press('Backspace');
 
-  // 戦略C: 隠し file input
-  const fileInputs = page.locator('input[type="file"][accept*="image"]');
-  if (await fileInputs.count() > 0) {
-    await fileInputs.first().setFiles(imagePath);
-    await page.waitForTimeout(2_500);
-    logger.info(MODULE, `[${prefix}] inserted via file input`);
+  // 戦略C: 隠し file input を直接操作
+  const fileInputs = page.locator('input[type="file"]');
+  const fiCount = await fileInputs.count();
+  for (let fi = 0; fi < fiCount; fi++) {
+    try {
+      await fileInputs.nth(fi).setFiles(imagePath);
+      await page.waitForTimeout(3_000);
+      logger.info(MODULE, `[${prefix}] inserted via file input[${fi}]`);
+      return true;
+    } catch { /* next */ }
+  }
+
+  // 戦略D: クリップボード経由ペースト
+  try {
+    const imgBase64 = fs.readFileSync(imagePath).toString('base64');
+    await page.evaluate(async (b64) => {
+      const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+      const blob  = new Blob([bytes], { type: 'image/png' });
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    }, imgBase64);
+    await page.keyboard.press('Meta+v');
+    await page.waitForTimeout(3_000);
+    logger.info(MODULE, `[${prefix}] inserted via clipboard paste`);
     return true;
+  } catch (err) {
+    logger.warn(MODULE, `[${prefix}] clipboard strategy failed: ${err.message}`);
   }
 
   await takeDebugScreenshot(page, `${prefix}-ALL_FAILED`);

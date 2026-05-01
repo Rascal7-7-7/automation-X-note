@@ -187,7 +187,8 @@ async function processArticle({ fp, draft, accountId, noteId, editorUrl, pending
     await page.goto(editorUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
     await page.waitForTimeout(3_000);
 
-    await page.waitForSelector('div.ProseMirror[role="textbox"]', { timeout: 20_000 });
+    await takeDebugScreenshot(page, `article-${noteId}-before-editor-wait`);
+    await page.waitForSelector('div.ProseMirror[role="textbox"]', { timeout: 35_000 });
     await page.waitForTimeout(1_500);
     await takeDebugScreenshot(page, `article-${noteId}-editor-ready`);
 

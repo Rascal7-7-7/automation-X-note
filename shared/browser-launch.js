@@ -39,7 +39,8 @@ async function waitForPort(port, timeout = 15_000) {
 // Fix: rsync profile to a temp dir, then launch Chrome ourselves
 // (bypasses Playwright's --use-mock-keychain so real session cookies work).
 export async function launchChromeProfileContext(profileDir) {
-  const tmpBase = path.join(os.tmpdir(), `pw-chrome-${profileDir.replace(/\s+/g, '-')}`);
+  // Include PID in tmpdir so concurrent calls for the same profile don't conflict
+  const tmpBase = path.join(os.tmpdir(), `pw-chrome-${profileDir.replace(/\s+/g, '-')}-${process.pid}`);
   const srcProfile = path.join(CHROME_DATA_DIR, profileDir);
   const dstProfile = path.join(tmpBase, profileDir);
 
