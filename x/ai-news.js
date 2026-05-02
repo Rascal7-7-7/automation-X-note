@@ -156,12 +156,58 @@ function isAIRelevant(item) {
   return AI_KEYWORDS.some(kw => text.includes(kw));
 }
 
-function getPostedUrls() {
+function getPostedKeys() {
   if (!existsSync(POSTED_LOG)) return new Set();
-  return new Set(
-    readFileSync(POSTED_LOG, 'utf8').trim().split('\n').filter(Boolean)
-      .map(l => { try { return JSON.parse(l).url; } catch { return ''; } })
-  );
+  const keys = new Set();
+  readFileSync(POSTED_LOG, 'utf8').trim().split('\n').filter(Boolean).forEach(l => {
+    try {
+      const d = JSON.parse(l);
+      if (d.url)   keys.add(d.url);
+      if (d.topic) keys.add(d.topic);
+    } catch { /* skip */ }
+  });
+  return keys;
+}
+
+// ── daily-ai-trends / prompt-hints からトピック読み込み ──────────────
+function loadDailyTopics() {
+  const reportsDir = path.join(__dirname, '../analytics/reports');
+  // 最新の daily-ai-trends-*.json を探す
+  let topics = [];
+  try {
+    const files = readdirSync(reportsDir)
+      .filter(f => f.startsWith('daily-ai-trends-') && f.endsWith('.json'))
+      .sort().reverse();
+    if (files.length > 0) {
+      const d = JSON.parse(readFileSync(path.join(reportsDir, files[0]), 'utf8'));
+      topics = (d.topicSuggestions ?? []).map(t => ({
+        title:      t.topic,
+        desc:       t.hook ?? '',
+        url:        null,
+        source:     `DailyResearch(${t.source ?? 'ai'})`,
+        tweetDraft: t.tweetDraft ?? null,
+        buzzScore:  t.buzzScore  ?? 5,
+        topic:      t.topic,
+      }));
+    }
+  } catch { /* skip if missing */ }
+
+  // prompt-hints.json の todayTopics も補完（重複除去）
+  try {
+    const ph = JSON.parse(readFileSync(path.join(reportsDir, 'prompt-hints.json'), 'utf8'));
+    const existing = new Set(topics.map(t => t.topic));
+    for (const t of (ph.todayTopics ?? [])) {
+      if (!existing.has(t.topic)) {
+        topics.push({
+          title: t.topic, desc: t.hook ?? '', url: null,
+          source: 'PromptHints', tweetDraft: t.tweetDraft ?? null,
+          buzzScore: t.buzzScore ?? 5, topic: t.topic,
+        });
+      }
+    }
+  } catch { /* skip */ }
+
+  return topics.sort((a, b) => b.buzzScore - a.buzzScore);
 }
 
 // ── OG画像フェッチ ──────────────────────────────────────────────────
@@ -249,15 +295,16 @@ async function main() {
 }
 
 async function run({ dryRun, maxCount }) {
-  const postedUrls = getPostedUrls();
+  const postedKeys = getPostedKeys();
   let allItems = [];
 
+  // ── RSS ─────────────────────────────────────────────────────────
   console.log('Fetching AI news from RSS...');
   const results = await Promise.allSettled(
     SOURCES.map(async (src) => {
       try {
         const xml = (await fetchUrl(src.rss)).toString('utf8');
-        const items = parseRSSItems(xml).map(i => ({ ...i, source: src.name }));
+        const items = parseRSSItems(xml).map(i => ({ ...i, source: src.name, buzzScore: 5 }));
         console.log(`  ${src.name}: ${items.length} items`);
         return items;
       } catch (err) {
@@ -266,41 +313,53 @@ async function run({ dryRun, maxCount }) {
       }
     })
   );
-
   for (const r of results) {
     if (r.status === 'fulfilled') allItems.push(...r.value);
   }
 
-  const filtered = allItems.filter(i => isAIRelevant(i) && !postedUrls.has(i.url));
-  console.log(`\nTotal: ${allItems.length} articles, ${filtered.length} new AI-relevant`);
+  // ── daily-ai-trends / prompt-hints トピック（高buzzScore優先）────
+  const dailyTopics = loadDailyTopics().filter(t => !postedKeys.has(t.topic));
+  console.log(`DailyTopics: ${dailyTopics.length} new topics (buzzScore≥5)`);
 
-  if (filtered.length === 0) {
-    console.log('No new AI news to tweet.');
+  // RSS フィルタ → buzzScore 付与してマージ → ソート
+  const rssFiltered = allItems.filter(i => isAIRelevant(i) && !postedKeys.has(i.url));
+  const merged = [...dailyTopics, ...rssFiltered]
+    .sort((a, b) => (b.buzzScore ?? 5) - (a.buzzScore ?? 5));
+
+  console.log(`\nTotal candidates: ${merged.length} (${dailyTopics.length} research + ${rssFiltered.length} RSS)`);
+
+  if (merged.length === 0) {
+    console.log('No new content to tweet.');
     return;
   }
 
-  const targets = filtered.slice(0, maxCount);
+  const targets = merged.slice(0, maxCount);
 
   for (let i = 0; i < targets.length; i++) {
     const article = targets[i];
-    console.log(`\n[${article.source}] ${article.title.slice(0, 80)}`);
+    const isResearch = !!article.tweetDraft;
+    console.log(`\n[${article.source}${isResearch ? ' ★' + article.buzzScore : ''}] ${article.title.slice(0, 80)}`);
 
-    // OG画像フェッチ（並列でツイート生成と同時に走らせる）
-    const [tweetText, ogImage] = await Promise.all([
-      generateTweet(article),
-      fetchOGImage(article.url),
-    ]);
+    // research item: draft流用 / RSS item: LLM生成 + OG画像
+    let tweetText, ogImage = null;
+    if (isResearch) {
+      tweetText = article.tweetDraft;
+    } else {
+      [tweetText, ogImage] = await Promise.all([
+        generateTweet(article),
+        fetchOGImage(article.url),
+      ]);
+    }
 
     console.log('\n' + '─'.repeat(50));
     console.log(tweetText);
     console.log('─'.repeat(50));
-    const urlM = tweetText.match(/https?:\/\/\S+/g) ?? []; const twCount = tweetText.length - urlM.reduce((s,u)=>s+u.length,0) + urlM.length*23; console.log(`Twitter換算: ${twCount}字 | 生: ${tweetText.length}字 | 画像: ${ogImage ? "あり" : "なし"}`);
+    const urlM = tweetText.match(/https?:\/\/\S+/g) ?? [];
+    const twCount = tweetText.length - urlM.reduce((s, u) => s + u.length, 0) + urlM.length * 23;
+    console.log(`Twitter換算: ${twCount}字 | 生: ${tweetText.length}字 | 画像: ${ogImage ? 'あり' : 'なし'}`);
 
-    // 関連noteを選定
     const relatedNote = findRelevantNote(tweetText, article.title);
-    if (relatedNote) {
-      console.log(`  関連note: ${relatedNote.title.slice(0, 40)} → ${relatedNote.url}`);
-    }
+    if (relatedNote) console.log(`  関連note: ${relatedNote.title.slice(0, 40)} → ${relatedNote.url}`);
 
     if (dryRun) {
       console.log('[DRY RUN] スキップ');
@@ -309,7 +368,6 @@ async function run({ dryRun, maxCount }) {
     }
 
     try {
-      // 投稿（OG画像付き）
       const result = await postTweet(
         tweetText,
         ogImage?.buffer ?? null,
@@ -319,18 +377,17 @@ async function run({ dryRun, maxCount }) {
       console.log(`✓ 投稿: ${tweetId}`);
 
       appendFileSync(POSTED_LOG, JSON.stringify({
-        url: article.url,
-        title: article.title,
+        url:    article.url   ?? null,
+        topic:  article.topic ?? null,
+        title:  article.title,
         source: article.source,
         tweetId,
         postedAt: new Date().toISOString(),
       }) + '\n');
 
-      // 関連noteリプライ
       if (tweetId && relatedNote) {
         await new Promise(r => setTimeout(r, 2_000));
-        const replyText = `↓ 関連してnoteでも解説してます\n${relatedNote.url}`;
-        await replyToTweet(tweetId, replyText);
+        await replyToTweet(tweetId, `↓ 関連してnoteでも解説してます\n${relatedNote.url}`);
         console.log(`  ↩ リプライ送信: ${relatedNote.url}`);
       }
     } catch (err) {

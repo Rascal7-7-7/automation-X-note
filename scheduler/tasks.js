@@ -53,26 +53,28 @@ export const TASKS = [
   // { name: 'youtube:post-community',            cron: '30 9 * * 1,3,5' }, // 登録者500人後
 
   // ── note account1: AI副業・自動化（毎日 = 7本/週） ─────────────
-  { name: 'note:research', account: 1, cron: '30 5 * * 1,3,4,6' }, // 月水木土 05:30 — リサーチ（週4回でキューを厚く）
+  { name: 'note:research', account: 1, cron: '30 5 * * *' },       // 毎日 05:30 — リサーチ（週7回・21本/週生成に対応）
   { name: 'note:generate', account: 1, cron: '0 6 * * *' },        // 毎日 06:00 — 生成
   { name: 'note:post',     account: 1, cron: '0 20 * * *' },       // 毎日 20:00 — 投稿（Xエンゲージ最高峰）
-  { name: 'x:note-promo',              cron: '15 20 * * *' },      // 毎日 20:15 — 投稿直後X告知（20時台がベスト時間帯）
+  { name: 'x:note-promo', slot: 'noon',       cron: '0 11 * * *'  }, // 毎日 11:00 — 昼ピーク前プロモ（追加枠）
+  { name: 'x:note-promo', slot: 'acct1',      cron: '15 20 * * *' }, // 毎日 20:15 — 投稿直後X告知（20時台がベスト時間帯）
 
   // ── note account2: 投資・FX・株（毎日 = 7本/週）───────────────── ①強化
-  { name: 'note:research', account: 2, cron: '30 5 * * 1,2,4' },   // 月火木 05:30 — リサーチ（週3回）
+  { name: 'note:research', account: 2, cron: '30 5 * * 1,2,3,4,6' }, // 月火水木土 05:30 — リサーチ（週5回）
   { name: 'note:generate', account: 2, cron: '0 8 * * *' },        // 毎日 08:00 — 生成（Ghost解放スロット）⑤
   { name: 'note:post',     account: 2, cron: '0 18 * * *' },       // 毎日 18:00 — 投稿（夕方ピーク）
-  { name: 'x:note-promo',              cron: '15 18 * * *' },      // 毎日 18:15 — 投稿直後X告知
+  { name: 'x:note-promo', slot: 'acct2',      cron: '15 18 * * *' }, // 毎日 18:15 — 投稿直後X告知
 
   // ── note account3: A8.netアフィリエイト（毎日 = 7本/週）────────── ①強化
-  { name: 'note:research', account: 3, cron: '30 5 * * 0,2,5' },   // 日火金 05:30 — リサーチ（週3回）
+  { name: 'note:research', account: 3, cron: '30 5 * * 0,1,2,4,5' }, // 日月火木金 05:30 — リサーチ（週5回）
   { name: 'note:generate', account: 3, cron: '0 13 * * *' },       // 毎日 13:00 — 生成（Ghost解放スロット）⑤
   { name: 'note:post',     account: 3, cron: '0 19 * * *' },       // 毎日 19:00 — 投稿（夕方ピーク）
-  { name: 'x:note-promo',              cron: '15 19 * * *' },      // 毎日 19:15 — 投稿直後X告知
+  { name: 'x:note-promo', slot: 'acct3',      cron: '15 19 * * *' }, // 毎日 19:15 — 投稿直後X告知
 
   // 合計: 7+7+7 = 21本/週 ≈ 3本/日（Ghost解放リソース転用）
   // ── note X再告知（7日・30日後 角度変えて再プロモ） ──────────────
-  { name: 'note:repromo', cron: '0 20 * * 3' },                    // 水 20:00 — 7日/30日経過記事を再告知
+  { name: 'note:repromo', slot: 'wed', cron: '0 20 * * 3' },        // 水 20:00 — 7日/30日経過記事を再告知
+  { name: 'note:repromo', slot: 'sat', cron: '0 20 * * 6' },        // 土 20:00 — 週2回再プロモ化（水+土）
 
   // ── Ghost 英語ブログ — 停止中（2026-04-27 トラクションなし・有料プラン前に一時停止）──
   // { name: 'ghost:research', cron: '0 6 * * *' },
@@ -89,6 +91,13 @@ export const TASKS = [
   {
     name: 'x:ai-news',
     cron: '0 9 * * *',             // 毎日 09:00 JST — AIニュースツイート + 引用RT
+  },
+  { name: 'x:process', slot: 'morning', cron: '30 7 * * *'  }, // 毎日 07:30 JST — 朝フック枠キュー処理
+  { name: 'x:process', slot: 'noon',    cron: '0 12 * * *'  }, // 毎日 12:00 JST — 昼ピーク枠キュー処理
+  { name: 'x:process', slot: 'night',   cron: '0 21 * * *'  }, // 毎日 21:00 JST — 夜ピーク枠キュー処理
+  {
+    name: 'x:midday',
+    cron: '0 12 * * *',            // 毎日 12:00 JST — 昼ピーク: 新規AIニュースツイート生成
   },
 
   // ── X 自己リプライ返信（朝投稿・昼投稿へのフォローアップ） ──────
@@ -108,5 +117,11 @@ export const TASKS = [
   {
     name: 'dashboard:push-to-neon',
     cron: '0 * * * *',             // 毎時 00分 — ダッシュボードデータを Neon DB へ push
+  },
+
+  // ── システム全体ヘルスチェック（15分ごと） ──────────────────────
+  {
+    name: 'monitoring:health-check',
+    cron: '*/15 * * * *',          // 15分毎 — Bridge/Scheduler/Neon/X異常検知
   },
 ];

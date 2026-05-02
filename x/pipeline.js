@@ -223,6 +223,12 @@ function cleanTweetOutput(raw) {
 }
 
 async function generateTweet(item) {
+  // x-gen source: already reviewed text — use directly, skip regeneration
+  if (item.source === 'x-gen' && item.text) {
+    if (item.text.length > MAX_TWEET_LENGTH) throw new Error(`too long (${item.text.length} chars)`);
+    return item.text;
+  }
+
   const { content } = await generateWithReview(
     (hint) => generate(
       TWEET_SYSTEM,
@@ -250,7 +256,7 @@ export async function postReply(text, replyToId) {
   logger.info(MODULE, 'xurl not available, using twitter-api-v2 for reply');
   try {
     const client = await makeTwitterClient();
-    const tweet  = await client.v2.tweet(text, { reply: { in_reply_to_tweet_id: replyToId } });
+    const tweet  = await client.v2.tweet({ text, reply: { in_reply_to_tweet_id: replyToId } });
     return tweet.data.id;
   } catch (apiErr) {
     logger.warn(MODULE, `twitter-api-v2 reply failed (${apiErr.message}), skipping reply`);

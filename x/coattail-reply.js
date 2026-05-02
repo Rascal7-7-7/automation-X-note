@@ -134,6 +134,8 @@ async function fetchRecentTweets(page, handle, maxTweets = 1) {
 
 // ── リプライ文生成 ────────────────────────────────────────────────
 
+const REFUSAL_PATTERNS = ['申し訳', 'お断り', 'リプライ作成はお断', 'わかりました。パターン', '**生成リプラ', '生成リプライ'];
+
 async function generateReply(tweet) {
   const patterns = ['A（同意型）', 'B（補足型）', 'C（質問型）'];
   const pattern  = patterns[Math.floor(Math.random() * patterns.length)];
@@ -146,7 +148,11 @@ async function generateReply(tweet) {
     model:     'claude-haiku-4-5-20251001',
     maxTokens: 200,
   });
-  return raw.trim().slice(0, 100);
+  const text = raw.trim().slice(0, 100);
+  if (REFUSAL_PATTERNS.some(p => text.includes(p))) {
+    throw new Error('claude refused to generate reply');
+  }
+  return text;
 }
 
 // ── xurl / twitter-api-v2 でリプライ投稿 ─────────────────────────
@@ -186,7 +192,7 @@ async function postCoattailReply(tweetId, text) {
     accessToken:  process.env.X_ACCESS_TOKEN,
     accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
   });
-  const res = await client.v2.tweet(text, { reply: { in_reply_to_tweet_id: tweetId } });
+  const res = await client.v2.tweet({ text, reply: { in_reply_to_tweet_id: tweetId } });
   return res.data.id;
 }
 
