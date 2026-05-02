@@ -11,7 +11,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LIMIT_FILE = path.join(__dirname, '../../logs/daily-limit.json');
 
-const MAX_PER_DAY = 5;
+const MAX_PER_DAY = 8;
 
 function loadState() {
   try {

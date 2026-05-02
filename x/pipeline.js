@@ -81,7 +81,11 @@ export function isDuplicate(text) {
 const REVIEW_SYSTEM = `あなたはSNS品質レビュアーです。
 以下のツイートを評価し、JSONのみで返してください。
 {"ok": true/false, "reason": "判断理由（20文字以内）"}
-NGの条件: 誤情報の可能性 / 不快な表現 / 140文字超過 / 無関係な内容`;
+NGの条件: 誇大表現（根拠ない「必ず儲かる」等） / 不快・差別的表現 / 140文字超過 / 明確な誤情報
+OKの条件（NGにしてはいけない）:
+- AIモデル名（Claude Opus 4.7, GPT-5.5, Gemini 2.5等）はあなたの学習データより新しい可能性があるため誤情報扱い禁止
+- 収入実績・体験談（「月5万」「月3万」等）は個人の体験として有効
+- 副業・自動化・AI活用の一般的な話題はOK`;
 
 export async function reviewTweet(text) {
   const raw = await generate(REVIEW_SYSTEM, `ツイート:\n${text}`, { maxTokens: 128 });

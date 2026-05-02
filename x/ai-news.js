@@ -15,6 +15,7 @@ import https from 'https';
 import http from 'http';
 import { generate } from '../shared/claude-client.js';
 import { postTweet, replyToTweet } from './post.js';
+import { canPost } from '../shared/daily-limit.js';
 import { appendFileSync, existsSync, readFileSync, readdirSync, mkdirSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -365,6 +366,11 @@ async function run({ dryRun, maxCount }) {
       console.log('[DRY RUN] スキップ');
       if (i < targets.length - 1) await new Promise(r => setTimeout(r, 1_000));
       continue;
+    }
+
+    if (!canPost()) {
+      console.log('[LIMIT] 日次上限到達。ai-news 投稿スキップ');
+      break;
     }
 
     try {
