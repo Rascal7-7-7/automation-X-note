@@ -13,8 +13,6 @@
  *     ↓
  *   validateTweet（ルールベース）
  *     ↓
- *   reviewTweet（AI、prodのみ）
- *     ↓
  *   postTweet（本文のみ）
  *     ↓
  *   postReply("▼ 記事はこちら\n{noteUrl}", tweetId)
@@ -28,7 +26,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
-import { validateTweet, reviewTweet, postTweet, postReply } from './pipeline.js';
+import { validateTweet, postTweet, postReply } from './pipeline.js';
 import { logXPost } from '../analytics/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -177,12 +175,6 @@ export async function runNotePromo(opts = {}) {
       console.log('\n--- DEV MODE: PROMO TWEET (not posted) ---');
       console.log(tweetText);
       console.log('-------------------------------------------\n');
-      return;
-    }
-
-    const review = await reviewTweet(tweetText);
-    if (!review.ok) {
-      logger.warn(MODULE, `review NG: ${review.reason}`);
       return;
     }
 
