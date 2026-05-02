@@ -3,16 +3,14 @@
  *
  * フロー:
  *   1. drafts/ から imagePath 未設定の最古ドラフトを取得
- *   2. Claude Haiku でDALL-E向け画像プロンプトを生成
- *   3. DALL-E 3 で 1792×1024（16:9）画像を生成
+ *   2. Claude Haiku で Imagen 4 最適化プロンプトを生成
+ *   3. Gemini Imagen 4 で 16:9 画像を生成
  *   4. note/drafts/images/ に PNG 保存
  *   5. ドラフト JSON に imagePath を追記
  *
- * 依存: ANTHROPIC_API_KEY, OPENAI_API_KEY
+ * 依存: ANTHROPIC_API_KEY, GEMINI_API_KEY
  */
 import 'dotenv/config';
-import OpenAI from 'openai';
-import https from 'https';
 import fs from 'fs';
 import { saveJSON } from '../shared/file-utils.js';
 import path from 'path';
@@ -23,75 +21,66 @@ import { logger } from '../shared/logger.js';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'note:image';
 
-const DRAFTS_DIR  = path.join(__dirname, 'drafts');
-const IMAGES_DIR  = path.join(__dirname, 'drafts/images');
+const DRAFTS_DIR = path.join(__dirname, 'drafts');
+const IMAGES_DIR = path.join(__dirname, 'drafts/images');
 
 if (!fs.existsSync(IMAGES_DIR)) {
   fs.mkdirSync(IMAGES_DIR, { recursive: true });
 }
 
-// OPENAI_API_KEY が未設定でも起動できるよう遅延初期化
-let openai = null;
-function getOpenAI() {
-  if (!openai) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error('OPENAI_API_KEY is not set — note image generation unavailable');
-    }
-    openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-  }
-  return openai;
-}
+// ── Imagen 4 最適化プロンプト生成 ────────────────────────────────────
+const PROMPT_SYSTEM = `You are an expert Imagen 4 prompt engineer specializing in Japanese blog header images (16:9 aspect ratio).
 
-// ── プロンプト生成 ────────────────────────────────────────────────────
-const PROMPT_SYSTEM = `You are an expert at writing DALL-E 3 image generation prompts.
-Given a Japanese article title and summary, create an image prompt in English for a professional tech blog header.
+Given a blog article title and topic, generate ONE Imagen 4 image prompt following this exact structure:
+[Subject/scene] + [background/environment] + [Japanese aesthetic style] + [lighting descriptor] + [composition term] + [quality modifiers]
 
 Rules:
-- Style: clean, minimalist, flat illustration
-- Colors: calm, professional (blue/teal/white palette preferred)
-- NO text, NO letters, NO characters in the image
-- Convey the concept of AI, productivity, or digital work
-- Size optimized for 16:9 header image
-- Output the prompt only (one sentence, under 200 characters)`;
+- Keep prompt under 180 characters
+- Start with "A photo of" or "A cinematic scene of" for photorealism
+- Always include ONE lighting term: golden hour / soft diffused light / cool blue morning light / warm studio light
+- Always include ONE composition term: rule of thirds / centered symmetry / wide establishing shot
+- Always include style anchors: wabi-sabi minimalism OR Japanese editorial OR clean modern flat
+- Add: highly detailed, sharp focus, 16:9 composition
+- NO people unless explicitly requested — objects and environments only
+- NO text in the image
+
+Output format: Just the prompt, no explanation.`;
 
 async function buildImagePrompt(title, summary) {
   const prompt = await generate(
     PROMPT_SYSTEM,
     `Title: ${title}\nSummary: ${summary}`,
-    { maxTokens: 200 },
+    { maxTokens: 200, model: 'claude-haiku-4-5-20251001' },
   );
   return prompt.trim();
 }
 
-// ── DALL-E 3 生成 ─────────────────────────────────────────────────────
+// ── Gemini Imagen 4 生成 ──────────────────────────────────────────────
 async function generateImage(imagePrompt) {
-  logger.info(MODULE, 'calling DALL-E 3', { prompt: imagePrompt });
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY is not set — note image generation unavailable');
 
-  const response = await getOpenAI().images.generate({
-    model: 'dall-e-3',
-    prompt: imagePrompt,
-    n: 1,
-    size: '1792x1024',    // note.com ヘッダー推奨比率（16:9）
-    quality: 'standard',
-    response_format: 'url',
-  });
+  logger.info(MODULE, 'calling Gemini Imagen 4', { prompt: imagePrompt });
 
-  return response.data[0].url;
-}
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt: imagePrompt }],
+        parameters: { sampleCount: 1, aspectRatio: '16:9' },
+      }),
+    }
+  );
 
-// ── 画像ダウンロード ───────────────────────────────────────────────────
-function downloadImage(url, destPath) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(destPath);
-    https.get(url, (res) => {
-      if (res.statusCode !== 200) {
-        reject(new Error(`download failed: HTTP ${res.statusCode}`));
-        return;
-      }
-      res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(); });
-    }).on('error', reject);
-  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Imagen 4 error: ${data.error?.message ?? JSON.stringify(data)}`);
+
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('Imagen 4: no image data in response');
+
+  return b64; // base64
 }
 
 // ── ドラフト操作 ───────────────────────────────────────────────────────
@@ -130,12 +119,12 @@ export async function runImage() {
     const imagePrompt = await buildImagePrompt(draft.title, draft.summary);
     logger.info(MODULE, 'image prompt built', { imagePrompt });
 
-    const imageUrl = await generateImage(imagePrompt);
-    logger.info(MODULE, 'DALL-E 3 returned URL');
+    const b64 = await generateImage(imagePrompt);
+    logger.info(MODULE, 'Imagen 4 returned image');
 
     const filename = `${Date.now()}.png`;
     const imagePath = path.join(IMAGES_DIR, filename);
-    await downloadImage(imageUrl, imagePath);
+    fs.writeFileSync(imagePath, Buffer.from(b64, 'base64'));
     logger.info(MODULE, `image saved: ${imagePath}`);
 
     attachImageToDraft(file.filePath, imagePath, imagePrompt);

@@ -8,9 +8,7 @@
 import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
-import https from 'https';
 import { fileURLToPath } from 'url';
-import OpenAI from 'openai';
 import { generate } from '../shared/claude-client.js';
 import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { FileQueue } from '../shared/queue.js';
@@ -162,23 +160,43 @@ const PAID_ARTICLE_SYSTEM = `あなたは収益化を目的としたnoteライ�
 
 // ── 画像生成 ─────────────────────────────────────────────────────
 
-function downloadToFile(url, dest) {
-  return new Promise((resolve, reject) => {
-    const file = fs.createWriteStream(dest);
-    https.get(url, res => {
-      res.pipe(file);
-      file.on('finish', () => { file.close(); resolve(dest); });
-    }).on('error', err => { fs.unlink(dest, () => {}); reject(err); });
-  });
+// ── Gemini Imagen 4 共通ヘルパー ─────────────────────────────────────
+async function generateImageBase64(prompt, aspectRatio = '16:9') {
+  const key = process.env.GEMINI_API_KEY;
+  if (!key) throw new Error('GEMINI_API_KEY is not set');
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${key}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        instances: [{ prompt }],
+        parameters: { sampleCount: 1, aspectRatio },
+      }),
+    }
+  );
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Imagen 4: ${data.error?.message ?? JSON.stringify(data)}`);
+  const b64 = data.predictions?.[0]?.bytesBase64Encoded;
+  if (!b64) throw new Error('Imagen 4: no image data in response');
+  return b64;
 }
 
-async function generateNoteImages(title, theme) {
-  if (!process.env.OPENAI_API_KEY) return { headerImage: null, sectionImages: [] };
+const HEADER_PROMPT_SYSTEM = `You are an expert Imagen 4 prompt engineer for Japanese blog headers (16:9).
+Structure: [Subject/scene] + [environment] + [Japanese aesthetic] + [lighting] + [composition] + [quality]
+Rules: under 180 chars, start with "A photo of" or "A cinematic scene of", include one lighting term (golden hour/soft diffused light/cool morning light), one composition term (rule of thirds/centered symmetry), style: wabi-sabi minimalism OR Japanese editorial OR clean modern flat, add: highly detailed sharp focus 16:9. NO people, NO text.
+Output: prompt only.`;
 
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const SECTION_PROMPT_SYSTEM = `You are an expert Imagen 4 prompt engineer for Japanese blog body images.
+Structure: [Subject] + [clean background] + [infographic/diagram style] + [lighting] + [quality]
+Rules: under 180 chars, start with "A photo of" or "A flat design illustration of", light neutral background, professional minimalist, NO faces NO text. Add: highly detailed, sharp focus.
+Output: prompt only.`;
+
+async function generateNoteImages(title, theme) {
+  if (!process.env.GEMINI_API_KEY) return { headerImage: null, sectionImages: [] };
 
   const imgPromptRaw = await generate(
-    'Generate a concise DALL-E 3 prompt in English for a note.com blog header image (16:9). Warm, professional, inviting style — soft gradients, light beige/cream tones with deep teal or indigo accents. Minimalist illustration style. No text, no people, no faces. Convey the theme through abstract shapes, icons, or scenes.',
+    HEADER_PROMPT_SYSTEM,
     `Article title (Japanese): ${title}\nTheme: ${theme}`,
     { maxTokens: 150 },
   );
@@ -189,16 +207,9 @@ async function generateNoteImages(title, theme) {
   const results = { headerImage: null, sectionImages: [] };
 
   try {
-    const headerRes = await openai.images.generate({
-      model: 'dall-e-3',
-      prompt: imgPromptRaw.trim(),
-      n: 1,
-      size: '1792x1024',
-      quality: 'standard',
-      response_format: 'url',
-    });
+    const b64 = await generateImageBase64(imgPromptRaw.trim(), '16:9');
     const headerPath = path.join(tmpDir, `header-${Date.now()}.png`);
-    await downloadToFile(headerRes.data[0].url, headerPath);
+    fs.writeFileSync(headerPath, Buffer.from(b64, 'base64'));
     results.headerImage = headerPath;
     logger.info(MODULE, `header image generated: ${headerPath}`);
   } catch (err) {
@@ -211,8 +222,7 @@ async function generateNoteImages(title, theme) {
 const SECTION_PLACEHOLDER_RE = />\s*📊\s*\[ここに画像:([^\]]+)\]/g;
 
 async function generateSectionImages(paidBody, title, ts) {
-  if (!process.env.OPENAI_API_KEY) return [];
-  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  if (!process.env.GEMINI_API_KEY) return [];
   const tmpDir = path.join(__dirname, `../.tmp-note-images/article/${ts}`);
   fs.mkdirSync(tmpDir, { recursive: true });
 
@@ -235,16 +245,12 @@ async function generateSectionImages(paidBody, title, ts) {
     }
     try {
       const promptRaw = await generate(
-        'Create a concise DALL-E 3 prompt (English, ≤200 chars) for a note.com article body image. ' +
-        'Style: professional infographic or diagram, light background, no faces, minimalist modern.',
-        `Article: ${title}\nImage: ${desc}`,
+        SECTION_PROMPT_SYSTEM,
+        `Article: ${title}\nImage description: ${desc}`,
         { maxTokens: 150 },
       );
-      const res = await openai.images.generate({
-        model: 'dall-e-3', prompt: promptRaw.trim(),
-        n: 1, size: '1792x1024', quality: 'hd', response_format: 'url',
-      });
-      await downloadToFile(res.data[0].url, outPath);
+      const b64 = await generateImageBase64(promptRaw.trim(), '16:9');
+      fs.writeFileSync(outPath, Buffer.from(b64, 'base64'));
       results.push({ placeholder: desc, imagePath: outPath });
       logger.info(MODULE, `section image [${i}] generated: ${outPath}`);
     } catch (err) {
