@@ -13,6 +13,7 @@ import { runReply }                    from '../x/reply.js';
 import { runQuoteRT }                  from '../x/quote-rt.js';
 import { runNotePromo }                from '../x/note-promo.js';
 import { runRepromo }                  from '../x/note-repromo.js';
+import { runRepublishEdits }           from '../note/republish-edits.js';
 import { runArticle }                  from '../x/article.js';
 import { runXArticle }                 from '../x/x-articles.js';
 import { runResearch as runNoteResearch } from '../note/research.js';
@@ -58,7 +59,8 @@ const HANDLERS = {
   'x:reply':        (task) => runReply(task?.keywords ?? ['AI活用', 'Claude Code']),
   'x:quote-rt':     (task) => runQuoteRT(task?.keywords ?? ['AI活用', 'Claude Code']),
   'x:note-promo':   ()     => runNotePromo({ mode: MODE }),
-  'note:repromo':   ()     => runRepromo({ mode: MODE }),
+  'note:repromo':          ()     => runRepromo({ mode: MODE }),
+  'note:republish-edits':  ()     => runRepublishEdits(),
   'x:article':      ()     => runArticle(),
   'x:x-article':   ()     => runXArticle(),
   'note:research':  (task) => runNoteResearch(task.account ?? 1),
@@ -115,6 +117,11 @@ const HANDLERS = {
   'x:post-self-reply':        () => runPendingSelfReplies(),
   'x:coattail-reply':         () => runCoattailReply(),
   'anthropic:check-credits': () => runCheckCredits(),
+  'x:midday': async () => {
+    // 昼ピーク枠: AI tips/数値実績ツイート（x:ai-newsと同ロジック・別トピック）
+    await runAINews();
+  },
+
   'x:ai-news':                       async () => {
     await runAINews();
     // runQuoteRT は Brave CDP が必要 — 未起動時は警告のみ（AI news 投稿失敗扱いにしない）
@@ -127,6 +134,11 @@ const HANDLERS = {
 
   'dashboard:push-to-neon': () => new Promise((resolve, reject) => {
     const proc = spawn('node', ['/Users/Rascal/work/automation/dashboard-v2/scripts/push-to-neon.mjs'], { stdio: 'inherit' });
+    proc.on('close', code => code === 0 ? resolve() : reject(new Error(`exit ${code}`)));
+  }),
+
+  'monitoring:health-check': () => new Promise((resolve, reject) => {
+    const proc = spawn('node', ['/Users/Rascal/work/automation/monitoring/health-check.js'], { stdio: 'inherit' });
     proc.on('close', code => code === 0 ? resolve() : reject(new Error(`exit ${code}`)));
   }),
 };

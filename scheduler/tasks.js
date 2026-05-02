@@ -75,6 +75,7 @@ export const TASKS = [
   // ── note X再告知（7日・30日後 角度変えて再プロモ） ──────────────
   { name: 'note:repromo', slot: 'wed', cron: '0 20 * * 3' },        // 水 20:00 — 7日/30日経過記事を再告知
   { name: 'note:repromo', slot: 'sat', cron: '0 20 * * 6' },        // 土 20:00 — 週2回再プロモ化（水+土）
+  { name: 'note:republish-edits',      cron: '0 21 * * 0' },        // 日 21:00 — 「編集中」記事の一括再公開
 
   // ── Ghost 英語ブログ — 停止中（2026-04-27 トラクションなし・有料プラン前に一時停止）──
   // { name: 'ghost:research', cron: '0 6 * * *' },

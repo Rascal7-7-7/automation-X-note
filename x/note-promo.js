@@ -44,27 +44,50 @@ const ACCOUNT_META = {
 
 function buildPromoSystem(accountId = 1) {
   const meta = ACCOUNT_META[accountId] ?? ACCOUNT_META[1];
-  const labelRule = meta.label
-    ? `- ツイート冒頭に必ず「${meta.label}」を付ける`
-    : '';
+  const labelRule = meta.label ? `- ツイート冒頭に必ず「${meta.label}」を付ける` : '';
   const financialRule = meta.financialWarning
-    ? `- 「必ず儲かる」「高収益保証」「確実に稼げる」等の表現は絶対禁止（X金融コンテンツ規制）
-- リスクを示唆する表現を1つ含める（「リスク管理も解説」「失敗事例も公開」等）`
+    ? `- 「必ず儲かる」「高収益保証」「確実に稼げる」等の表現は絶対禁止\n- リスクを示唆する表現を1つ含める`
     : '';
 
   return `あなたは${meta.persona}です。
-note記事の情報からX告知ツイートを1件作成してください。
+note記事の情報からX告知ツイート（フックのみ）を1件作成してください。
 
-【重要】URLは本文に含めない（URLはリプライで別途投稿する）
+【重要】URLは含めない。目次も含めない。フックだけ。
 
 ルール:
 ${labelRule}
-- 120文字以内（日本語）
-- ティーザー形式：記事の価値・学べること・解決できる悩みを具体的に伝える
-- 読者が「続きが読みたい」と思わせる表現にする（「▼詳しくはリプライへ」で締める）
-- 宣伝くさい文体は禁止
-- ハッシュタグは関連性があれば4個まで・末尾のみ
+- 100文字以内（日本語）
+- 冒頭1行で読者の悩みを刺す（数字・意外性・ターゲット刺しのいずれか）
+- 2行目: 記事で解決できることを1文で
+- 末尾: 「目次はリプライで↓」で締める
+- 宣伝臭ゼロ・ハッシュタグなし（リプライ側で付ける）
 ${financialRule}`;
+}
+
+// ── paidBodyから見出し抽出 ──────────────────────────────────────────
+function extractPaidHeadings(draft) {
+  const src = draft.paidBody || draft.body || '';
+  return src.split('\n')
+    .filter(l => /^#{1,3}\s/.test(l.trim()))
+    .map(l => l.replace(/^#+\s*/, '').trim())
+    .filter(h => h.length > 0 && h.length < 40)
+    .slice(0, 5);
+}
+
+// ── 目次リプライ本文を構築 ──────────────────────────────────────────
+function buildContentsReply(draft) {
+  const price = draft.price ? `¥${draft.price}` : '無料';
+  const headings = extractPaidHeadings(draft);
+  const isPaid = draft.price && parseInt(draft.price) > 0;
+
+  if (isPaid && headings.length > 0) {
+    const list = headings.map(h => `✅ ${h}`).join('\n');
+    return `このnote（${price}）の中身を全部見せます\n\n${list}\n\n全部読める→リプライのURLから`;
+  }
+
+  // 無料記事 or 見出し取れない場合: summaryから価値訴求
+  const summary = (draft.summary || '').slice(0, 100);
+  return `この記事で得られること\n\n${summary}\n\n全文無料→リプライのURLから`;
 }
 
 // ── ドラフト操作 ─────────────────────────────────────────────────────
@@ -166,9 +189,16 @@ export async function runNotePromo(opts = {}) {
     const tweetId = await postTweet(tweetText);
     logger.info(MODULE, `promo posted: ${tweetId}`);
 
-    const replyText = `▼ 記事はこちら\n${draft.noteUrl}`;
-    const replyId = await postReply(replyText, tweetId);
-    logger.info(MODULE, `url reply posted: ${replyId}`);
+    // Reply 1: 目次/contents reveal
+    const contentsReply = buildContentsReply(draft);
+    const reply1Id = await postReply(contentsReply, tweetId);
+    logger.info(MODULE, `contents reply posted: ${reply1Id}`);
+
+    // Reply 2: URL (chained to reply1 to form thread)
+    const isPaid = draft.price && parseInt(draft.price) > 0;
+    const urlReplyText = `▼ ${isPaid ? '購入' : '全文'}はこちら\n${draft.noteUrl}`;
+    const reply2Id = await postReply(urlReplyText, reply1Id);
+    logger.info(MODULE, `url reply posted: ${reply2Id}`);
 
     markPromoPosted(file.filePath);
 

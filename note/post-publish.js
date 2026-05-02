@@ -1,6 +1,6 @@
 /**
  * note 投稿 — 公開・いいね処理
- * publishNote, selfLikeNote, crossLikeNote and helpers.
+ * publishNote, republishNote, selfLikeNote, crossLikeNote and helpers.
  */
 import 'dotenv/config';
 import { launchBrowser } from '../shared/browser-launch.js';
@@ -286,4 +286,30 @@ export async function publishNote(page, draft, username = 'rascal_ai_devops') {
   }
   logger.info(MODULE, `final URL: ${finalUrl}`);
   return finalUrl;
+}
+
+/**
+ * 公開済み記事の編集差分を再公開する（「更新する」ボタンを押すだけ）
+ * 既にエディタページを開いた状態で呼ぶ。
+ */
+export async function republishNote(page) {
+  await tryClick(page, [
+    'button:has-text("公開に進む")',
+    'button:has-text("公開する")',
+    'button:has-text("公開")',
+  ], { label: 'republish-open-modal', force: true });
+
+  await page.waitForSelector(
+    'button:has-text("更新する"), button:has-text("投稿する")',
+    { timeout: 12_000 }
+  ).catch(() => {});
+  await page.waitForTimeout(500);
+
+  await tryClick(page, [
+    'button:has-text("更新する")',
+    'button:has-text("投稿する")',
+  ], { label: 'republish-confirm' });
+
+  await page.waitForTimeout(2_000);
+  logger.info(MODULE, `republished: ${page.url()}`);
 }
