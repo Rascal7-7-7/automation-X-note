@@ -306,15 +306,15 @@ export async function processQueue(opts = {}) {
       return;
     }
 
-    if (!canPost()) {
-      logger.warn(MODULE, 'daily limit reached (max 5/day)');
-      return;
-    }
-
     const review = await reviewTweet(tweetText);
     if (!review.ok) {
       logger.warn(MODULE, `review NG: ${review.reason}`, { text: tweetText });
       throw new Error(`review NG: ${review.reason}`);
+    }
+
+    if (!canPost()) {
+      logger.warn(MODULE, 'daily limit reached (max 8/day)');
+      return;
     }
 
     const tweetId = await postTweet(tweetText);
