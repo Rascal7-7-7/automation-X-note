@@ -99,49 +99,22 @@ async function deletePlaceholdersFromEditor(page, noteId) {
 
   // 全ての要素を対象に📊を含むものを削除（複数回ループ、削除で再レンダリングされるため）
   for (let attempt = 0; attempt < 10; attempt++) {
-    const found = await page.evaluate(() => {
-      const editor = document.querySelector('div.ProseMirror[role="textbox"]');
-      if (!editor) return false;
-      const all = Array.from(editor.querySelectorAll('blockquote, p, div'));
-      const target = all.find(el => el.textContent?.includes('📊') || el.textContent?.includes('[ここに画像:'));
-      if (!target) return false;
-      // セレクタで特定できる情報を返す
-      return {
-        tag: target.tagName.toLowerCase(),
-        text: target.textContent?.slice(0, 60),
-      };
-    });
+    // Use Playwright filter to find the most specific element containing the placeholder
+    const targetEl = editor.locator('blockquote, p').filter({ hasText: '[ここに画像:' }).first();
+    const count = await targetEl.count();
+    if (count === 0) break;
 
-    if (!found) break;
-
-    logger.info(MODULE, `[${noteId}] deleting: ${found.text}`);
-
-    // Playwright で対象要素を特定して削除
-    let targetEl = null;
-    const bqs = editor.locator('blockquote');
-    const bqCount = await bqs.count();
-    for (let i = 0; i < bqCount; i++) {
-      const txt = await bqs.nth(i).textContent().catch(() => '');
-      if (txt.includes('📊') || txt.includes('[ここに画像:')) { targetEl = bqs.nth(i); break; }
-    }
-    if (!targetEl) {
-      const paras = editor.locator('p');
-      const pCount = await paras.count();
-      for (let i = 0; i < Math.min(pCount, 200); i++) {
-        const txt = await paras.nth(i).textContent().catch(() => '');
-        if (txt.includes('📊') || txt.includes('[ここに画像:')) { targetEl = paras.nth(i); break; }
-      }
-    }
-    if (!targetEl) break;
+    const txt = await targetEl.textContent().catch(() => '');
+    logger.info(MODULE, `[${noteId}] deleting: ${txt.slice(0, 60)}`);
 
     await targetEl.scrollIntoViewIfNeeded();
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(300);
     await targetEl.click();
     await page.waitForTimeout(100);
     await targetEl.click({ clickCount: 3 });
     await page.waitForTimeout(100);
     await page.keyboard.press('Backspace');
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(600);
     deletedCount++;
   }
 
@@ -170,6 +143,23 @@ async function processArticle({ draft, accountId, noteId, editorUrl, manuals }) 
       await page.keyboard.press(IS_MAC ? 'Meta+s' : 'Control+s');
       await page.waitForTimeout(2_500);
       await takeDebugScreenshot(page, `delete-ph-${noteId}-saved`);
+
+      // 公開記事の場合: /publish/ → 更新する で reader 向けにも反映
+      const publishUrl = page.url().replace(/\/edit\/?$/, '/publish/');
+      logger.info(MODULE, `navigating to publish page: ${publishUrl}`);
+      await page.goto(publishUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      await page.waitForTimeout(2_000);
+      await takeDebugScreenshot(page, `delete-ph-${noteId}-publish-page`);
+
+      const updateBtn = page.locator('button:has-text("更新する"), button:has-text("投稿する")').first();
+      if (await updateBtn.count() > 0) {
+        await updateBtn.click();
+        await page.waitForTimeout(3_000);
+        await takeDebugScreenshot(page, `delete-ph-${noteId}-updated`);
+        logger.info(MODULE, `published update: ${noteId}`);
+      } else {
+        logger.warn(MODULE, `update button not found for ${noteId} — changes saved as draft only`);
+      }
     }
     return deleted;
   } finally {

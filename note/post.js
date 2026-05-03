@@ -227,7 +227,7 @@ export async function runPost(accountIdOrOpts = {}) {
     // 本文先頭の H1 タイトル行を除去（タイトルは別フィールドに入力済み）
     const rawBody  = draft.paidBody
       ? (draft.freeBody ?? '') + '\n\n' + (draft.paidBody ?? '')
-      : (draft.body ?? '');
+      : (draft.body || draft.freeBody || '');
     const bodyText = rawBody.replace(/^#\s+.+\n+/, '').trimStart();
 
     await editor.click();

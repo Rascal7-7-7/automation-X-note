@@ -5,12 +5,29 @@
  * - 無料APIでは impressions / clicks は取得不可のため null で記録
  */
 import 'dotenv/config';
+import fs from 'fs';
+import path from 'path';
 import { TwitterApi } from 'twitter-api-v2';
 import { readLog, logPerformance } from './logger.js';
 import { logger } from '../shared/logger.js';
 import { fileURLToPath } from 'url';
 
 const MODULE = 'analytics:collect-x';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function readPostedThreadIds() {
+  const postedPath = path.join(__dirname, '../x/queue/posted.jsonl');
+  if (!fs.existsSync(postedPath)) return [];
+  return fs.readFileSync(postedPath, 'utf-8')
+    .split('\n')
+    .filter(Boolean)
+    .flatMap(line => {
+      try {
+        const r = JSON.parse(line);
+        return Array.isArray(r.tweetIds) ? r.tweetIds : [];
+      } catch { return []; }
+    });
+}
 
 export async function collectXMetrics() {
   if (!process.env.X_BEARER_TOKEN) {
@@ -21,14 +38,20 @@ export async function collectXMetrics() {
   const posts = readLog('x-posts.jsonl')
     .filter(p => p.status === 'posted' && p.tweetId);
 
-  if (posts.length === 0) {
+  // x:article スレッドのIDも収集（x/queue/posted.jsonl から）
+  const threadIds = readPostedThreadIds();
+  const allIds = [...new Set([
+    ...posts.map(p => p.tweetId),
+    ...threadIds,
+  ])];
+
+  if (allIds.length === 0) {
     logger.info(MODULE, 'no posts to collect metrics for');
     return;
   }
 
   // 直近30件のみ（API節約）
-  const targets = posts.slice(-30);
-  const ids = targets.map(p => p.tweetId);
+  const ids = allIds.slice(-30);
 
   logger.info(MODULE, `fetching metrics for ${ids.length} tweets`);
 
