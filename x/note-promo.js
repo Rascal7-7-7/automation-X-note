@@ -27,6 +27,7 @@ import { fileURLToPath } from 'url';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { validateTweet, postTweet, postReply } from './pipeline.js';
+import { appendPromoLog } from './promo-log.js';
 import { logXPost } from '../analytics/logger.js';
 import { canPost } from '../shared/daily-limit.js';
 
@@ -196,6 +197,19 @@ export async function runNotePromo(opts = {}) {
     const urlReplyText = `▼ ${isPaid ? '購入' : '全文'}はこちら\n${draft.noteUrl}`;
     const reply2Id = await postReply(urlReplyText, reply1Id);
     logger.info(MODULE, `url reply posted: ${reply2Id}`);
+
+    // repromo ログを先に書く — 失敗時に draft が未封印のまま残りリトライ可能
+    try {
+      appendPromoLog({
+        tweetId,
+        noteUrl:  draft.noteUrl,
+        title:    draft.title,
+        account:  draft.account ?? 1,
+        postedAt: new Date().toISOString(),
+      });
+    } catch (logErr) {
+      logger.error(MODULE, `appendPromoLog failed: ${logErr.message} — repromo-rt will not fire for this article`);
+    }
 
     markPromoPosted(file.filePath);
 

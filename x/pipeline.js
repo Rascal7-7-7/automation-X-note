@@ -268,6 +268,18 @@ export async function postReply(text, replyToId) {
   }
 }
 
+// xurl に quote サブコマンドなし — twitter-api-v2 のみ
+export async function postQuoteTweet(text, quoteTweetId) {
+  try {
+    const client = await makeTwitterClient();
+    const tweet  = await client.v2.tweet({ text, quote_tweet_id: quoteTweetId });
+    return tweet.data.id;
+  } catch (apiErr) {
+    logger.warn(MODULE, `postQuoteTweet failed (${apiErr.message})`);
+    throw apiErr;
+  }
+}
+
 // ── 公開 API ────────────────────────────────────────────────────────
 
 /** Step1: リサーチしてキューに積む */

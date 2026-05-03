@@ -72,6 +72,9 @@ export const TASKS = [
   { name: 'x:note-promo', slot: 'acct3',      cron: '15 19 * * *' }, // 毎日 19:15 — 投稿直後X告知
 
   // 合計: 7+7+7 = 21本/週 ≈ 3本/日（Ghost解放リソース転用）
+  // ── note 3日後引用RT リプロモ（毎日 11:30） ─────────────────────
+  { name: 'x:note-repromo-rt', cron: '30 11 * * *' },          // 毎日 11:30 JST — 3日経過promo → 別角度引用RT
+
   // ── note X再告知（7日・30日後 角度変えて再プロモ） ──────────────
   { name: 'note:repromo', slot: 'wed', cron: '0 20 * * 3' },        // 水 20:00 — 7日/30日経過記事を再告知
   { name: 'note:repromo', slot: 'sat', cron: '0 20 * * 6' },        // 土 20:00 — 週2回再プロモ化（水+土）

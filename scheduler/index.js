@@ -23,6 +23,7 @@ import { runPost as runNotePost }      from '../note/post.js';
 import { collectXMetrics }             from '../analytics/collect-x.js';
 import { collectNoteStats }           from '../analytics/collect-note.js';
 import { runCrossLike }               from '../note/cross-like.js';
+import { runRepromoRT }               from '../x/note-repromo-rt.js';
 import { runBuzzAnalysis }             from '../analytics/buzz-analyzer.js';
 import { runGenerate as runInstaGenerate } from '../instagram/generate.js';
 import { runImage  as runInstaImage }   from '../instagram/image.js';
@@ -62,6 +63,7 @@ const HANDLERS = {
   'x:quote-rt':     (task) => runQuoteRT(task?.keywords ?? ['AI活用', 'Claude Code']),
   'x:note-promo':   ()     => runNotePromo({ mode: MODE }),
   'note:repromo':          ()     => runRepromo({ mode: MODE }),
+  'x:note-repromo-rt':     ()     => runRepromoRT({ mode: MODE }),
   'note:republish-edits':  ()     => runRepublishEdits(),
   'x:article':      ()     => runArticle(),
   'x:x-article':   ()     => runXArticle(),
