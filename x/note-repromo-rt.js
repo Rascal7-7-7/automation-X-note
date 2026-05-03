@@ -75,6 +75,9 @@ export async function runRepromoRT(opts = {}) {
   for (const entry of targets) {
     logger.info(MODULE, `processing: "${entry.title}" (tweetId=${entry.tweetId})`);
 
+    let slotConsumed = false;
+    let newTweetId;
+
     try {
       const text = await generateRepromoText(entry);
 
@@ -91,17 +94,33 @@ export async function runRepromoRT(opts = {}) {
         logger.warn(MODULE, 'daily limit reached — stopping');
         break;
       }
+      slotConsumed = true;
 
-      const newTweetId = await postQuoteTweet(text, entry.tweetId);
-      logger.info(MODULE, `quote-rt posted: ${newTweetId} (quoting ${entry.tweetId})`);
-
-      updatePromoLogEntry(entry.tweetId, {
-        repromoDone:      true,
-        repromoPostedAt:  new Date().toISOString(),
-        repromoTweetId:   newTweetId,
-      });
+      newTweetId = await postQuoteTweet(text, entry.tweetId);
     } catch (err) {
-      logger.error(MODULE, `failed for tweetId=${entry.tweetId}: ${err.message}`);
+      // HIGH 1: slot consumed by canPost() but post failed — log explicitly
+      const prefix = slotConsumed ? 'post failed (slot consumed, entry NOT marked done)' : 'generation failed';
+      logger.error(MODULE, `${prefix} for tweetId=${entry.tweetId}: ${err.message}`);
+      // HIGH 3: abort loop on auth errors to prevent draining daily budget
+      if (/401|403|auth|credentials/i.test(err.message)) {
+        logger.error(MODULE, 'auth error detected — aborting repromo-rt loop');
+        break;
+      }
+      continue;
+    }
+
+    logger.info(MODULE, `quote-rt posted: ${newTweetId} (quoting ${entry.tweetId})`);
+
+    // HIGH 2: isolated catch — escalate on failure to prevent silent duplicate post on next run
+    try {
+      updatePromoLogEntry(entry.tweetId, {
+        repromoDone:     true,
+        repromoPostedAt: new Date().toISOString(),
+        repromoTweetId:  newTweetId,
+      });
+    } catch (logErr) {
+      logger.error(MODULE, `CRITICAL: log update failed after successful post ${newTweetId} for tweetId=${entry.tweetId}: ${logErr.message} — manual fix required to prevent duplicate`);
+      throw logErr;
     }
   }
 }
