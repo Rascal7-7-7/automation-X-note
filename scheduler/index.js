@@ -22,6 +22,7 @@ import { runImage as runNoteImage }    from '../note/image.js';
 import { runPost as runNotePost }      from '../note/post.js';
 import { collectXMetrics }             from '../analytics/collect-x.js';
 import { collectNoteStats }           from '../analytics/collect-note.js';
+import { runCrossLike }               from '../note/cross-like.js';
 import { runBuzzAnalysis }             from '../analytics/buzz-analyzer.js';
 import { runGenerate as runInstaGenerate } from '../instagram/generate.js';
 import { runImage  as runInstaImage }   from '../instagram/image.js';
@@ -70,6 +71,7 @@ const HANDLERS = {
   'note:post':      (task) => runNotePost(task.account ?? 1),
   'x:collect':               ()     => collectXMetrics(),
   'note:collect':            ()     => collectNoteStats(),
+  'note:cross-like':         ()     => runCrossLike(),
   'analytics:buzz':          ()     => runBuzzAnalysis(),
   'instagram:generate:1':    (task) => runInstaGenerate({ account: task.account }),
   'instagram:generate:2':    (task) => runInstaGenerate({ account: task.account }),

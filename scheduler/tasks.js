@@ -126,6 +126,12 @@ export const TASKS = [
     cron: '0 9 * * *',             // 毎日 09:00 JST — PV・いいね集計 → note-summary.json
   },
 
+  // ── note クロスいいね（毎朝 収集後） ────────────────────────────
+  {
+    name: 'note:cross-like',
+    cron: '0 10 * * *',            // 毎日 10:00 JST — 3アカウント間で互いの記事にいいね
+  },
+
   // ── システム全体ヘルスチェック（15分ごと） ──────────────────────
   {
     name: 'monitoring:health-check',
