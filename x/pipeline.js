@@ -312,6 +312,11 @@ export async function processQueue(opts = {}) {
       return;
     }
 
+    if (!hasCapacity()) {
+      logger.warn(MODULE, 'daily limit reached (max 8/day)');
+      return;
+    }
+
     const review = await reviewTweet(tweetText);
     if (!review.ok) {
       logger.warn(MODULE, `review NG: ${review.reason}`, { text: tweetText });
@@ -319,7 +324,7 @@ export async function processQueue(opts = {}) {
     }
 
     if (!canPost()) {
-      logger.warn(MODULE, 'daily limit reached (max 8/day)');
+      logger.warn(MODULE, 'daily limit reached (max 8/day) — race on final slot');
       return;
     }
 

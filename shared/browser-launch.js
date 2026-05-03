@@ -64,7 +64,9 @@ export async function launchChromeProfileContext(profileDir) {
     '--disable-sync',
   ], { stdio: 'ignore' });
 
-  chrome.on('error', err => { throw err; });
+  chrome.on('exit', (code) => {
+    if (code !== 0 && code !== null) console.warn('[browser-launch] Chrome exited unexpectedly (code', code + ')');
+  });
 
   await waitForPort(port, 60_000);
 

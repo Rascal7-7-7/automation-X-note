@@ -3,11 +3,18 @@ import crypto from 'crypto';
 import { createSession } from '@/lib/session';
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
+const PRUNE_AT = 5_000;
 
 export async function POST(req: Request) {
   // rate limit: 5 attempts per IP per minute
   const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
   const now = Date.now();
+
+  // Lazy GC: purge expired entries when map grows large (prevents unbounded growth)
+  if (attempts.size > PRUNE_AT) {
+    for (const [k, v] of attempts) if (now > v.resetAt) attempts.delete(k);
+  }
+
   const rec = attempts.get(ip) ?? { count: 0, resetAt: now + 60_000 };
   if (now > rec.resetAt) { rec.count = 0; rec.resetAt = now + 60_000; }
   if (rec.count >= 5) {
