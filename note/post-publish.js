@@ -98,11 +98,13 @@ export async function publishNote(page, draft, username = 'rascal_ai_devops') {
   ];
   await tryClick(page, publishBtnSelectors, { label: 'step1-publish-btn', force: true });
 
-  // publish モーダルが表示されるまで待つ（URL は変わらない — SPA オーバーレイ）
+  // 公開に進む → /publish/ ページへ遷移（SPA ナビゲーション）
+  await page.waitForURL('**/publish/**', { timeout: 15_000 })
+    .catch(() => logger.warn(MODULE, 'waitForURL /publish/ timed out'));
   await page.waitForSelector(
     'button:has-text("投稿する"), button:has-text("有料エリア設定"), button:has-text("更新する")',
     { timeout: 15_000 }
-  ).catch(() => {});
+  ).catch(err => logger.warn(MODULE, `publish page load: ${err.message}`));
   await page.waitForTimeout(500);
   await takeDebugScreenshot(page, 'step2-modal-ready');
   logger.info(MODULE, `publish modal ready: ${page.url()}`);
@@ -216,17 +218,9 @@ export async function publishNote(page, draft, username = 'rascal_ai_devops') {
   }
 
   // Step 4: 最終投稿ボタン
+  // ハッシュタグ入力後 SPA が再レンダリングすることがあるので明示的に待つ
+  // 「投稿する」はヘッダー固定位置(右上)にあるためスクロール不要
   await page.waitForTimeout(1_000);
-  await page.evaluate(() => {
-    const els = Array.from(document.querySelectorAll('div, main, section'));
-    const scrollable = els
-      .filter(el => el.scrollHeight > el.clientHeight + 10)
-      .sort((a, b) => b.scrollHeight - a.scrollHeight);
-    if (scrollable[0]) scrollable[0].scrollTo(0, scrollable[0].scrollHeight);
-    else window.scrollTo(0, document.body.scrollHeight);
-  });
-  await page.waitForTimeout(800);
-  await takeDebugScreenshot(page, 'step4-before-confirm-btn');
 
   // 有料記事なら「有料エリア設定」、無料記事なら「投稿する」
   const confirmSelectors = draft.price
@@ -241,6 +235,11 @@ export async function publishNote(page, draft, username = 'rascal_ai_devops') {
         'button:has-text("今すぐ公開")',
         'button:has-text("noteに公開する")',
       ];
+
+  // SPA 再レンダリング後にボタンが再出現するまで待つ
+  await page.waitForSelector(confirmSelectors.join(', '), { timeout: 10_000 })
+    .catch(err => logger.warn(MODULE, `step4 confirm btn wait: ${err.message}`));
+  await takeDebugScreenshot(page, 'step4-before-confirm-btn');
 
   const confirmedSel = await tryClick(page, confirmSelectors, { label: 'step4-confirm-btn' });
 
