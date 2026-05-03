@@ -126,5 +126,8 @@ export async function runRepromoRT(opts = {}) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  runRepromoRT();
+  runRepromoRT().catch(err => {
+    logger.error(MODULE, err.message);
+    process.exit(1);
+  });
 }
