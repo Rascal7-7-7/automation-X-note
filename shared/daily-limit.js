@@ -28,9 +28,17 @@ function saveState(state) {
   saveJSON(LIMIT_FILE, state, { pretty: false });
 }
 
+/** カウントを変えずに空き枠があるか確認（キュー消費前チェック用）。 */
+export function hasCapacity(max = MAX_PER_DAY) {
+  const today = new Date().toDateString();
+  const state = loadState();
+  if (state.date !== today) return true;
+  return state.count < max;
+}
+
 /**
  * 投稿可否を判定し、可能なら count をインクリメントして true を返す。
- * @param {number} max 上限（デフォルト5）
+ * @param {number} max 上限（デフォルト MAX_PER_DAY）
  */
 export function canPost(max = MAX_PER_DAY) {
   const today = new Date().toDateString();

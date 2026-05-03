@@ -19,7 +19,7 @@ import { FileQueue, processWithRetry } from '../shared/queue.js';
 import { generate } from '../shared/claude-client.js';
 import { generateWithReview } from '../shared/multi-persona-reviewer.js';
 import { logger } from '../shared/logger.js';
-import { canPost } from '../shared/daily-limit.js';
+import { canPost, hasCapacity } from '../shared/daily-limit.js';
 import { logXPost } from '../analytics/logger.js';
 import { runResearch } from './research.js';
 
@@ -279,6 +279,12 @@ export async function enqueue(keywords) {
 /** Step2: キューから1件処理 */
 export async function processQueue(opts = {}) {
   const isDev = (opts.mode ?? process.env.MODE ?? 'dev') === 'dev';
+
+  // キューを消費する前に空き枠を確認（H4: 上限時にアイテムが消えるバグ防止）
+  if (!isDev && !hasCapacity()) {
+    logger.warn(MODULE, 'daily limit reached — skipping queue dequeue');
+    return null;
+  }
 
   const result = await processWithRetry(mainQ, retryQ, failedQ, async (item) => {
     const tweetText = await generateTweet(item);

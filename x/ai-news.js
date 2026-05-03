@@ -93,7 +93,7 @@ function loadNoteArticles() {
 function findRelevantNote(tweetText, articleTitle) {
   if (NOTE_ARTICLES.length === 0) return null;
   const text = `${tweetText} ${articleTitle}`.toLowerCase();
-  let best = NOTE_ARTICLES[0];
+  let best = null;
   let bestScore = 0;
   for (const note of NOTE_ARTICLES) {
     const titleWords = note.title.toLowerCase().split(/\s+/);
@@ -102,7 +102,7 @@ function findRelevantNote(tweetText, articleTitle) {
     const score = tagScore + titleScore;
     if (score > bestScore) { bestScore = score; best = note; }
   }
-  return best;
+  return bestScore > 0 ? best : null;
 }
 
 // ── RSS フェッチ・パース ─────────────────────────────────────────────

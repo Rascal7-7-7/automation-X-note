@@ -28,6 +28,7 @@ import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
 import { validateTweet, postTweet, postReply } from './pipeline.js';
 import { logXPost } from '../analytics/logger.js';
+import { canPost } from '../shared/daily-limit.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'x:note-promo';
@@ -178,6 +179,10 @@ export async function runNotePromo(opts = {}) {
       return;
     }
 
+    if (!canPost()) {
+      logger.warn(MODULE, 'daily limit reached — skipping note-promo');
+      return;
+    }
     const tweetId = await postTweet(tweetText);
     logger.info(MODULE, `promo posted: ${tweetId}`);
 

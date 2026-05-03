@@ -15,6 +15,7 @@ import { fileURLToPath } from 'url';
 import { getXBrowser } from './browser-client.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
+import { canPost } from '../shared/daily-limit.js';
 
 const __dirname   = path.dirname(fileURLToPath(import.meta.url));
 const TARGETS_FILE = path.join(__dirname, 'coattail-targets.json');
@@ -233,6 +234,10 @@ export async function runCoattailReply(opts = {}) {
         }
 
         try {
+          if (!canPost()) {
+            logger.warn(MODULE, 'daily limit reached — stopping coattail run');
+            return;
+          }
           const replyText = await generateReply(tweet);
           logger.info(MODULE, `posting reply to @${tweet.handle}/${tweet.tweetId}`, { replyText });
 
