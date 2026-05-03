@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sql } from '@/lib/db';
 import { checkAuth } from '@/lib/auth';
-
-const BRIDGE = process.env.BRIDGE_URL ?? 'http://localhost:3001';
+import { kvGet } from '@/lib/kv';
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const authErr = checkAuth(req);
@@ -36,13 +35,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   const path = endpoint[post.platform];
   if (!path) return NextResponse.json({ error: 'unsupported platform' }, { status: 400 });
 
+  const bridge = (await kvGet<string>('settings:bridge-url')) ?? process.env.BRIDGE_URL ?? 'http://localhost:3001';
+
   // optimistic lock: mark retrying before bridge call
   await sql`UPDATE posts SET status = 'retrying', updated_at = NOW() WHERE id = ${numId}`;
 
   try {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 10_000);
-    const r = await fetch(`${BRIDGE}${path}`, {
+    const r = await fetch(`${bridge}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ account: post.account, content: post.content, retryPostId: numId }),

@@ -94,7 +94,7 @@ export const TASKS = [
     cron: '0 9 * * *',             // 毎日 09:00 JST — AIニュースツイート + 引用RT
   },
   { name: 'x:process', slot: 'morning', cron: '30 7 * * *'  }, // 毎日 07:30 JST — 朝フック枠キュー処理
-  { name: 'x:process', slot: 'noon',    cron: '0 12 * * *'  }, // 毎日 12:00 JST — 昼ピーク枠キュー処理
+  { name: 'x:process', slot: 'noon',    cron: '5 12 * * *'  }, // 毎日 12:05 JST — 昼ピーク枠キュー処理（x:midday 12:00 と競合回避）
   { name: 'x:process', slot: 'night',   cron: '0 21 * * *'  }, // 毎日 21:00 JST — 夜ピーク枠キュー処理
   {
     name: 'x:midday',

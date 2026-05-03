@@ -12,7 +12,16 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) && !/^\d+$/.test(id)) {
     return NextResponse.json({ error: 'invalid workflow id' }, { status: 400 });
   }
-  const { active } = await req.json() as { active: boolean };
+  let active: boolean;
+  try {
+    const body = await req.json() as { active?: unknown };
+    if (typeof body.active !== 'boolean') {
+      return NextResponse.json({ error: 'invalid body: active must be boolean' }, { status: 400 });
+    }
+    active = body.active;
+  } catch {
+    return NextResponse.json({ error: 'invalid json' }, { status: 400 });
+  }
   const endpoint = active ? 'activate' : 'deactivate';
   try {
     const r = await fetch(`${N8N}/api/v1/workflows/${id}/${endpoint}`, {

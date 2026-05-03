@@ -90,7 +90,7 @@ async function fetchReddit(subreddit) {
     const res  = await fetch(url, { headers: { 'User-Agent': 'sns-auto/1.0' }, signal: AbortSignal.timeout(8_000) });
     const data = await res.json();
     return (data.data?.children ?? [])
-      .filter(p => AI_KEYWORDS.some(k => (p.data.title ?? '').toLowerCase().includes(k)) || true)
+      .filter(p => AI_KEYWORDS.some(k => (p.data.title ?? '').toLowerCase().includes(k)))
       .slice(0, 3)
       .map(p => ({ source: `reddit/${subreddit}`, title: p.data.title, url: `https://reddit.com${p.data.permalink}`, score: p.data.score }));
   } catch (err) {
@@ -103,9 +103,12 @@ async function fetchReddit(subreddit) {
 
 async function fetchXCompetitors() {
   const results = [];
+  let browser;
   try {
     const { getXBrowser } = await import('../x/browser-client.js');
-    const { browser, page } = await getXBrowser({ headless: true });
+    const bCtx = await getXBrowser({ headless: true });
+    browser = bCtx.browser;
+    const { page } = bCtx;
 
     for (const handle of COMPETITORS) {
       try {
@@ -128,9 +131,10 @@ async function fetchXCompetitors() {
       }
     }
 
-    await browser.close();
   } catch (err) {
     logger.warn(MODULE, `x competitor fetch skipped — ${err.message}`);
+  } finally {
+    await browser?.close().catch(() => {});
   }
   return results;
 }
