@@ -47,6 +47,7 @@ async function getCsrfToken(cookie) {
   try {
     const res = await fetch('https://note.com/', {
       headers: { Cookie: cookie, 'User-Agent': UA, Accept: 'text/html' },
+      signal: AbortSignal.timeout(10_000),
     });
     const html = await res.text();
     const m = html.match(/<meta name="csrf-token" content="([^"]+)"/);
@@ -90,7 +91,7 @@ async function fetchArticles(username) {
   while (page <= 5) {
     const url = `https://note.com/api/v2/creators/${username}/contents?kind=note&page=${page}&per=20`;
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': UA } });
+      const res = await fetch(url, { headers: { 'User-Agent': UA }, signal: AbortSignal.timeout(10_000) });
       if (!res.ok) break;
       const data = await res.json();
       const items = data?.data?.contents ?? [];
@@ -98,6 +99,10 @@ async function fetchArticles(username) {
       for (const item of items) {
         if (typeof item.id !== 'number' || !item.id) {
           logger.warn(MODULE, `fetchArticles: skipping item with no numeric id for ${username}`);
+          continue;
+        }
+        if (!item.key || !/^[a-zA-Z0-9_-]+$/.test(item.key)) {
+          logger.warn(MODULE, `fetchArticles: invalid key "${item.key}" for ${username} — skipping`);
           continue;
         }
         articles.push({
@@ -135,6 +140,7 @@ async function likeArticle(cookie, csrfToken, article, likerUsername) {
       method:  'POST',
       headers,
       body:    JSON.stringify({ target_id: article.id, target_type: 'Note' }),
+      signal:  AbortSignal.timeout(10_000),
     });
 
     if (res.status === 200 || res.status === 201) return 'ok';
@@ -206,6 +212,12 @@ export async function runCrossLike() {
         if (result === 'csrf_error') {
           logger.warn(MODULE, `CSRF error for acct${liker.id} — refreshing token`);
           csrfToken = await getCsrfToken(cookie);
+          if (!csrfToken) {
+            logger.error(MODULE, `cannot refresh CSRF for acct${liker.id} — aborting liker`);
+            authFailed = true;
+            errorCount++;
+            break outer;
+          }
           result = await likeArticle(cookie, csrfToken, article, liker.username);
         }
 
