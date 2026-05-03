@@ -120,6 +120,12 @@ export const TASKS = [
     cron: '0 * * * *',             // 毎時 00分 — ダッシュボードデータを Neon DB へ push
   },
 
+  // ── note エンゲージメント収集（毎朝） ────────────────────────────
+  {
+    name: 'note:collect',
+    cron: '0 9 * * *',             // 毎日 09:00 JST — PV・いいね集計 → note-summary.json
+  },
+
   // ── システム全体ヘルスチェック（15分ごと） ──────────────────────
   {
     name: 'monitoring:health-check',

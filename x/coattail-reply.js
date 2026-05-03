@@ -12,7 +12,6 @@ import 'dotenv/config';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { execFileSync } from 'child_process';
 import { getXBrowser } from './browser-client.js';
 import { generate } from '../shared/claude-client.js';
 import { logger } from '../shared/logger.js';
@@ -155,45 +154,38 @@ async function generateReply(tweet) {
   return text;
 }
 
-// ── xurl / twitter-api-v2 でリプライ投稿 ─────────────────────────
+// ── Playwright でリプライ投稿（API 403 回避） ─────────────────────
+// Twitter API の reply 制限（フォロワー限定設定等）を Playwright で回避する。
+// ブラウザ上の「返信」ダイアログを操作するため API 権限に依存しない。
 
-let _xurlAvailable = null;
-function isXurlAvailable() {
-  if (_xurlAvailable === null) {
-    try { execFileSync('xurl', ['--version'], { stdio: 'pipe' }); _xurlAvailable = true; }
-    catch { _xurlAvailable = false; }
-  }
-  return _xurlAvailable;
-}
+async function postCoattailReply(tweetId, text, page) {
+  const tweetUrl = `https://x.com/i/status/${tweetId}`;
+  await page.goto(tweetUrl, { waitUntil: 'domcontentloaded', timeout: 25_000 });
+  await page.waitForTimeout(2_000);
 
-async function postCoattailReply(tweetId, text) {
-  if (isXurlAvailable()) {
-    let raw;
-    try {
-      raw = execFileSync('xurl', ['reply', tweetId, text], {
-        encoding: 'utf8', stdio: 'pipe', timeout: 30_000,
-      });
-    } catch (err) {
-      const msg = err.stdout ?? err.stderr ?? err.message ?? '';
-      if (msg.includes('429') || msg.includes('rate limit')) {
-        throw Object.assign(new Error(`xurl rate limited: ${msg.slice(0, 100)}`), { isRateLimit: true });
-      }
-      throw new Error(`xurl reply failed: ${msg.slice(0, 200)}`);
-    }
-    let parsed;
-    try { parsed = JSON.parse(raw); }
-    catch { throw new Error(`xurl non-JSON response: ${raw.slice(0, 200)}`); }
-    return parsed?.data?.id ?? parsed?.id;
-  }
-  const { TwitterApi } = await import('twitter-api-v2');
-  const client = new TwitterApi({
-    appKey:       process.env.X_API_KEY,
-    appSecret:    process.env.X_API_SECRET,
-    accessToken:  process.env.X_ACCESS_TOKEN,
-    accessSecret: process.env.X_ACCESS_TOKEN_SECRET,
-  });
-  const res = await client.v2.tweet({ text, reply: { in_reply_to_tweet_id: tweetId } });
-  return res.data.id;
+  // 「返信」ボタンをクリック
+  const replyBtn = page.locator(`[data-testid="reply"]`).first();
+  await replyBtn.waitFor({ timeout: 10_000 });
+  await replyBtn.click();
+  await page.waitForTimeout(1_000);
+
+  // 返信テキストエリアに入力
+  const textarea = page.locator('[data-testid="tweetTextarea_0"]').first();
+  await textarea.waitFor({ timeout: 8_000 });
+  await textarea.click();
+  await page.keyboard.type(text, { delay: 20 });
+  await page.waitForTimeout(500);
+
+  // 「返信する」ボタンをクリック
+  const submitBtn = page.locator('[data-testid="tweetButtonInline"]').first();
+  await submitBtn.waitFor({ timeout: 5_000 });
+  await submitBtn.click();
+  await page.waitForTimeout(2_000);
+
+  // 投稿後 URL からツイートIDを取得（取れなければ tweetId を返す）
+  const postedUrl = page.url();
+  const m = postedUrl.match(/\/status\/(\d+)/);
+  return m ? m[1] : tweetId;
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -244,7 +236,7 @@ export async function runCoattailReply(opts = {}) {
           const replyText = await generateReply(tweet);
           logger.info(MODULE, `posting reply to @${tweet.handle}/${tweet.tweetId}`, { replyText });
 
-          await postCoattailReply(tweet.tweetId, replyText);
+          await postCoattailReply(tweet.tweetId, replyText, page);
           recordReplied(tweet.tweetId, tweet.handle, replyText);
           repliedIds.add(tweet.tweetId);
           totalPosted++;
