@@ -13,17 +13,22 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { saveJSON } from '../shared/file-utils.js';
-import { launchChromeProfileContext } from '../shared/browser-launch.js';
 import { logger } from '../shared/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const MODULE = 'analytics:note';
 const REPORTS_DIR = path.join(__dirname, 'reports');
 
+const SESSION_FILES = {
+  1: path.join(__dirname, '../.note-session.json'),
+  2: path.join(__dirname, '../.note-session-2.json'),
+  3: path.join(__dirname, '../.note-session-3.json'),
+};
+
 const ACCOUNTS = [
-  { id: 1, username: 'rascal_ai_devops',  chromeProfile: 'Profile 1' },
-  { id: 2, username: 'rascal_invest',     chromeProfile: 'Profile 2' },
-  { id: 3, username: 'rascal_affiliate',  chromeProfile: 'Profile 3' },
+  { id: 1, username: 'rascal_ai_devops' },
+  { id: 2, username: 'rascal_invest' },
+  { id: 3, username: 'rascal_affiliate' },
 ];
 
 // ── note 公開 API ─────────────────────────────────────────────────
@@ -62,58 +67,65 @@ async function fetchPublicStats(username) {
   return articles;
 }
 
-// ── Playwright でダッシュボード PV 取得 ──────────────────────────
+// ── note API で記事別PV取得 ──────────────────────────────────────
+// GET /api/v1/stats/pv?filter=<all|daily|weekly|monthly>&page=N
+// レスポンス: data.note_stats[].key, data.note_stats[].read_count
+// 認証: _note_session_v5 cookie 必須
 
-async function fetchDashboardStats(username, chromeProfile) {
-  const pvMap = {};
-  let context;
+function loadSessionCookie(accountId) {
+  const file = SESSION_FILES[accountId];
+  if (!file || !fs.existsSync(file)) return null;
   try {
-    context = await launchChromeProfileContext(chromeProfile);
-    const page = await context.newPage();
-
-    const statsUrl = `https://note.com/${username}/stats`;
-    await page.goto(statsUrl, { waitUntil: 'domcontentloaded', timeout: 30_000 });
-    await page.waitForTimeout(3_000);
-
-    // ログインページにリダイレクトされた場合はスキップ
-    if (page.url().includes('/login')) {
-      logger.warn(MODULE, `${username}: not logged in for stats`);
-      return pvMap;
-    }
-
-    // 記事別PV行を収集
-    // note の stats ページ構造: /stats にアクセスすると記事別PVテーブルが表示される
-    const rows = await page.locator('tr, [class*="StatsNote"], [class*="stats-note"]').all();
-    for (const row of rows) {
-      try {
-        const link = row.locator('a[href*="/n/"]').first();
-        const href = await link.getAttribute('href').catch(() => null);
-        if (!href) continue;
-        const m = href.match(/\/n\/([a-z0-9]+)/);
-        if (!m) continue;
-        const key = m[1];
-
-        // PV数: 数値テキストを探す
-        const cells = await row.locator('td, [class*="count"], [class*="pv"]').all();
-        for (const cell of cells) {
-          const txt = (await cell.textContent().catch(() => '')).replace(/,/g, '').trim();
-          const n = parseInt(txt);
-          if (!isNaN(n) && n > 0) {
-            pvMap[key] = (pvMap[key] ?? 0) + n;
-            break;
-          }
-        }
-      } catch { /* skip row */ }
-    }
-
-    logger.info(MODULE, `${username}: ${Object.keys(pvMap).length} PV entries from dashboard`);
-    return pvMap;
+    const { cookies } = JSON.parse(fs.readFileSync(file, 'utf8'));
+    const session = cookies?.find(c => c.name === '_note_session_v5' && c.domain.includes('note.com'));
+    return session ? `_note_session_v5=${session.value}` : null;
   } catch (err) {
-    logger.warn(MODULE, `dashboard scrape failed for ${username}: ${err.message}`);
-    return pvMap;
-  } finally {
-    if (context) await context.close().catch(() => {});
+    logger.warn(MODULE, `loadSessionCookie failed for account${accountId}: ${err.message}`);
+    return null;
   }
+}
+
+async function fetchPVStats(accountId, username, filter = 'monthly') {
+  const cookie = loadSessionCookie(accountId);
+  if (!cookie) {
+    logger.warn(MODULE, `${username}: no session cookie — run: node note/save-session.js`);
+    return {};
+  }
+
+  const pvMap = {};
+  let page = 1;
+  while (true) {
+    const url = `https://note.com/api/v1/stats/pv?filter=${filter}&page=${page}`;
+    try {
+      const res = await fetch(url, {
+        headers: {
+          Cookie:     cookie,
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept:     'application/json',
+          Referer:    'https://note.com/',
+        },
+      });
+      if (!res.ok) {
+        const errBody = (await res.text().catch(() => '')).slice(0, 200);
+        logger.warn(MODULE, `${username}: stats/pv ${res.status} — ${errBody}`);
+        break;
+      }
+      const data = (await res.json())?.data;
+      for (const item of data?.note_stats ?? []) {
+        if (item.key && item.read_count != null) {
+          pvMap[item.key] = item.read_count;
+        }
+      }
+      if (!data || data.last_page) break;
+      page++;
+    } catch (err) {
+      logger.warn(MODULE, `${username}: stats/pv fetch error p${page}: ${err.message}`);
+      break;
+    }
+  }
+
+  logger.info(MODULE, `${username}: ${Object.keys(pvMap).length} PV entries (filter=${filter})`);
+  return pvMap;
 }
 
 // ── メイン ────────────────────────────────────────────────────────
@@ -125,7 +137,7 @@ export async function collectNoteStats() {
     logger.info(MODULE, `collecting ${acct.username}`);
 
     const articles = await fetchPublicStats(acct.username);
-    const pvMap    = await fetchDashboardStats(acct.username, acct.chromeProfile);
+    const pvMap    = await fetchPVStats(acct.id, acct.username);
 
     // PV をマージ
     const merged = articles.map(a => ({
